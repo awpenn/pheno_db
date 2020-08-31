@@ -74,3 +74,15 @@ CREATE TABLE IF NOT EXISTS "subjects_phenotypes_family"
         PRIMARY KEY ("id")
     );
 												
+
+
+/*as a demo for jsonb implementation*/
+CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
+    (
+        "id" SERIAL NOT NULL,
+        "subject_id" VARCHAR(50) NOT NULL,
+        "_data" jsonb,
+        "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
+        "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
+        PRIMARY KEY ("id")
+    );
