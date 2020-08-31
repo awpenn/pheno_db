@@ -75,6 +75,7 @@ def create_data_dict(LOADFILE):
                     blob[headers[index]] = value
 
                 data_dict[blob["SUBJID"]] = blob
+                
     for key, record in data_dict.items():
         record.pop('SUBJID')
     print(data_dict)
