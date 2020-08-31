@@ -5,6 +5,7 @@ import psycopg2
 import csv
 from dotenv import load_dotenv
 import os
+import json
 
 import calendar
 import time
@@ -57,9 +58,16 @@ def main():
         return filename
 
     LOADFILE = get_filename()
-    create_data_dict(LOADFILE)
+    data_dict = create_data_dict(LOADFILE)
+    write_to_db(data_dict)
 
+def write_to_db(data_dict):
+    """takes data dict and writes to database"""
+    for key, value in data_dict.items():
+        subject_id = key
+        _data = json.dumps(value)
 
+        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data) VALUES('{subject_id}', '{_data}')")
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     data_dict = {}
@@ -72,14 +80,16 @@ def create_data_dict(LOADFILE):
             if pheno_file.line_num > 1:
                 blob = {}
                 for index, value in enumerate(row):
-                    blob[headers[index]] = value
+                    blob[headers[index].lower()] = value
 
-                data_dict[blob["SUBJID"]] = blob
-                
+                data_dict[blob["subjid"]] = blob
+
     for key, record in data_dict.items():
-        record.pop('SUBJID')
-    print(data_dict)
+        """remove subject id from blob for each record in dict"""
+        record.pop('subjid')
+
     return data_dict
+
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
 
