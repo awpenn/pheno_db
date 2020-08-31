@@ -14,14 +14,14 @@ WHERE data_version
 )
 
 
-CREATE VIEW get_current_ds
+CREATE OR REPLACE VIEW get_current_ds
 AS
 SELECT 
    subject_id, 
 
 _data::json->'sex' as sex,
-_data::json->'prevAD' as prevAD,
-_data::json->'incAD' as incAD,
+_data::json->'prevad' as prevAD,
+_data::json->'incad' as incAD,
 _data::json->'age' as age,
 _data::json->'age_baseline' as age_baseline,
 _data::json->'apoe' as apoe,
@@ -30,7 +30,7 @@ _data::json->'braak' as braak,
 _data::json->'race' as race,
 _data::json->'ethnicity' as ethnicity,
 _data::json->'selection' as selection,
-_data::json->'AD' as AD,
+_data::json->'ad' as AD,
 _data::json->'comments' as comments,
 _data::json->'data_version' as data_version
 FROM ds_subjects_phenotypes
