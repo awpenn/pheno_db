@@ -1,0 +1,23 @@
+docker run -ti -e GRANT_SUDO=yes --user root --name tada -p 8888:8888 jupyter/base-notebook bash
+docker run -ti -e GRANT_SUDO=yes --user root --name tada-installed -p 8888:8888 tada-installed bash
+
+jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root
+
+
+# basic test setup
+- docker pull jupyter/base-notebook
+- docker run -ti -e GRANT_SUDO=yes --user root --name tada -p 8888:8888 jupyter/base-notebook bash
+
+- install R 
+    - apt-get upgrade -y
+    - apt-get install gnupg2 software-properties-common libpq-dev
+    - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+    - sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
+    - sudo apt update
+    - sudo apt install r-base
+    - start R with `R` in CLI
+        - install.packages('IRkernel')
+        - IRkernel::installspec()
+
+- start notebook
+    - jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root
