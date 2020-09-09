@@ -26,6 +26,18 @@ CREATE TABLE IF NOT EXISTS "data_versions"
         PRIMARY KEY ("id")
     );
 
+    /*as a demo for jsonb implementation*/
+CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
+    (
+        "id" SERIAL NOT NULL,
+        "subject_id" VARCHAR(50) NOT NULL,
+        "_data" jsonb,
+        "published" BOOLEAN DEFAULT FALSE NOT NULL,
+        "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
+        "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
+        PRIMARY KEY ("id")
+    );
+
 CREATE TABLE IF NOT EXISTS "subjects_phenotypes_cc" 
     (
         "id" SERIAL NOT NULL, /*pkey for table, not subject_id*/
@@ -74,15 +86,3 @@ CREATE TABLE IF NOT EXISTS "subjects_phenotypes_family"
         PRIMARY KEY ("id")
     );
 												
-
-
-/*as a demo for jsonb implementation*/
-CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
-    (
-        "id" SERIAL NOT NULL,
-        "subject_id" VARCHAR(50) NOT NULL,
-        "_data" jsonb,
-        "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
-        "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
-        PRIMARY KEY ("id")
-    );

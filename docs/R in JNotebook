@@ -21,3 +21,20 @@ jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root
 
 - start notebook
     - jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root
+
+
+install.packages('IRkernel')
+IRkernel::installspec()
+
+
+# Install on Running TLJH/Hub
+- sudo -E pip install -U jupyterlab
+- apt-get update -y (run `kwclock --hctosys` if update error based on clock)
+- sudo -E apt install r-base libpq-dev
+- enter R CLI with `sudo -E R`
+    - install.packages('IRkernel')
+    - IRkernel::installspec(user=FALSE)
+- check kernel added with `jupyter kernelspec list`
+- reload hub `tljh-config reload`
+
+- ?need to manually install RPostgreSQL and dplyr from R CLI?
