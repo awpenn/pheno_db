@@ -52,7 +52,9 @@ def main():
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
     for key, value in data_dict.items():
-        subject_id = key
+        """key is id + version, so cuts off version part to get id"""
+        split = key.index("_")
+        subject_id = key[:split]
         _data = json.dumps(value)
 
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data) VALUES('{subject_id}', '{_data}')")
@@ -74,7 +76,7 @@ def create_data_dict(LOADFILE):
                     except:
                         blob[headers[index].lower()] = value
 
-                data_dict[blob["subjid"]] = blob
+                data_dict[f'{blob["subjid"]}_{blob["data_version"]}'] = blob
 
     for key, record in data_dict.items():
         """remove subject id from blob for each record in dict"""
