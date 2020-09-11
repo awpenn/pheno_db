@@ -70,14 +70,26 @@ $$ LANGUAGE plpgsql;
 		
 	END;
 
-CREATE OR REPLACE FUNCTION get_dyno() RETURNS TABLE
-(subject_id char varying, _data jsonb) AS $$
+CREATE OR REPLACE FUNCTION get_current_published_dyno() RETURNS TABLE
+(id int, subject_id char varying, _data jsonb, published boolean) AS $$
+	declare
+		i RECORD;
+	BEGIN
+		for i in (select distinct ds_subjects_phenotypes.subject_id, max(ds_subjects_phenotypes._data->>'data_version') as dv from ds_subjects_phenotypes where ds_subjects_phenotypes.published = TRUE GROUP BY ds_subjects_phenotypes.subject_id)
+			loop
+				return query select ds_subjects_phenotypes.id, ds_subjects_phenotypes.subject_id, ds_subjects_phenotypes._data, ds_subjects_phenotypes.published from ds_subjects_phenotypes where ds_subjects_phenotypes.subject_id = i.subject_id and ds_subjects_phenotypes._data->>'data_version' = i.dv;
+			end loop;
+	END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_newest_dyno() RETURNS TABLE
+(id int, subject_id char varying, _data jsonb, published boolean) AS $$
 	declare
 		i RECORD;
 	BEGIN
 		for i in (select distinct ds_subjects_phenotypes.subject_id, max(ds_subjects_phenotypes._data->>'data_version') as dv from ds_subjects_phenotypes GROUP BY ds_subjects_phenotypes.subject_id)
 			loop
-				return query select ds_subjects_phenotypes.subject_id, ds_subjects_phenotypes._data  from ds_subjects_phenotypes where ds_subjects_phenotypes.subject_id = i.subject_id and ds_subjects_phenotypes._data->>'data_version' = i.dv;
+				return query select ds_subjects_phenotypes.id, ds_subjects_phenotypes.subject_id, ds_subjects_phenotypes._data, ds_subjects_phenotypes.published from ds_subjects_phenotypes where ds_subjects_phenotypes.subject_id = i.subject_id and ds_subjects_phenotypes._data->>'data_version' = i.dv;
 			end loop;
 	END;
 $$ LANGUAGE plpgsql;
