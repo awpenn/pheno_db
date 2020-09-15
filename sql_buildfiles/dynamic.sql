@@ -1,28 +1,3 @@
-drop table temp;
-CREATE TABLE public.temp(
-	subject_id text,
-	_data jsonb
-);
-
-do
-$do$
-declare
-     i text;
-begin
-	for i in (select distinct subject_id from ds_subjects_phenotypes)
-	loop
-	insert into temp(subject_id, _data)
-	select subject_id, _data from ds_subjects_phenotypes where subject_id = i and _data->>'data_version' = (select max(_data->>'data_version') from ds_subjects_phenotypes where subject_id = i);
-
-
-	end loop;
-end;
-
-$do$;
-
-select * from temp;
-
-
 CREATE OR REPLACE FUNCTION get_dyno() RETURN TABLE(subject_id text, _data jsonb) AS $$
 	BEGIN
 		CREATE TABLE public.temp(
@@ -48,28 +23,7 @@ CREATE OR REPLACE FUNCTION get_dyno() RETURN TABLE(subject_id text, _data jsonb)
 	END;
 $$ LANGUAGE plpgsql;
 
-
-
-	DO
-		$do$
-		declare
-			i RECORD;
-		begin
-			for i in (select distinct subject_id, max(_data->>'data_version') as dv from ds_subjects_phenotypes GROUP BY subject_id)
-			loop
-				declare k RECORD;
-				begin
-				for k in (select * from ds_subjects_phenotypes where subject_id = i.subject_id and _data->>'data_version' = i.dv)
-					loop
-						raise notice '%', k;
-					end loop;
-				end;
-			end loop;
-		end;
-		$do$;
-		
-	END;
-
+/*get the entry with highest published vers_no for a particular subject_id*/
 CREATE OR REPLACE FUNCTION get_current_published_dyno() RETURNS TABLE
 (id int, subject_id char varying, _data jsonb, published boolean) AS $$
 	declare
@@ -82,6 +36,7 @@ CREATE OR REPLACE FUNCTION get_current_published_dyno() RETURNS TABLE
 	END;
 $$ LANGUAGE plpgsql;
 
+/*get the entry with highest vers_no for a particular subject_id, regardless of publication status*/
 CREATE OR REPLACE FUNCTION get_newest_dyno() RETURNS TABLE
 (id int, subject_id char varying, _data jsonb, published boolean) AS $$
 	declare
