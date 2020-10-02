@@ -101,12 +101,19 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = int(value)
                     except:
                         blob[headers[index].lower()] = value
+                    if headers[index].lower() == 'release_version':
+                        blob["data_version"] = get_data_version_id(value)
 
-                data_dict[f'{blob["subject_id"]}_{blob["data_version"]}'] = blob
+                if type(blob["data_version"]) == int:
+                    data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                else:
+                    print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
+
 
     for key, record in data_dict.items():
         """remove subject id from blob for each record in dict"""
         record.pop('subject_id')
+        record.pop('release_version')
 
     return data_dict
 
@@ -140,6 +147,15 @@ def database_connection(query):
             connection.close()
             print('database connection closed')
 
+def get_data_version_id(release_version):
+    """takes string release_version and returns id from data_version table"""
+    query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'")
+    try:
+        return query[0][0]
+    except:
+        print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
+        # then need to do something like return a signal that there's a problem
+        return release_version
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
