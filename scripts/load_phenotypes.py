@@ -56,9 +56,10 @@ def main():
                 continue
             if casefam_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
                 family_data_creation = True
+                print("Loading family data.")
                 break
             elif casefam_input in ['n', 'N', 'no', 'No', 'NO']:
-                print("Changes will be made to existing records but not published")
+                print("Loading case/control data.")
                 break
             else:
                 print("Please input a valid entry. ")
