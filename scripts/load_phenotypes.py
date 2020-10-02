@@ -22,6 +22,8 @@ DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 LOADFILE = ''
 
+family_data_creation = False
+
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global LOADFILE
@@ -45,19 +47,42 @@ def main():
         
         return filename
 
+    def get_subject_type():
+        global family_data_creation
+        while True:
+            try:
+                casefam_input = input(f"Are you uploading family data? ")
+            except ValueError:
+                continue
+            if casefam_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
+                family_data_creation = True
+                break
+            elif casefam_input in ['n', 'N', 'no', 'No', 'NO']:
+                print("Changes will be made to existing records but not published")
+                break
+            else:
+                print("Please input a valid entry. ")
+                continue
+    
+    get_subject_type()
     LOADFILE = get_filename()
     data_dict = create_data_dict(LOADFILE)
     write_to_db(data_dict)
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
+    global family_data_creation
+
     for key, value in data_dict.items():
         """key is id + version, so cuts off version part to get id"""
         split = key.index("_")
         subject_id = key[:split]
         _data = json.dumps(value)
 
-        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data) VALUES('{subject_id}', '{_data}')")
+        if family_data_creation:
+            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', 'family')")
+        else:
+            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', 'case/control')")
 
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
@@ -76,11 +101,11 @@ def create_data_dict(LOADFILE):
                     except:
                         blob[headers[index].lower()] = value
 
-                data_dict[f'{blob["subjid"]}_{blob["data_version"]}'] = blob
+                data_dict[f'{blob["subject_id"]}_{blob["data_version"]}'] = blob
 
     for key, record in data_dict.items():
         """remove subject id from blob for each record in dict"""
-        record.pop('subjid')
+        record.pop('subject_id')
 
     return data_dict
 
