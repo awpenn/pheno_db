@@ -20,14 +20,17 @@ CREATE OR REPLACE VIEW get_all_cc
         CAST(_data::json->>'ad' as INT) as ad,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        _data::json->>'release_version' as release_version,
-        published
+        ds_subjects_phenotypes.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
     FROM ds_subjects_phenotypes
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
     WHERE subject_type = 'case/control'
     ORDER BY subject_id ASC, data_version DESC;
 
 /*Get PUBLISHED record with highest version number for a subject_id*/
-CREATE OR REPLACE VIEW get_current_dynamic_cc
+CREATE OR REPLACE VIEW get_current_cc
     AS
     SELECT 
     subject_id, 
@@ -45,15 +48,18 @@ CREATE OR REPLACE VIEW get_current_dynamic_cc
         CAST(_data::json->>'ad' as INT) as ad,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        _data::json->>'release_version' as release_version,
-        published
+        get_current_published_dyno.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
 
     FROM get_current_published_dyno()
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
     WHERE subject_type = 'case/control'
     ORDER BY subject_id;
 
 /*Get record with highest version number (published OR unpublished) for a subject_id*/
-CREATE OR REPLACE VIEW get_newest_dynamic_cc
+CREATE OR REPLACE VIEW get_newest_cc
     AS
     SELECT 
         subject_id, 
@@ -71,15 +77,18 @@ CREATE OR REPLACE VIEW get_newest_dynamic_cc
         CAST(_data::json->>'ad' as INT) as ad,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        _data::json->>'release_version' as release_version,
-        published
+        get_newest_dyno.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
 
     FROM get_newest_dyno()
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
     WHERE subject_type = 'case/control'
     ORDER BY subject_id;
 
 /*Return entries for subject_id with highest data_version number AND are unpublished*/
-CREATE OR REPLACE VIEW get_unpublished_updates_dynamic_cc
+CREATE OR REPLACE VIEW get_unpublished_updates_cc
     AS
         SELECT 
         subject_id, 
@@ -97,10 +106,13 @@ CREATE OR REPLACE VIEW get_unpublished_updates_dynamic_cc
         CAST(_data::json->>'ad' as INT) as ad,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        _data::json->>'release_version' as release_version,
-        published
+        get_updates_dyno.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
 
     FROM get_updates_dyno()
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
     WHERE subject_type = 'case/control'
     ORDER BY subject_id;
 
