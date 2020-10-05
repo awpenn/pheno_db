@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS "data_versions"
     (
         "id" SERIAL NOT NULL, 
         "version_date" VARCHAR(25) NOT NULL, 
-        "release_version" VARCHAR(50), 
+        "release_version" VARCHAR(50),
+        "published" BOOLEAN DEFAULT FALSE NOT NULL, 
         "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
         "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
         PRIMARY KEY ("id")

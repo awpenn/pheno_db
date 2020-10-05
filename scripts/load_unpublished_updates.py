@@ -47,7 +47,8 @@ def main():
 
     LOADFILE = get_filename()
     data_dict = create_data_dict(LOADFILE)
-    write_to_db(data_dict)
+    print(data_dict)
+    # write_to_db(data_dict)
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
@@ -78,7 +79,10 @@ def create_data_dict(LOADFILE):
                         blob["data_version"] = get_data_version_id(value)
 
                 if type(blob["data_version"]) == int:
-                    data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                    if check_not_duplicate(blob):
+                        data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                    else:
+                        print(f'Already a published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
                 else:
                     print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
 
@@ -129,6 +133,17 @@ def get_data_version_id(release_version):
         print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
         # then need to do something like return a signal that there's a problem
         return release_version
+
+def check_not_duplicate(subject_json):
+
+    """takes current subject's compiled json blob, checks if a dupe (if published record for that subject in that data_version exists) and returns boolean"""
+    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subject_id']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND published = TRUE")
+    if query:
+        return False
+    else:
+        return True
+
+        
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
