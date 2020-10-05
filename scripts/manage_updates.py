@@ -71,11 +71,12 @@ def main():
 
 def write_to_db(data_dict):
     global publish_data
-    print(publish_data)
+
     """takes data dict and publish boolean and writes to database"""
     for key, value in data_dict.items():
-        subject_id = key
+        subject_id = value["subject_id"]
         version = value["data_version"]
+        value.pop("subject_id")
         _data = json.dumps(value)
 
         # database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data) VALUES('{subject_id}', '{_data}')")
@@ -100,14 +101,24 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = int(value)
                     except:
                         blob[headers[index].lower()] = value
+                    if headers[index].lower() == 'release_version':
+                        blob["data_version"] = get_data_version_id(value)
 
-                data_dict[blob["subject_id"]] = blob
+                if type(blob["data_version"]) == int:
+                    if check_not_duplicate(blob):
+                        data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                    else:
+                        print(f'Already a published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
+                else:
+                    print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
+
 
     for key, record in data_dict.items():
-        """remove subject id from blob for each record in dict"""
-        record.pop('subject_id')
+        """remove release_version from blob for each record in dict, in db is joined from data_version table"""
+        record.pop('release_version')
 
     return data_dict
+
 
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
@@ -139,7 +150,24 @@ def database_connection(query):
             connection.close()
             print('database connection closed')
 
+def get_data_version_id(release_version):
+    """takes string release_version and returns id from data_version table"""
+    query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'")
+    try:
+        return query[0][0]
+    except:
+        print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
+        # then need to do something like return a signal that there's a problem
+        return release_version
 
+def check_not_duplicate(subject_json):
+
+    """takes current subject's compiled json blob, checks if a dupe (if published record for that subject in that data_version exists) and returns boolean"""
+    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subject_id']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND published = TRUE")
+    if query:
+        return False
+    else:
+        return True
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
     if len(error_log) > 0:

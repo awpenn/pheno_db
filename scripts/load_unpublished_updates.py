@@ -22,6 +22,8 @@ DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 LOADFILE = ''
 
+family_data_creation = False
+
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global LOADFILE
@@ -44,20 +46,43 @@ def main():
                     break
         
         return filename
-
+    
+    def get_subject_type():
+        global family_data_creation
+        while True:
+            try:
+                casefam_input = input(f"Are you uploading family data? ")
+            except ValueError:
+                continue
+            if casefam_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
+                family_data_creation = True
+                print("Loading family data.")
+                break
+            elif casefam_input in ['n', 'N', 'no', 'No', 'NO']:
+                print("Loading case/control data.")
+                break
+            else:
+                print("Please input a valid entry. ")
+                continue
+    
+    get_subject_type()
     LOADFILE = get_filename()
     data_dict = create_data_dict(LOADFILE)
-    print(data_dict)
-    # write_to_db(data_dict)
+    write_to_db(data_dict)
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
+
+    global family_data_creation
     for key, value in data_dict.items():
-        version_inc = int(database_connection(f"SELECT MAX(_data->>'data_version') FROM ds_subjects_phenotypes WHERE subject_id = '{key}'")[0][0]) + 1
-        value["data_version"] = version_inc
+        subject_id = value["subject_id"]
+        value.pop("subject_id")
         _data = json.dumps(value)
 
-        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data) VALUES('{key}', '{_data}')")
+        if family_data_creation:
+            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', 'family')")
+        else:
+            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', 'case/control')")
 
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
@@ -88,8 +113,7 @@ def create_data_dict(LOADFILE):
 
 
     for key, record in data_dict.items():
-        """remove subject id from blob for each record in dict"""
-        record.pop('subject_id')
+        """remove release_version from blob for each record in dict, in db is joined from data_version table"""
         record.pop('release_version')
 
     return data_dict
