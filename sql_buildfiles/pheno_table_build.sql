@@ -41,8 +41,7 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
 --     "ethnicity": 1,
 --     "selection": 1,
 --     "age_baseline": 60,
---     "data_version": 1,
---     "release_version": "tada_1000"
+--     "data_version": 1
 -- }
 
 -- /* example fam _data for subject_phenotypes table _data */
@@ -61,6 +60,5 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
 --     "family_group": 1,
 --     "comment": "",
 --     "selection": 1,
---     "data_version": 1,
---     "release_version": "tada_1000"
+--     "data_version": 1
 -- }

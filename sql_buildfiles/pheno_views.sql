@@ -29,7 +29,7 @@ CREATE OR REPLACE VIEW get_all_cc
     WHERE subject_type = 'case/control'
     ORDER BY subject_id ASC, data_version DESC;
 
-/*Get PUBLISHED record with highest version number for a subject_id*/
+/*Get PUBLISHED cc record with highest version number for a subject_id*/
 CREATE OR REPLACE VIEW get_current_cc
     AS
     SELECT 
@@ -56,9 +56,10 @@ CREATE OR REPLACE VIEW get_current_cc
     JOIN data_versions
         ON data_versions.id = CAST(_data::json->>'data_version' as INT)
     WHERE subject_type = 'case/control'
+    AND data_versions.published = TRUE
     ORDER BY subject_id;
 
-/*Get record with highest version number (published OR unpublished) for a subject_id*/
+/*Get cc record with highest version number (published OR unpublished) for a subject_id*/
 CREATE OR REPLACE VIEW get_newest_cc
     AS
     SELECT 
@@ -87,7 +88,7 @@ CREATE OR REPLACE VIEW get_newest_cc
     WHERE subject_type = 'case/control'
     ORDER BY subject_id;
 
-/*Return entries for subject_id with highest data_version number AND are unpublished*/
+/*Return cc entries for subject_id with highest data_version number AND are unpublished*/
 CREATE OR REPLACE VIEW get_unpublished_updates_cc
     AS
         SELECT 
@@ -115,6 +116,126 @@ CREATE OR REPLACE VIEW get_unpublished_updates_cc
         ON data_versions.id = CAST(_data::json->>'data_version' as INT)
     WHERE subject_type = 'case/control'
     ORDER BY subject_id;
+/*Get all cc phenotype records, regardless of publish status*/
+CREATE OR REPLACE VIEW get_all_fam
+    AS
+    SELECT 
+        subject_id,
+        _data::json->>'family_id' as family_id, 
+        _data::json->>'mother_id' as mother_id, 
+        _data::json->>'father_id' as father_id, 
+        CAST(_data::json->>'sex' as INT) as sex,
+        CAST(_data::json->>'age' as INT) as age,
+        CAST(_data::json->>'age_baseline' as INT) as age_baseline,
+        _data::json->>'apoe' as apoe,
+        _data::json->>'autopsy' as autopsy,
+        _data::json->>'braak' as braak,
+        CAST(_data::json->>'race' as INT) as race,
+        _data::json->>'ethnicity' as ethnicity,
+        CAST(_data::json->>'ad' as INT) as ad,
+        _data::json->>'family_group' as family_group,
+        _data::json->>'comments' as comments,
+        CAST(_data::json->>'data_version' as INT) as data_version,
+        ds_subjects_phenotypes.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
+    FROM ds_subjects_phenotypes
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
+    WHERE subject_type = 'family'
+    ORDER BY subject_id ASC, data_version DESC;
+
+/*Get PUBLISHED cc record with highest version number for a subject_id*/
+CREATE OR REPLACE VIEW get_current_fam
+    AS
+    SELECT 
+        subject_id,
+        _data::json->>'family_id' as family_id, 
+        _data::json->>'mother_id' as mother_id, 
+        _data::json->>'father_id' as father_id, 
+        CAST(_data::json->>'sex' as INT) as sex,
+        CAST(_data::json->>'age' as INT) as age,
+        CAST(_data::json->>'age_baseline' as INT) as age_baseline,
+        _data::json->>'apoe' as apoe,
+        _data::json->>'autopsy' as autopsy,
+        _data::json->>'braak' as braak,
+        CAST(_data::json->>'race' as INT) as race,
+        _data::json->>'ethnicity' as ethnicity,
+        CAST(_data::json->>'ad' as INT) as ad,
+        _data::json->>'family_group' as family_group,
+        _data::json->>'comments' as comments,
+        CAST(_data::json->>'data_version' as INT) as data_version,
+        get_current_published_dyno.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
+
+    FROM get_current_published_dyno()
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
+    WHERE subject_type = 'family'
+    AND data_versions.published = TRUE
+    ORDER BY subject_id;
+
+/*Get cc record with highest version number (published OR unpublished) for a subject_id*/
+CREATE OR REPLACE VIEW get_newest_fam
+    AS
+    SELECT 
+        subject_id,
+        _data::json->>'family_id' as family_id, 
+        _data::json->>'mother_id' as mother_id, 
+        _data::json->>'father_id' as father_id, 
+        CAST(_data::json->>'sex' as INT) as sex,
+        CAST(_data::json->>'age' as INT) as age,
+        CAST(_data::json->>'age_baseline' as INT) as age_baseline,
+        _data::json->>'apoe' as apoe,
+        _data::json->>'autopsy' as autopsy,
+        _data::json->>'braak' as braak,
+        CAST(_data::json->>'race' as INT) as race,
+        _data::json->>'ethnicity' as ethnicity,
+        CAST(_data::json->>'ad' as INT) as ad,
+        _data::json->>'family_group' as family_group,
+        _data::json->>'comments' as comments,
+        CAST(_data::json->>'data_version' as INT) as data_version,
+        get_newest_dyno.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
+
+    FROM get_newest_dyno()
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
+    WHERE subject_type = 'family'
+    ORDER BY subject_id;
+
+/*Return cc entries for subject_id with highest data_version number AND are unpublished*/
+CREATE OR REPLACE VIEW get_unpublished_updates_fam
+    AS
+        SELECT 
+        subject_id,
+        _data::json->>'family_id' as family_id, 
+        _data::json->>'mother_id' as mother_id, 
+        _data::json->>'father_id' as father_id, 
+        CAST(_data::json->>'sex' as INT) as sex,
+        CAST(_data::json->>'age' as INT) as age,
+        CAST(_data::json->>'age_baseline' as INT) as age_baseline,
+        _data::json->>'apoe' as apoe,
+        _data::json->>'autopsy' as autopsy,
+        _data::json->>'braak' as braak,
+        CAST(_data::json->>'race' as INT) as race,
+        _data::json->>'ethnicity' as ethnicity,
+        CAST(_data::json->>'ad' as INT) as ad,
+        _data::json->>'family_group' as family_group,
+        _data::json->>'comments' as comments,
+        CAST(_data::json->>'data_version' as INT) as data_version,
+        get_updates_dyno.published as record_published,
+        data_versions.release_version as release_version,
+        data_versions.published as version_published
+
+    FROM get_updates_dyno()
+    JOIN data_versions
+        ON data_versions.id = CAST(_data::json->>'data_version' as INT)
+    WHERE subject_type = 'family'
+    ORDER BY subject_id;
+
 
 /*WiP connect to consent db*/
 -- CREATE OR REPLACE VIEW subjects_phenotypes_consents
