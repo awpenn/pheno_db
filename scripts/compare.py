@@ -46,37 +46,46 @@ def main():
     get_subject_type()
     comparison_dict = create_comparison_dict()
 
-    print(comparison_dict)
-
+    build_comparison_table( comparison_dict )
 
 def create_comparison_dict():
-    """takes no args and creates comparison dict"""
+    """takes no args and creates comparison dict and list of headers"""
     global compare_family_data
     compare_dict = {}
 
     if compare_family_data:
-        response = database_connection("SELECT * FROM get_unpublished_updates_fam LEFT JOIN get_current_fam ON get_unpublished_updates_fam.subject_id = get_current_fam.subject_id")
+        data = database_connection("SELECT * FROM get_unpublished_updates_fam LEFT JOIN get_current_fam ON get_unpublished_updates_fam.subject_id = get_current_fam.subject_id")
         headers = database_connection("SELECT table_name, ordinal_position, column_name FROM information_schema.columns WHERE table_name in('get_unpublished_updates_cc' ,'get_current_fam');" )
     else:
-        response = database_connection("SELECT * FROM get_unpublished_updates_cc LEFT JOIN get_current_cc ON get_unpublished_updates_cc.subject_id = get_current_cc.subject_id")
+        data = database_connection("SELECT * FROM get_unpublished_updates_cc LEFT JOIN get_current_cc ON get_unpublished_updates_cc.subject_id = get_current_cc.subject_id")
         headers = database_connection("SELECT ordinal_position, column_name, table_name FROM information_schema.columns WHERE table_name in('get_unpublished_updates_cc' ,'get_current_cc');")
     
-    unique_headers_len = int(len(headers)/2)
+    unique_headers_len = int( len( headers )/2 )
 
-    for p_value in response:
-        subject_id = p_value[0]
+    for p_value in data:
+        subject_id = p_value[ 0 ]
         subject_dict = {}
         for index, h_value in enumerate(headers):
             if index <= unique_headers_len-1:
-                phenotype = h_value[1]
+
+                phenotype = h_value[ 1 ]
                 update_val = p_value[index]
-                current_val = p_value[index+unique_headers_len]
+                current_val = p_value[ index + unique_headers_len]
                 subject_dict[phenotype] = (update_val, current_val)
+        subject_dict.pop("subject_id")
         compare_dict[subject_id] = subject_dict
 
     
     return compare_dict
 
+def build_comparison_table(comparison_dict):
+    """takes comparison dict and list of headers, creates table for comparison"""
+    for subject_id, data in comparison_dict.items():
+        print(subject_id)
+
+        for phenotype, values in data.items():
+            if values[0] != values[1]:
+                print(phenotype, values)
 
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
@@ -108,24 +117,6 @@ def database_connection(query):
             connection.close()
             print('database connection closed')
 
-def get_data_version_id(release_version):
-    """takes string release_version and returns id from data_version table"""
-    query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'")
-    try:
-        return query[0][0]
-    except:
-        print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
-        # then need to do something like return a signal that there's a problem
-        return release_version
-
-def check_not_duplicate(subject_json):
-
-    """takes current subject's compiled json blob, checks if a dupe (if published record for that subject in that data_version exists) and returns boolean"""
-    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subject_id']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND published = TRUE")
-    if query:
-        return False
-    else:
-        return True
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
     if len(error_log) > 0:
