@@ -74,7 +74,10 @@ def create_comparison_dict():
                 headers_list.append( phenotype )
                 update_val = p_value[ index ]
                 current_val = p_value[ index + unique_headers_len]
-                values = f"{update_val}, {current_val}"
+                if update_val != current_val:
+                    values = f"{update_val}, {current_val}"
+                else:
+                    values = ""
                 subject_dict[phenotype] = values
 
         subject_dict.pop("subject_id")
