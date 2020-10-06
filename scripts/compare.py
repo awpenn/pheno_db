@@ -44,14 +44,15 @@ def main():
                 continue
     
     get_subject_type()
-    comparison_dict = create_comparison_dict()
+    comparison_dict_and_headers = create_comparison_dict()
 
-    build_comparison_table( comparison_dict )
+    build_comparison_table( comparison_dict_and_headers )
 
 def create_comparison_dict():
     """takes no args and creates comparison dict and list of headers"""
     global compare_family_data
     compare_dict = {}
+    headers_list = []
 
     if compare_family_data:
         data = database_connection("SELECT * FROM get_unpublished_updates_fam LEFT JOIN get_current_fam ON get_unpublished_updates_fam.subject_id = get_current_fam.subject_id")
@@ -65,27 +66,35 @@ def create_comparison_dict():
     for p_value in data:
         subject_id = p_value[ 0 ]
         subject_dict = {}
+
         for index, h_value in enumerate(headers):
             if index <= unique_headers_len-1:
 
                 phenotype = h_value[ 1 ]
-                update_val = p_value[index]
+                headers_list.append( phenotype )
+                update_val = p_value[ index ]
                 current_val = p_value[ index + unique_headers_len]
-                subject_dict[phenotype] = (update_val, current_val)
+                values = f"{update_val}, {current_val}"
+                subject_dict[phenotype] = values
+
         subject_dict.pop("subject_id")
         compare_dict[subject_id] = subject_dict
 
-    
-    return compare_dict
+    return compare_dict, headers_list
 
-def build_comparison_table(comparison_dict):
+def build_comparison_table(comparison_dict_and_headers):
     """takes comparison dict and list of headers, creates table for comparison"""
-    for subject_id, data in comparison_dict.items():
-        print(subject_id)
+    comparison_dict = comparison_dict_and_headers[ 0 ]
+    headers = comparison_dict_and_headers[ 1 ]
 
-        for phenotype, values in data.items():
-            if values[0] != values[1]:
-                print(phenotype, values)
+    with open('tada.csv', mode='w') as csv_file:
+        fieldnames = headers
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for subject_id, data in comparison_dict.items():
+            data["subject_id"] = subject_id
+            writer.writerow(data)
 
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
