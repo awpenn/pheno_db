@@ -26,6 +26,17 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
         PRIMARY KEY ("id")
     );
 
+CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes_baseline"
+    (
+        "id" SERIAL NOT NULL,
+        "subject_id" VARCHAR(50) NOT NULL,
+        "_baseline_data" jsonb,
+        "subject_type" "public"."subject_type" DEFAULT 'other' NOT NULL,
+        "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
+        "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
+        PRIMARY KEY ("id")
+    );
+
 -- /* example cc _data for subject_phenotypes table _data */
 -- {
 --     "ad": 0,
@@ -43,13 +54,6 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
 --     "age_baseline": 60,
 --     "data_version": 1,
 --     "latest_update_version": 0,
---     "base_prevad": 0,
---     "base_incad": 0,
---     "base_age": 0,
---     "base_autopsy": 0,
---     "base_braak": 0,
---     "base_ad": 0,
---     "base_version": 0,
 --     "update_baseline": 0,
 --     "update_latest": 0,
 --     "update_adstatus": 0,
@@ -75,13 +79,46 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
 --     "selection": 1,
 --     "data_version": 1,
 --     "latest_update_version": 0,
---     "base_ad": 0,
---     "base_age": 0,
---     "base_autopsy": 0,
---     "base_braak": 0,
---     "base_version,": 0,
 --     "update_baseline,": 0,
 --     "update_latest": 0,
 --     "update_adstatus": 0,
 --     "correction": 0
+-- }
+
+-- /* example cc _baseline_data for subject_phenotypes table _data */
+-- {
+--     "baseline_ad": 0,
+--     "baseline_age": 75,
+--     "baseline_sex": 1,
+--     "baseline_apoe": 34,
+--     "baseline_race": 6,
+--     "baseline_braak": "NA",
+--     "baseline_incad": 0,
+--     "baseline_prevad": 0,
+--     "baseline_autopsy": 0,
+--     "baseline_comment": "",
+--     "baseline_ethnicity": 1,
+--     "baseline_selection": 1,
+--     "baseline_age_baseline": 60,
+--     "baseline_data_version": 1
+    }
+-- 
+
+-- /* example fam _baseline_data for subject_phenotypes table _data */
+-- {
+--     "baseline_family_id": 0,
+--     "baseline_mother_id": 0,
+--     "baseline_father_id": 0,
+--     "baseline_sex": 1,
+--     "baseline_age": 75,
+--     "baseline_age_baseline": 60,
+--     "baseline_apoe": 34,
+--     "baseline_autopsy": 0,
+--     "baseline_braak": "NA",
+--     "baseline_race": 6,
+--     "baseline_ethnicity": 1,
+--     "baseline_family_group": 1,
+--     "baseline_comment": "",
+--     "baseline_selection": 1,
+--     "baseline_data_version": 1
 -- }
