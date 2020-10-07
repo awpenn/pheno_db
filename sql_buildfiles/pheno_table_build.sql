@@ -41,8 +41,21 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
 --     "ethnicity": 1,
 --     "selection": 1,
 --     "age_baseline": 60,
---     "data_version": 1
--- }
+--     "data_version": 1,
+--     "latest_update_version": 0,
+--     "base_prevad": 0,
+--     "base_incad": 0,
+--     "base_age": 0,
+--     "base_autopsy": 0,
+--     "base_braak": 0,
+--     "base_ad": 0,
+--     "base_version": 0,
+--     "update_baseline": 0,
+--     "update_latest": 0,
+--     "update_adstatus": 0,
+--     "correction": 0,
+    }
+-- 
 
 -- /* example fam _data for subject_phenotypes table _data */
 -- {
@@ -60,5 +73,15 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes"
 --     "family_group": 1,
 --     "comment": "",
 --     "selection": 1,
---     "data_version": 1
+--     "data_version": 1,
+--     "latest_update_version": 0,
+--     "base_ad": 0,
+--     "base_age": 0,
+--     "base_autopsy": 0,
+--     "base_braak": 0,
+--     "base_version,": 0,
+--     "update_baseline,": 0,
+--     "update_latest": 0,
+--     "update_adstatus": 0,
+--     "correction": 0
 -- }
