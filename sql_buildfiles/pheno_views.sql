@@ -161,7 +161,7 @@ CREATE OR REPLACE VIEW get_all_fam
         CAST(_data::json->>'race' as INT) as race,
         _data::json->>'ethnicity' as ethnicity,
         CAST(_data::json->>'ad' as INT) as ad,
-        CAST(_data::json->>'family_group)' as INT) as family_group,
+        CAST(_data::json->>'family_group' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
         ds_subjects_phenotypes.published as record_published,
@@ -310,10 +310,13 @@ CREATE OR REPLACE VIEW get_current_and_baseline_cc
        _baseline_data->>'baseline_ethnicity' as baseline_ethnicity,
        CAST(_baseline_data->>'baseline_selection' as INT) as baseline_selection,
        _baseline_data->>'baseline_age_baseline' as baseline_age_baseline,
-       CAST(_baseline_data->>'baseline_data_version' as INT) as baseline_data_version
-    FROM get_current_cc
-    JOIN ds_subjects_phenotypes_baseline 
-        ON get_current_cc.subject_id = ds_subjects_phenotypes_baseline.subject_id
+       CAST(_baseline_data->>'baseline_data_version' as INT) as baseline_data_version,
+       data_versions.release_version as baseline_release_version
+    FROM ds_subjects_phenotypes_baseline 
+    JOIN get_current_cc
+        ON ds_subjects_phenotypes_baseline.subject_id = get_current_cc.subject_id
+    JOIN data_versions
+        ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'baseline_data_version' AS INT)
     WHERE ds_subjects_phenotypes_baseline.subject_type = 'case/control'
     ORDER BY subject_id;
 
@@ -331,14 +334,17 @@ CREATE OR REPLACE VIEW get_current_and_baseline_fam
        _baseline_data::json->>'baseline_braak' as baseline_braak,
        _baseline_data::json->>'baseline_autopsy' as baseline_autopsy,
        CAST(_baseline_data::json->>'baseline_ad' as INT) as baseline_ad,
-       CAST(_baseline_data::json->>'family_group' as INT) as family_group,
+       CAST(_baseline_data::json->>'family_group' as INT) as baseline_family_group,
        _baseline_data::json->>'baseline_comment' as baseline_comment,
        _baseline_data::json->>'baseline_ethnicity' as baseline_ethnicity,
        _baseline_data::json->>'baseline_age_baseline' as baseline_age_baseline,
-       CAST(_baseline_data::json->>'baseline_data_version' as INT) as baseline_data_version       
-    FROM get_current_fam
-    JOIN ds_subjects_phenotypes_baseline 
-        ON get_current_fam.subject_id = ds_subjects_phenotypes_baseline.subject_id
+       CAST(_baseline_data::json->>'baseline_data_version' as INT) as baseline_data_version,
+       data_versions.release_version as baseline_release_version       
+    FROM ds_subjects_phenotypes_baseline 
+    JOIN get_current_fam
+        ON ds_subjects_phenotypes_baseline.subject_id = get_current_fam.subject_id
+    JOIN data_versions
+        ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'baseline_data_version' AS INT)
     WHERE ds_subjects_phenotypes_baseline.subject_type = 'family'
     ORDER BY subject_id;
 
