@@ -161,7 +161,7 @@ CREATE OR REPLACE VIEW get_all_fam
         CAST(_data::json->>'race' as INT) as race,
         _data::json->>'ethnicity' as ethnicity,
         CAST(_data::json->>'ad' as INT) as ad,
-        _data::json->>'family_group' as family_group,
+        CAST(_data::json->>'family_group)' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
         ds_subjects_phenotypes.published as record_published,
@@ -197,7 +197,7 @@ CREATE OR REPLACE VIEW get_current_fam
         CAST(_data::json->>'race' as INT) as race,
         _data::json->>'ethnicity' as ethnicity,
         CAST(_data::json->>'ad' as INT) as ad,
-        _data::json->>'family_group' as family_group,
+        CAST(_data::json->>'family_group' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
         get_current_published_dyno.published as record_published,
@@ -234,7 +234,7 @@ CREATE OR REPLACE VIEW get_newest_fam
         CAST(_data::json->>'race' as INT) as race,
         _data::json->>'ethnicity' as ethnicity,
         CAST(_data::json->>'ad' as INT) as ad,
-        _data::json->>'family_group' as family_group,
+        CAST(_data::json->>'family_group' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
         get_newest_dyno.published as record_published,
@@ -271,7 +271,7 @@ CREATE OR REPLACE VIEW get_unpublished_updates_fam
         CAST(_data::json->>'race' as INT) as race,
         _data::json->>'ethnicity' as ethnicity,
         CAST(_data::json->>'ad' as INT) as ad,
-        _data::json->>'family_group' as family_group,
+        CAST(_data::json->>'family_group' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
         get_updates_dyno.published as record_published,
@@ -314,6 +314,32 @@ CREATE OR REPLACE VIEW get_current_and_baseline_cc
     FROM get_current_cc
     JOIN ds_subjects_phenotypes_baseline 
         ON get_current_cc.subject_id = ds_subjects_phenotypes_baseline.subject_id
+    WHERE ds_subjects_phenotypes_baseline.subject_type = 'case/control'
+    ORDER BY subject_id;
+
+CREATE OR REPLACE VIEW get_current_and_baseline_fam
+    AS 
+    SELECT  
+       get_current_fam.*, 
+       _baseline_data->>'baseline_family_id' as baseline_family_id,
+       _baseline_data->>'baseline_mother_id' as baseline_mother_id,
+       _baseline_data->>'baseline_father_id' as baseline_father_id,
+       _baseline_data->>'baseline_sex' as baseline_sex,
+       CAST(_baseline_data->>'baseline_age' as INT) as baseline_age,
+       _baseline_data->>'baseline_apoe' as baseline_apoe,
+       CAST(_baseline_data->>'baseline_race' as INT) as baseline_race,
+       _baseline_data->>'baseline_braak' as baseline_braak,
+       _baseline_data->>'baseline_autopsy' as baseline_autopsy,
+       CAST(_baseline_data->>'baseline_ad' as INT) as baseline_ad,
+       CAST(_baseline_data::json->>'family_group' as INT) as family_group,
+       _baseline_data->>'baseline_comment' as baseline_comment,
+       _baseline_data->>'baseline_ethnicity' as baseline_ethnicity,
+       _baseline_data->>'baseline_age_baseline' as baseline_age_baseline,
+       CAST(_baseline_data->>'baseline_data_version' as INT) as baseline_data_version
+    FROM get_current_fam
+    JOIN ds_subjects_phenotypes_baseline 
+        ON get_current_fam.subject_id = ds_subjects_phenotypes_baseline.subject_id
+    WHERE ds_subjects_phenotypes_baseline.subject_type = 'family'
     ORDER BY subject_id;
 
 /*WiP connect to consent db*/
@@ -325,10 +351,3 @@ CREATE OR REPLACE VIEW get_current_and_baseline_cc
 
 
 
-
-
-(SELECT release_version 
-FROM data_versions
-JOIN ds_subjects_phenotypes 
-ON data_versions.id = CAST(ds_subjects_phenotypes._data::json->>'latest_update_version' as INT)
-where data_versions.id = CAST(ds_subjects_phenotypes._data::json->>'latest_update_version' as INT)) as tada,
