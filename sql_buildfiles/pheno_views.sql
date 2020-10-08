@@ -321,21 +321,21 @@ CREATE OR REPLACE VIEW get_current_and_baseline_fam
     AS 
     SELECT  
        get_current_fam.*, 
-       _baseline_data->>'baseline_family_id' as baseline_family_id,
-       _baseline_data->>'baseline_mother_id' as baseline_mother_id,
-       _baseline_data->>'baseline_father_id' as baseline_father_id,
-       _baseline_data->>'baseline_sex' as baseline_sex,
-       CAST(_baseline_data->>'baseline_age' as INT) as baseline_age,
-       _baseline_data->>'baseline_apoe' as baseline_apoe,
-       CAST(_baseline_data->>'baseline_race' as INT) as baseline_race,
-       _baseline_data->>'baseline_braak' as baseline_braak,
-       _baseline_data->>'baseline_autopsy' as baseline_autopsy,
-       CAST(_baseline_data->>'baseline_ad' as INT) as baseline_ad,
+       _baseline_data::json->>'baseline_family_id' as baseline_family_id,
+       _baseline_data::json->>'baseline_mother_id' as baseline_mother_id,
+       _baseline_data::json->>'baseline_father_id' as baseline_father_id,
+       _baseline_data::json->>'baseline_sex' as baseline_sex,
+       CAST(_baseline_data::json->>'baseline_age' as INT) as baseline_age,
+       _baseline_data::json->>'baseline_apoe' as baseline_apoe,
+       CAST(_baseline_data::json->>'baseline_race' as INT) as baseline_race,
+       _baseline_data::json->>'baseline_braak' as baseline_braak,
+       _baseline_data::json->>'baseline_autopsy' as baseline_autopsy,
+       CAST(_baseline_data::json->>'baseline_ad' as INT) as baseline_ad,
        CAST(_baseline_data::json->>'family_group' as INT) as family_group,
-       _baseline_data->>'baseline_comment' as baseline_comment,
-       _baseline_data->>'baseline_ethnicity' as baseline_ethnicity,
-       _baseline_data->>'baseline_age_baseline' as baseline_age_baseline,
-       CAST(_baseline_data->>'baseline_data_version' as INT) as baseline_data_version
+       _baseline_data::json->>'baseline_comment' as baseline_comment,
+       _baseline_data::json->>'baseline_ethnicity' as baseline_ethnicity,
+       _baseline_data::json->>'baseline_age_baseline' as baseline_age_baseline,
+       CAST(_baseline_data::json->>'baseline_data_version' as INT) as baseline_data_version       
     FROM get_current_fam
     JOIN ds_subjects_phenotypes_baseline 
         ON get_current_fam.subject_id = ds_subjects_phenotypes_baseline.subject_id
