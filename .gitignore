@@ -4,4 +4,5 @@
 .DS_Store
 devnotes.md
 pheno-fdw-setup.sql
+drop.sql
 tada.csv
