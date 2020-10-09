@@ -90,6 +90,7 @@ def main():
     LOADFILE = get_filename()
     data_dict = create_data_dict(LOADFILE)
     write_to_db(data_dict)
+    save_baseline(data_dict)
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
@@ -106,6 +107,30 @@ def write_to_db(data_dict):
             database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', 'family', {publish_status})")
         else:
             database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', 'case/control', {publish_status})")
+
+def save_baseline(data_dict):
+    """takes data dict and writes to database"""
+    global family_data_creation
+    global publish_status
+
+    print('writing to baseline table')
+
+    for key, value in data_dict.items():
+        """key is id + version, so cuts off version part to get id"""
+        split = key.index("_")
+        subject_id = key[:split]
+        _data = json.dumps(value)
+
+        if family_data_creation:
+            if check_not_dupe_baseline(subject_id, 'family'):
+                database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_data}', 'family')")
+            else:
+                print(f'There is already a family baseline record for {subject_id}.')
+        else:
+            if check_not_dupe_baseline(subject_id, 'case/control'):
+                database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_data}', 'case/control')") 
+            else:
+                 print(f'There is already a case/control baseline record for {subject_id}.')
 
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
@@ -125,6 +150,8 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = value
                     if headers[index].lower() == 'release_version':
                         blob["data_version"] = get_data_version_id(value)
+                    if headers[index].lower() == 'latest_update_release_version':
+                        blob["latest_update_version"] = get_data_version_id(value)
 
                 if type(blob["data_version"]) == int:
                     data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
@@ -178,6 +205,14 @@ def get_data_version_id(release_version):
         print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
         # then need to do something like return a signal that there's a problem
         return release_version
+
+def check_not_dupe_baseline(subject_id, subject_type):
+    """takes subject_id and subject_type, returns true if not a duplicate, false if record found with that subject_id/type in baseline table"""
+    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{subject_id}' and subject_type = '{subject_type}'")
+    if query:
+        return False
+    else:
+        return True
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
