@@ -55,7 +55,7 @@ CREATE OR REPLACE VIEW get_current_cc
         CAST(_data::json->>'ad' as INT) as ad,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        get_current_published_dyno.published as record_published,
+        get_current_published_cc_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
         d2.release_version as latest_update_version,
@@ -64,12 +64,12 @@ CREATE OR REPLACE VIEW get_current_cc
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
 
-    FROM get_current_published_dyno()
+    FROM get_current_published_cc_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
 	JOIN data_versions d2
 		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
-    WHERE subject_type = 'case/control'
+
     ORDER BY subject_id ASC, data_version DESC;
 
 /*Get cc record with highest version number (published OR unpublished) for a subject_id*/
@@ -91,7 +91,7 @@ CREATE OR REPLACE VIEW get_newest_cc
         CAST(_data::json->>'ad' as INT) as ad,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        get_newest_dyno.published as record_published,
+        get_newest_cc_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
         d2.release_version as latest_update_version,
@@ -100,12 +100,12 @@ CREATE OR REPLACE VIEW get_newest_cc
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
 
-    FROM get_newest_dyno()
+    FROM get_newest_cc_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
 	JOIN data_versions d2
 		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
-    WHERE subject_type = 'case/control'
+
     ORDER BY subject_id ASC, data_version DESC;
 
 /*Return cc entries for subject_id with highest data_version number AND are unpublished*/
@@ -127,7 +127,7 @@ CREATE OR REPLACE VIEW get_unpublished_updates_cc
         CAST(_data::json->>'ad' as INT) as ad,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        get_updates_dyno.published as record_published,
+        get_updates_cc_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
         d2.release_version as latest_update_version,
@@ -136,12 +136,12 @@ CREATE OR REPLACE VIEW get_unpublished_updates_cc
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
 
-    FROM get_updates_dyno()
+    FROM get_updates_cc_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
 	JOIN data_versions d2
 		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
-    WHERE subject_type = 'case/control'
+
     ORDER BY subject_id ASC, data_version DESC;
 
 /*Get all cc phenotype records, regardless of publish status*/
@@ -200,7 +200,7 @@ CREATE OR REPLACE VIEW get_current_fam
         CAST(_data::json->>'family_group' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        get_current_published_dyno.published as record_published,
+        get_current_published_family_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
         d2.release_version as latest_update_version,
@@ -209,12 +209,12 @@ CREATE OR REPLACE VIEW get_current_fam
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
 
-    FROM get_current_published_dyno()
+    FROM get_current_published_family_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
 	JOIN data_versions d2
 		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
-    WHERE subject_type = 'family'
+
     ORDER BY subject_id ASC, data_version DESC;
 
 /*Get cc record with highest version number (published OR unpublished) for a subject_id*/
@@ -237,7 +237,7 @@ CREATE OR REPLACE VIEW get_newest_fam
         CAST(_data::json->>'family_group' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        get_newest_dyno.published as record_published,
+        get_newest_family_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
         d2.release_version as latest_update_version,
@@ -246,12 +246,12 @@ CREATE OR REPLACE VIEW get_newest_fam
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
 
-    FROM get_newest_dyno()
+    FROM get_newest_family_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
 	JOIN data_versions d2
 		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
-    WHERE subject_type = 'family'
+
     ORDER BY subject_id ASC, data_version DESC;
 
 /*Return cc entries for subject_id with highest data_version number AND are unpublished*/
@@ -274,7 +274,7 @@ CREATE OR REPLACE VIEW get_unpublished_updates_fam
         CAST(_data::json->>'family_group' as INT) as family_group,
         _data::json->>'comments' as comments,
         CAST(_data::json->>'data_version' as INT) as data_version,
-        get_updates_dyno.published as record_published,
+        get_updates_family_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
         d2.release_version as latest_update_version,
@@ -283,12 +283,12 @@ CREATE OR REPLACE VIEW get_unpublished_updates_fam
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
 
-    FROM get_updates_dyno()
+    FROM get_updates_family_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
 	JOIN data_versions d2
 		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
-    WHERE subject_type = 'family'
+
     ORDER BY subject_id ASC, data_version DESC;
     
 
