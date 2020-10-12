@@ -166,7 +166,7 @@ def create_baseline_json(data):
     baseline_data = {}
     for key, value in data.items():
         if "update" not in key and "correction" not in key:
-            baseline_data[f"baseline_{key}"] = value
+            baseline_data[key] = value
  
     return json.dumps(baseline_data)
 
