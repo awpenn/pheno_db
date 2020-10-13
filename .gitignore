@@ -3,6 +3,7 @@
 .vscode
 .DS_Store
 devnotes.md
+__pycache__
 pheno-fdw-setup.sql
 drop.sql
 tada.csv
