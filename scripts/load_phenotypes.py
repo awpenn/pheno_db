@@ -94,40 +94,6 @@ def main():
     data_dict = create_data_dict(LOADFILE)
     write_to_db(data_dict)
 
-def write_to_db(data_dict):
-    """takes data dict and writes to database"""
-    global user_input_subject_type
-    global publish_status
-
-    for key, value in data_dict.items():
-        """key is id + version, so cuts off version part to get id"""
-        split = key.index("_")
-        subject_id = key[:split]
-
-        #have to add these to data here because otherwise will always show as "new not in database"
-        value["update_baseline"] = update_baseline_check_legacy_data( subject_id , user_input_subject_type , value )
-        value["update_latest"] = update_latest_check_legacy_data( subject_id, user_input_subject_type, value )
-        value["update_adstatus"] = update_adstatus_check_legacy_data( subject_id, user_input_subject_type, value )
-        value["correction"] = 0
-
-        _data = json.dumps(value)
-
-        # breakpoint()
-
-        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
-        save_baseline(subject_id, value)
-
-def save_baseline(subject_id, data):
-    """takes data dict and writes to database"""
-    global user_input_subject_type
-
-    _baseline_data = create_baseline_json(data)
-
-    if check_not_dupe_baseline( subject_id , user_input_subject_type ):
-        database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
-    else:
-        print(f'There is already a case/control baseline record for {subject_id}.')
-
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     global user_input_subject_type
@@ -166,6 +132,27 @@ def create_data_dict(LOADFILE):
 
     return data_dict
 
+def write_to_db(data_dict):
+    """takes data dict and writes to database"""
+    global user_input_subject_type
+    global publish_status
+
+    for key, value in data_dict.items():
+        """key is id + version, so cuts off version part to get id"""
+        split = key.index("_")
+        subject_id = key[:split]
+
+        #have to add these to data here because otherwise will always show as "new not in database"
+        value["update_baseline"] = update_baseline_check_legacy_data( subject_id , user_input_subject_type , value )
+        value["update_latest"] = update_latest_check_legacy_data( subject_id, user_input_subject_type, value )
+        value["update_adstatus"] = update_adstatus_check_legacy_data( subject_id, user_input_subject_type, value )
+        value["correction"] = 0
+
+        _data = json.dumps(value)
+
+        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
+        save_baseline(subject_id, value)
+
 def create_baseline_json(data):
     """takes dict entry for subject being added to database and creates the copy of data for baseline table, returning json string"""
     baseline_data = {}
@@ -174,6 +161,17 @@ def create_baseline_json(data):
             baseline_data[key] = value
  
     return json.dumps(baseline_data)
+
+def save_baseline(subject_id, data):
+    """takes data dict and writes to database"""
+    global user_input_subject_type
+
+    _baseline_data = create_baseline_json(data)
+
+    if check_not_dupe_baseline( subject_id , user_input_subject_type ):
+        database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
+    else:
+        print(f'There is already a case/control baseline record for {subject_id}.')
 
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
@@ -203,8 +201,9 @@ def database_connection(query):
         if(connection):
             cursor.close()
             connection.close()
-            print('database connection closed')
+            # print('database connection closed')
 
+#utils
 def get_data_version_id(release_version):
     """takes string release_version and returns id from data_version table"""
     query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'")

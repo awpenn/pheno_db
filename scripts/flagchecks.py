@@ -1,6 +1,8 @@
 import sys
 sys.path.append('/id_db/.venv/lib/python3.6/site-packages')
 
+from load_phenotypes import database_connection
+
 import psycopg2
 import csv
 from dotenv import load_dotenv
@@ -77,7 +79,6 @@ def update_latest_check_legacy_data( subject_id, subject_type, data ):
     
     return 0
 
-
 def update_adstatus_check_legacy_data( subject_id, subject_type, data ):
     """takes subject_id, subject_type, and data to be written to database, 
     checks ad value for baseline version, returns appropriate value for new data for adstatus flag"""
@@ -95,36 +96,3 @@ def update_adstatus_check_legacy_data( subject_id, subject_type, data ):
         return 0
     else:
         return 1
-
-
-
-def database_connection(query):
-    """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
-
-    try:
-        connection = psycopg2.connect(user = DBUSER, password = DBPASS, host = DBIP, port = DBPORT, database = DB)
-        cursor = connection.cursor()
-        cursor.execute(query)
-
-        if "INSERT" in query or "UPDATE" in query:
-            connection.commit()
-            cursor.close()
-            connection.close()
-            
-        else:
-            returned_array = cursor.fetchall()
-            cursor.close()
-            connection.close()
-            
-            return returned_array
-
-    except (Exception, psycopg2.Error) as error:
-        print('Error in database connection', error)
-    
-
-    finally:
-        if(connection):
-            cursor.close()
-            connection.close()
-            print('database connection closed')
-    
