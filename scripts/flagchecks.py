@@ -18,7 +18,7 @@ DBUSER = os.getenv('DBUSER')
 LOADFILE = ''
 compare_family_data = False
 
-def update_from_baseline_check( subject_id, subject_type, data ):
+def update_baseline_check_legacy_data( subject_id, subject_type, data ):
     """take subject id, subject_type, and the data being loaded from the file, gets baseline, 
     removes keys that aren't in both, compares stringified JSON to see if changed,
     the 0 or 1 needed to fill in value
@@ -43,11 +43,46 @@ def update_from_baseline_check( subject_id, subject_type, data ):
     update_string = json.dumps(modified_update_dict)
     baseline_string = json.dumps(modified_baseline_dict)
 
-    # breakpoint()
     if update_string == baseline_string:
         return 0
     else: 
         return 1
+
+def update_latest_check_legacy_data( subject_id, subject_type, data ):
+    """takes subjectid, subject_type, and data dict, checks incoming against previous version, returns 0 or 1 for flag value in data object being written to db"""
+    modified_update_dict = {}
+    modified_previous_version_dict = {}
+    
+    previous_version_data = database_connection(f"SELECT _data FROM ds_subjects_phenotypes WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}' ORDER BY _data->>'data_version' DESC")
+    
+    for key, value in data.items():
+        if 'update' not in key and 'correction' not in key and 'data_version' not in key:
+            modified_update_dict[key] = value
+    
+    # for subjects with multiple records, sorted by data_version DESC, so target value is index 1
+    # for a subject with only one other record, target will be index 0 (only returned)
+    # for a brand new subject, query will fail and function must return 1
+
+    try:
+        for key, value in previous_version_data[0][0].items():
+            if 'update' not in key and 'correction' not in key and 'data_version' not in key:
+                modified_previous_version_dict[key] = value
+
+    except:
+        print("There are no previous versions of this subject's phenotypes.  Update_latest flag set to 1")
+        return 1
+
+    for key, value in modified_update_dict.items():
+        if value == modified_previous_version_dict[key]:
+            continue
+        else:
+            print(f'different between new record and previous version found for {key}')
+            return 1
+    
+    return 0
+
+
+        
 
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""

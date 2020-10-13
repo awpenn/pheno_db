@@ -105,13 +105,15 @@ def write_to_db(data_dict):
         subject_id = key[:split]
 
         #have to add these to data here because otherwise will always show as "new not in database"
-        value["update_baseline"] = update_from_baseline_check( subject_id , user_input_subject_type , value )
-        value["update_latest"] = 0
+        value["update_baseline"] = update_baseline_check_legacy_data( subject_id , user_input_subject_type , value )
+        value["update_latest"] = update_latest_check_legacy_data( subject_id, user_input_subject_type, value )
         value["update_adstatus"] = 0
         value["correction"] = 0
 
         _data = json.dumps(value)
 
+        breakpoint()
+        
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
         save_baseline(subject_id, value)
 
