@@ -22,7 +22,7 @@ DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 LOADFILE = ''
 
-family_data_creation = False
+user_input_subject_type = ''
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
@@ -48,22 +48,24 @@ def main():
         return filename
     
     def get_subject_type():
-        global family_data_creation
+        global user_input_subject_type
         while True:
             try:
                 casefam_input = input(f"Are you uploading family data? ")
             except ValueError:
                 continue
             if casefam_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-                family_data_creation = True
+                user_input_subject_type = 'family'
                 print("Loading family data.")
                 break
             elif casefam_input in ['n', 'N', 'no', 'No', 'NO']:
+                user_input_subject_type = 'case/control'                
                 print("Loading case/control data.")
                 break
             else:
                 print("Please input a valid entry. ")
                 continue
+    
     
     get_subject_type()
     LOADFILE = get_filename()
@@ -73,17 +75,14 @@ def main():
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
 
-    global family_data_creation
+    global user_input_subject_type
     for key, value in data_dict.items():
         subject_id = value["subject_id"]
         value.pop("subject_id")
         _data = json.dumps(value)
 
-        if family_data_creation:
-            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', 'family')")
-        else:
-            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', 'case/control')")
-
+        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}')")
+        
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     data_dict = {}

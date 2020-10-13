@@ -10,6 +10,8 @@ import json
 import calendar
 import time
 
+from flagchecks import *
+
 new_records = []
 success_id_log = []
 error_log = {}
@@ -101,11 +103,17 @@ def write_to_db(data_dict):
         """key is id + version, so cuts off version part to get id"""
         split = key.index("_")
         subject_id = key[:split]
+
+        #have to add these to data here because otherwise will always show as "new not in database"
+        value["update_baseline"] = update_from_baseline_check( subject_id , user_input_subject_type , value )
+        value["update_latest"] = 0
+        value["update_adstatus"] = 0
+        value["correction"] = 0
+
         _data = json.dumps(value)
 
-        if user_input_subject_type:
-            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
-            save_baseline(subject_id, value)
+        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
+        save_baseline(subject_id, value)
 
 def save_baseline(subject_id, data):
     """takes data dict and writes to database"""
@@ -113,20 +121,16 @@ def save_baseline(subject_id, data):
 
     _baseline_data = create_baseline_json(data)
 
-    if user_input_subject_type:
-        if check_not_dupe_baseline(subject_id, 'family'):
-            database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', 'family')")
-        else:
-            print(f'There is already a family baseline record for {subject_id}.')
+    if check_not_dupe_baseline( subject_id , user_input_subject_type ):
+        database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
     else:
-        if check_not_dupe_baseline(subject_id, 'case/control'):
-            database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', 'case/control')") 
-        else:
-            print(f'There is already a case/control baseline record for {subject_id}.')
+        print(f'There is already a case/control baseline record for {subject_id}.')
 
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
+    global user_input_subject_type
     data_dict = {}
+
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         """"get the relationship table names and indexes from the csv file headers"""
         pheno_file = csv.reader(csv_file)
@@ -144,6 +148,7 @@ def create_data_dict(LOADFILE):
                         blob["data_version"] = get_data_version_id(value)
                     if headers[index].lower() == 'latest_update_release_version':
                         blob["latest_update_version"] = get_data_version_id(value)
+                    
 
                 if type(blob["data_version"]) == int:
                     data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob

@@ -18,29 +18,36 @@ DBUSER = os.getenv('DBUSER')
 LOADFILE = ''
 compare_family_data = False
 
-def update_from_baseline_check(subject_id, subject_type):
-    """take subject id and subject_type, gets record from main table with highest version number, 
-    and baseline, removes keys that aren't in both, compares stringified JSON to see if changed,
+def update_from_baseline_check( subject_id, subject_type, data ):
+    """take subject id, subject_type, and the data being loaded from the file, gets baseline, 
+    removes keys that aren't in both, compares stringified JSON to see if changed,
     the 0 or 1 needed to fill in value
     """
     modified_update_dict = {}
     modified_baseline_dict = {}
 
     baseline_data = database_connection(f"SELECT _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}'")
-    update_data = database_connection(f"SELECT _data FROM ds_subjects_phenotypes WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}' ORDER BY _data->>'data_version' DESC LIMIT 1")
 
-    for key, value in update_data[0][0].items():
-        if 'update' not in key and 'correction' not in key and 'data_version' not in key:
-            modified_update_dict[key] = value
+    try:
+        for key, value in data.items():
+            if 'update' not in key and 'correction' not in key and 'data_version' not in key:
+                modified_update_dict[key] = value
     
-    for key, value in baseline_data[0][0].items():
-        if 'update' not in key and 'correction' not in key and 'data_version' not in key:
-            modified_baseline_dict[key] = value
+        for key, value in baseline_data[0][0].items():
+            if 'update' not in key and 'correction' not in key and 'data_version' not in key:
+                modified_baseline_dict[key] = value
+    except:
+        print('This appears to be data for a subject not yet in the database.  No update from baseline to current will be indicated')
+        return 0
 
     update_string = json.dumps(modified_update_dict)
     baseline_string = json.dumps(modified_baseline_dict)
-    breakpoint()
-    return update_string == baseline_string
+
+    # breakpoint()
+    if update_string == baseline_string:
+        return 0
+    else: 
+        return 1
 
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
