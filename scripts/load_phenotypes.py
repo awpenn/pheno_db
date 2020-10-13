@@ -22,7 +22,7 @@ DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 LOADFILE = ''
 
-family_data_creation = False
+user_input_subject_type = ''
 publish_status = False
 
 def main():
@@ -49,17 +49,18 @@ def main():
         return filename
 
     def get_subject_type():
-        global family_data_creation
+        global user_input_subject_type
         while True:
             try:
                 casefam_input = input(f"Are you uploading family data? ")
             except ValueError:
                 continue
             if casefam_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-                family_data_creation = True
+                user_input_subject_type = 'family'
                 print("Loading family data.")
                 break
             elif casefam_input in ['n', 'N', 'no', 'No', 'NO']:
+                user_input_subject_type = 'case/control'                
                 print("Loading case/control data.")
                 break
             else:
@@ -93,7 +94,7 @@ def main():
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
-    global family_data_creation
+    global user_input_subject_type
     global publish_status
 
     for key, value in data_dict.items():
@@ -102,20 +103,17 @@ def write_to_db(data_dict):
         subject_id = key[:split]
         _data = json.dumps(value)
 
-        if family_data_creation:
-            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', 'family', {publish_status})")
-            save_baseline(subject_id, value)
-        else:
-            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', 'case/control', {publish_status})")
+        if user_input_subject_type:
+            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
             save_baseline(subject_id, value)
 
 def save_baseline(subject_id, data):
     """takes data dict and writes to database"""
-    global family_data_creation
+    global user_input_subject_type
 
     _baseline_data = create_baseline_json(data)
 
-    if family_data_creation:
+    if user_input_subject_type:
         if check_not_dupe_baseline(subject_id, 'family'):
             database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', 'family')")
         else:

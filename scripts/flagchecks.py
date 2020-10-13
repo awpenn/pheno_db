@@ -20,7 +20,8 @@ compare_family_data = False
 
 def update_from_baseline_check(subject_id, subject_type):
     """take subject id and subject_type, gets record from main table with highest version number, 
-    and baseline, removes keys that aren't in both, compares stringified JSON to see if changed, returns boolean
+    and baseline, removes keys that aren't in both, compares stringified JSON to see if changed,
+    the 0 or 1 needed to fill in value
     """
     modified_update_dict = {}
     modified_baseline_dict = {}
