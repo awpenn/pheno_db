@@ -58,10 +58,6 @@ def update_latest_check_legacy_data( subject_id, subject_type, data ):
     for key, value in data.items():
         if 'update' not in key and 'correction' not in key and 'data_version' not in key:
             modified_update_dict[key] = value
-    
-    # for subjects with multiple records, sorted by data_version DESC, so target value is index 1
-    # for a subject with only one other record, target will be index 0 (only returned)
-    # for a brand new subject, query will fail and function must return 1
 
     try:
         for key, value in previous_version_data[0][0].items():
@@ -82,7 +78,25 @@ def update_latest_check_legacy_data( subject_id, subject_type, data ):
     return 0
 
 
-        
+def update_adstatus_check_legacy_data( subject_id, subject_type, data ):
+    """takes subject_id, subject_type, and data to be written to database, 
+    checks ad value for baseline version, returns appropriate value for new data for adstatus flag"""
+
+    baseline_data = database_connection(f"SELECT _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}'")
+
+    try:
+        baseline_ad = baseline_data[0][0]["ad"]
+    except:
+        print(f'No {subject_type} baseline record found for {subject_id}.')
+        return 0
+    
+
+    if data["ad"] == baseline_ad:
+        return 0
+    else:
+        return 1
+
+
 
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
