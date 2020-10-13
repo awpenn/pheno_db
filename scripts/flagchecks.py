@@ -18,9 +18,9 @@ DBPORT = os.getenv('DBPORT')
 DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 LOADFILE = ''
-compare_family_data = False
 
-def update_baseline_check_legacy_data( subject_id, subject_type, data ):
+#flag-checkers for legacy data loading
+def update_baseline_check( subject_id, subject_type, data ):
     """take subject id, subject_type, and the data being loaded from the file, gets baseline, 
     removes keys that aren't in both, compares stringified JSON to see if changed,
     the 0 or 1 needed to fill in value
@@ -50,7 +50,7 @@ def update_baseline_check_legacy_data( subject_id, subject_type, data ):
     else: 
         return 1
 
-def update_latest_check_legacy_data( subject_id, subject_type, data ):
+def update_latest_check( subject_id, subject_type, data ):
     """takes subjectid, subject_type, and data dict, checks incoming against previous version, returns 0 or 1 for flag value in data object being written to db"""
     modified_update_dict = {}
     modified_previous_version_dict = {}
@@ -79,7 +79,7 @@ def update_latest_check_legacy_data( subject_id, subject_type, data ):
     
     return 0
 
-def update_adstatus_check_legacy_data( subject_id, subject_type, data ):
+def update_adstatus_check( subject_id, subject_type, data ):
     """takes subject_id, subject_type, and data to be written to database, 
     checks ad value for baseline version, returns appropriate value for new data for adstatus flag"""
 

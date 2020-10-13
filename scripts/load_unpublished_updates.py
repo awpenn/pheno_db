@@ -10,6 +10,9 @@ import json
 import calendar
 import time
 
+
+from flagchecks import *
+
 new_records = []
 success_id_log = []
 error_log = {}
@@ -79,13 +82,24 @@ def write_to_db(data_dict):
     for key, value in data_dict.items():
         subject_id = value["subject_id"]
         value.pop("subject_id")
-        _data = json.dumps(value)
 
+        value["update_baseline"] = update_baseline( subject_id , user_input_subject_type , value )
+        value["update_latest"] = update_latest( subject_id, user_input_subject_type, value )
+        value["update_adstatus"] = update_adstatus( subject_id, user_input_subject_type, value )
+        try:
+            value["correction"]
+        except:
+            value["correction"] = 0
+
+        _data = json.dumps(value)
+        breakpoint()
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}')")
         
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
+    global user_input_subject_type
     data_dict = {}
+
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         """"get the relationship table names and indexes from the csv file headers"""
         pheno_file = csv.reader(csv_file)
@@ -101,19 +115,20 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = value
                     if headers[index].lower() == 'release_version':
                         blob["data_version"] = get_data_version_id(value)
+                    if headers[index].lower() == 'latest_update_release_version':
+                        blob["latest_update_version"] = get_data_version_id(value)
+                    
 
                 if type(blob["data_version"]) == int:
-                    if check_not_duplicate(blob):
-                        data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
-                    else:
-                        print(f'Already a published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
+                    data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
                 else:
                     print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
 
 
     for key, record in data_dict.items():
-        """remove release_version from blob for each record in dict, in db is joined from data_version table"""
+        """remove subject id from blob for each record in dict"""
         record.pop('release_version')
+        record.pop('latest_update_release_version')
 
     return data_dict
 
@@ -165,8 +180,6 @@ def check_not_duplicate(subject_json):
         return False
     else:
         return True
-
-        
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""

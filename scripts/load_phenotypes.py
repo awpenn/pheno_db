@@ -143,9 +143,9 @@ def write_to_db(data_dict):
         subject_id = key[:split]
 
         #have to add these to data here because otherwise will always show as "new not in database"
-        value["update_baseline"] = update_baseline_check_legacy_data( subject_id , user_input_subject_type , value )
-        value["update_latest"] = update_latest_check_legacy_data( subject_id, user_input_subject_type, value )
-        value["update_adstatus"] = update_adstatus_check_legacy_data( subject_id, user_input_subject_type, value )
+        value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
+        value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
+        value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
         value["correction"] = 0
 
         _data = json.dumps(value)
