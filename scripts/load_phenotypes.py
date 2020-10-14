@@ -11,85 +11,22 @@ import calendar
 import time
 
 from flagchecks import *
+from pheno_utils import *
 
 new_records = []
 success_id_log = []
 error_log = {}
-
-load_dotenv()
-DBIP = os.getenv('DBIP')
-DBPASS = os.getenv('DBPASS')
-DBPORT = os.getenv('DBPORT')
-DB = os.getenv('DB')
-DBUSER = os.getenv('DBUSER')
-LOADFILE = ''
 
 user_input_subject_type = ''
 publish_status = False
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
-    global LOADFILE
-   
-    def get_filename():
-        while True:
-            try:
-                filename_input = input(f"Enter loadfile name. ")
-            except ValueError:
-                continue
-            if len(filename_input) < 4:
-                print('Please enter a valid filename.')
-                continue
-            else:
-                if '.csv' not in filename_input:
-                    print("Please make sure you've uploaded a .csv file.")
-                    continue
-                else:
-                    filename = filename_input
-                    break
-        
-        return filename
-
-    def get_subject_type():
-        global user_input_subject_type
-        while True:
-            try:
-                casefam_input = input(f"Are you uploading family data? ")
-            except ValueError:
-                continue
-            if casefam_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-                user_input_subject_type = 'family'
-                print("Loading family data.")
-                break
-            elif casefam_input in ['n', 'N', 'no', 'No', 'NO']:
-                user_input_subject_type = 'case/control'                
-                print("Loading case/control data.")
-                break
-            else:
-                print("Please input a valid entry. ")
-                continue
+    global user_input_subject_type
+    global publish_status
     
-
-    def get_publish_status():
-        global publish_status
-        while True:
-            try:
-                pubstat_input = input(f"Do you want loaded data to be published? ")
-            except ValueError:
-                continue
-            if pubstat_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-                publish_status = True
-                print("Loaded records will be given publish status.")
-                break
-            elif pubstat_input in ['n', 'N', 'no', 'No', 'NO']:
-                print("Loaded records will no be published.")
-                break
-            else:
-                print("Please input a valid entry. ")
-                continue
-    
-    get_subject_type()
-    get_publish_status()
+    user_input_subject_type = get_subject_type()
+    publish_status = get_publish_status()
     LOADFILE = get_filename()
     data_dict = create_data_dict(LOADFILE)
     write_to_db(data_dict)
@@ -173,77 +110,7 @@ def save_baseline(subject_id, data):
     else:
         print(f'There is already a case/control baseline record for {subject_id}.')
 
-def database_connection(query):
-    """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
 
-    try:
-        connection = psycopg2.connect(user = DBUSER, password = DBPASS, host = DBIP, port = DBPORT, database = DB)
-        cursor = connection.cursor()
-        cursor.execute(query)
-
-        if "INSERT" in query:
-            connection.commit()
-            cursor.close()
-            connection.close()
-            
-        else:
-            returned_array = cursor.fetchall()
-            cursor.close()
-            connection.close()
-            
-            return returned_array
-
-    except (Exception, psycopg2.Error) as error:
-        print('Error in database connection', error)
-    
-
-    finally:
-        if(connection):
-            cursor.close()
-            connection.close()
-            # print('database connection closed')
-
-#utils
-def get_data_version_id(release_version):
-    """takes string release_version and returns id from data_version table"""
-    query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'")
-    try:
-        return query[0][0]
-    except:
-        print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
-        # then need to do something like return a signal that there's a problem
-        return release_version
-
-def check_not_dupe_baseline(subject_id, subject_type):
-    """takes subject_id and subject_type, returns true if not a duplicate, false if record found with that subject_id/type in baseline table"""
-    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{subject_id}' and subject_type = '{subject_type}'")
-    if query:
-        return False
-    else:
-        return True
-
-def generate_errorlog():
-    """creates error log and writes to 'log_files' directory"""
-    if len(error_log) > 0:
-        timestamp = calendar.timegm(time.gmtime())
-        f = open(f'./log_files/{timestamp}-log.txt', 'w+')
-        f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
-        for key, value in error_log.items():
-            f.write(f'Error: {value[1]} \n')
-
-def generate_success_list():
-    """creates a list of successfully created and inserted ADSP IDs"""
-
-    if len(success_id_log) > 0:
-        timestamp = calendar.timegm(time.gmtime())
-        f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
-        for id in success_id_log:
-            if success_id_log.index(id) >= len(success_id_log)-1:
-                f.write(id)
-            else:
-                f.write(id + ', ')
-
-        f.close()
 
 if __name__ == '__main__':
     main()

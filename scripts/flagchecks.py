@@ -42,13 +42,14 @@ def update_baseline_check( subject_id, subject_type, data ):
         print('This appears to be data for a subject not yet in the database.  No update from baseline to current will be indicated')
         return 0
 
-    update_string = json.dumps(modified_update_dict)
-    baseline_string = json.dumps(modified_baseline_dict)
-
-    if update_string == baseline_string:
-        return 0
-    else: 
-        return 1
+    for key, value in modified_update_dict.items():
+        if value == modified_baseline_dict[key]:
+            continue
+        else:
+            print(f'different between new record and baseline version found for {key}')
+            return 1
+    
+    return 0
 
 def update_latest_check( subject_id, subject_type, data ):
     """takes subjectid, subject_type, and data dict, checks incoming against previous version, returns 0 or 1 for flag value in data object being written to db"""
