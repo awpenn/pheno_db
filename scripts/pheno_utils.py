@@ -75,7 +75,6 @@ def get_data_version_id(release_version):
         return release_version
 
 def get_filename():
-    print('in filename util')
     while True:
         try:
             filename_input = input(f"Enter loadfile name. ")

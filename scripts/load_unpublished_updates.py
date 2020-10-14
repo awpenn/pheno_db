@@ -49,7 +49,6 @@ def write_to_db(data_dict):
             value["correction"] = 0
 
         _data = json.dumps(value)
-        breakpoint()
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}')")
         
 def create_data_dict(LOADFILE):
