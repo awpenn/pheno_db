@@ -18,13 +18,10 @@ new_records = []
 success_id_log = []
 error_log = {}
 
-LOADFILE = ''
-
 user_input_subject_type = ''
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
-    global LOADFILE
     global user_input_subject_type
     
     user_input_subject_type = get_subject_type()
@@ -76,11 +73,11 @@ def create_data_dict(LOADFILE):
                     
 
                 if type(blob["data_version"]) == int:
-                    if check_not_duplicate_updates(blob):
+                    if check_not_duplicate( blob, 'PUBLISHED = FALSE' ) and check_not_duplicate( blob, 'PUBLISHED = TRUE' ):
                         data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
                     else:
-                        print(f'Already a published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')                else:
-
+                        print(f'Already an update or published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
+                else:
                     print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
 
 
