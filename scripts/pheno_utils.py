@@ -47,10 +47,19 @@ def database_connection(query):
             connection.close()
             # print('database connection closed')
 
-def check_not_duplicate(subject_json):
+def check_not_duplicate_published(subject_json):
 
     """takes current subject's compiled json blob, checks if a dupe (if published record for that subject in that data_version exists) and returns boolean"""
     query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subject_id']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND published = TRUE")
+    if query:
+        return False
+    else:
+        return True
+
+def check_not_duplicate_updates(subject_json):
+
+    """takes current subject's compiled json blob, checks if a dupe  and returns boolean"""
+    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subject_id']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND published = FALSE")
     if query:
         return False
     else:
