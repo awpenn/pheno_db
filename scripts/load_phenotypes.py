@@ -26,7 +26,7 @@ def main():
     global publish_status
     
     user_input_subject_type = get_subject_type()
-    publish_status = get_publish_status()
+    publish_status = get_publish_action()
     LOADFILE = get_filename()
     data_dict = create_data_dict(LOADFILE)
     write_to_db(data_dict)

@@ -11,14 +11,6 @@ import json
 
 error_log = {}
 
-load_dotenv()
-DBIP = os.getenv('DBIP')
-DBPASS = os.getenv('DBPASS')
-DBPORT = os.getenv('DBPORT')
-DB = os.getenv('DB')
-DBUSER = os.getenv('DBUSER')
-LOADFILE = ''
-
 #flag-checkers for legacy data loading
 def update_baseline_check( subject_id, subject_type, data ):
     """take subject id, subject_type, and the data being loaded from the file, gets baseline, 
@@ -56,7 +48,7 @@ def update_latest_check( subject_id, subject_type, data ):
     modified_update_dict = {}
     modified_previous_version_dict = {}
     
-    previous_version_data = database_connection(f"SELECT _data FROM ds_subjects_phenotypes WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}' ORDER BY _data->>'data_version' DESC")
+    previous_version_data = database_connection(f"SELECT _data FROM ds_subjects_phenotypes WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}' AND published = 'TRUE' ORDER BY _data->>'data_version' DESC")
     
     for key, value in data.items():
         if 'update' not in key and 'correction' not in key and 'data_version' not in key:

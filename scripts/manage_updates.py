@@ -18,13 +18,16 @@ success_id_log = []
 error_log = {}
 
 publish_data = False
+user_input_subject_type = 'other'
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global LOADFILE
     global publish_data
+    global user_input_subject_type
 
     publish_data = get_publish_action()
+    user_input_subject_type = get_subject_type()
     LOADFILE = get_filename()
     data_dict = create_data_dict(LOADFILE)
     write_to_db(data_dict)
@@ -34,15 +37,24 @@ def write_to_db(data_dict):
 
     """takes data dict and publish boolean and writes to database"""
     for key, value in data_dict.items():
-        subject_id = value["subject_id"]
+        # subject_id = value["subject_id"]
+        subject_id = value.pop("subject_id")
         version = value["data_version"]
-        value.pop("subject_id")
+
+        value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
+        value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
+        value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
+        try:
+            value["correction"]
+        except:
+            value["correction"] = 0
+
         _data = json.dumps(value)
 
         if publish_data:
-            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{subject_id}', '{_data}', TRUE) WHERE subject_id = '{subject_id}' AND _data->>'data_version' = '{version}' AND published = FALSE")
+            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{subject_id}', '{_data}', TRUE) WHERE subject_id = '{subject_id}' AND subject_type = '{user_input_subject_type}' AND _data->>'data_version' = '{version}' AND published = FALSE")
         else:
-            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{subject_id}', '{_data}') WHERE subject_id = '{subject_id}' AND _data->>'data_version' = '{version}' AND published = FALSE")
+            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{subject_id}', '{_data}') WHERE subject_id = '{subject_id}' AND subject_type = '{user_input_subject_type}' AND _data->>'data_version' = '{version}' AND published = FALSE")
 
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
@@ -62,6 +74,8 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = value
                     if headers[index].lower() == 'release_version':
                         blob["data_version"] = get_data_version_id(value)
+                    if headers[index].lower() == 'latest_update_release_version':
+                        blob["latest_update_version"] = get_data_version_id(value)
 
                 if type(blob["data_version"]) == int:
                     if check_not_duplicate( blob, "PUBLISHED = TRUE" ):
@@ -75,6 +89,7 @@ def create_data_dict(LOADFILE):
     for key, record in data_dict.items():
         """remove release_version from blob for each record in dict, in db is joined from data_version table"""
         record.pop('release_version')
+        record.pop('latest_update_release_version')
 
     return data_dict
 

@@ -24,7 +24,7 @@ def database_connection(query):
         cursor = connection.cursor()
         cursor.execute(query)
 
-        if "INSERT" in query:
+        if "INSERT" in query or "UPDATE" in query:
             connection.commit()
             cursor.close()
             connection.close()
@@ -111,7 +111,7 @@ def get_subject_type():
             print("Please input a valid entry. ")
             continue
 
-def get_publish_status():
+def get_publish_action():
     """takes nothing returns boolean value for publish status based on user input"""
     while True:
         try:

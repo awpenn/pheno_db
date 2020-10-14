@@ -34,8 +34,8 @@ def write_to_db(data_dict):
 
     global user_input_subject_type
     for key, value in data_dict.items():
-        subject_id = value["subject_id"]
-        value.pop("subject_id")
+        # subject_id = value["subject_id"]
+        subject_id = value.pop("subject_id")
 
         value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
         value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
@@ -46,6 +46,7 @@ def write_to_db(data_dict):
             value["correction"] = 0
 
         _data = json.dumps(value)
+        
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}')")
         
 def create_data_dict(LOADFILE):
