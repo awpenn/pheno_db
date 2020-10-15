@@ -89,3 +89,13 @@ def update_adstatus_check( subject_id, subject_type, data ):
         return 0
     else:
         return 1
+
+def correction_check( data ):
+    """takes data about to be written to database, 
+    checks if comments field has word 'corrected' in it and returns appropriate boolean value"""
+    for key, value in data.items():
+        if key.lower() == "comments":
+            if 'corrected' in value.lower():
+                return 1
+            else:
+                return 0 

@@ -40,10 +40,7 @@ def write_to_db(data_dict):
         value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
         value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
         value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
-        try:
-            value["correction"]
-        except:
-            value["correction"] = 0
+        value["correction"] = correction_check( value )
 
         _data = json.dumps(value)
         
