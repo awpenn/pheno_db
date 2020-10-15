@@ -51,7 +51,7 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = value
                     if headers[index].lower() == 'release_version':
                         blob["data_version"] = get_data_version_id(value)
-                    if headers[index].lower() == 'latest_update_release_version':
+                    if headers[index].lower() == 'latest_update_version':
                         blob["latest_update_version"] = get_data_version_id(value)
                     
 
@@ -65,7 +65,6 @@ def create_data_dict(LOADFILE):
         """remove subject id from blob for each record in dict"""
         record.pop('subject_id')
         record.pop('release_version')
-        record.pop('latest_update_release_version')
 
     return data_dict
 

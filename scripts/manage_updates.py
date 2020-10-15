@@ -74,7 +74,7 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = value
                     if headers[index].lower() == 'release_version':
                         blob["data_version"] = get_data_version_id(value)
-                    if headers[index].lower() == 'latest_update_release_version':
+                    if headers[index].lower() == 'latest_update_version':
                         blob["latest_update_version"] = get_data_version_id(value)
 
                 if type(blob["data_version"]) == int:
@@ -89,7 +89,6 @@ def create_data_dict(LOADFILE):
     for key, record in data_dict.items():
         """remove release_version from blob for each record in dict, in db is joined from data_version table"""
         record.pop('release_version')
-        record.pop('latest_update_release_version')
 
     return data_dict
 

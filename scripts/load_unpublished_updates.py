@@ -69,7 +69,7 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = value
                     if headers[index].lower() == 'release_version':
                         blob["data_version"] = get_data_version_id(value)
-                    if headers[index].lower() == 'latest_update_release_version':
+                    if headers[index].lower() == 'latest_update_version':
                         blob["latest_update_version"] = get_data_version_id(value)
                     
 
@@ -87,7 +87,6 @@ def create_data_dict(LOADFILE):
         because these are imported as strings, but stored by pkey and 
         joined in view"""
         record.pop('release_version')
-        record.pop('latest_update_release_version')
 
     return data_dict
 
