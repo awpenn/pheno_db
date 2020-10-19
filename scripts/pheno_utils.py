@@ -24,7 +24,7 @@ def database_connection(query):
         cursor = connection.cursor()
         cursor.execute(query)
 
-        if "INSERT" in query or "UPDATE" in query:
+        if "INSERT" in query or "UPDATE" in query or "DELETE" in query:
             connection.commit()
             cursor.close()
             connection.close()
@@ -71,7 +71,7 @@ def get_data_version_id(release_version):
     except:
         print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
         # then need to do something like return a signal that there's a problem
-        return release_version
+        return 'release_version has not found in db'
 
 def get_filename():
     while True:
@@ -127,6 +127,29 @@ def get_publish_action():
             print("Loaded records will no be published.")
             publish_status = False
             return publish_status
+        else:
+            print("Please input a valid entry. ")
+            continue
+
+def remove_single_or_multiple():
+    """
+    takes nothing, returns boolean for if using batch 
+    file to remove subject.
+    """
+    while True:
+        try:
+            pubstat_input = input(f"Are you dropping subjects with a drop-file?")
+        except ValueError:
+            continue
+        if batchfile_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
+            batchfile_status = True
+            print("Subjects will be taken from batchfile.")
+            return batchfile_status
+
+        elif batchfile_input in ['n', 'N', 'no', 'No', 'NO']:
+            print("Loaded records will no be published.")
+            batchfile_status = False
+            return batchfile_status
         else:
             print("Please input a valid entry. ")
             continue
