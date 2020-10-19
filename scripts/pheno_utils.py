@@ -24,17 +24,18 @@ def database_connection(query):
         cursor = connection.cursor()
         cursor.execute(query)
 
-        if "INSERT" in query or "UPDATE" in query or "DELETE" in query:
-            connection.commit()
-            cursor.close()
-            connection.close()
-            
-        else:
+        if "SELECT" in query:
             returned_array = cursor.fetchall()
             cursor.close()
             connection.close()
             
             return returned_array
+
+        else:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
 
     except (Exception, psycopg2.Error) as error:
         print('Error in database connection', error)
@@ -46,6 +47,7 @@ def database_connection(query):
             connection.close()
             # print('database connection closed')
 
+#check-functions for data correctness
 def check_not_duplicate(subject_json, pub_check):
 
     """takes current subject's compiled json blob, checks if a dupe (if published record for that subject in that data_version exists) and returns boolean"""
@@ -73,6 +75,16 @@ def get_data_version_id(release_version):
         # then need to do something like return a signal that there's a problem
         return 'release_version has not found in db'
 
+def check_subject_exists(subject_type_view, subject_id, release_version):
+    """takes id and release_version, makes sure that record exists for subject in target data version"""
+    query = database_connection(f"SELECT COUNT(*) FROM {subject_type_view} where subject_id = '{subject_id}' AND release_version = '{release_version}'")
+
+    if query[0][0] > 0:
+        return True
+    else:
+        return False
+        
+# functions for handling user input
 def get_filename():
     while True:
         try:
@@ -131,29 +143,7 @@ def get_publish_action():
             print("Please input a valid entry. ")
             continue
 
-def remove_single_or_multiple():
-    """
-    takes nothing, returns boolean for if using batch 
-    file to remove subject.
-    """
-    while True:
-        try:
-            pubstat_input = input(f"Are you dropping subjects with a drop-file?")
-        except ValueError:
-            continue
-        if batchfile_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-            batchfile_status = True
-            print("Subjects will be taken from batchfile.")
-            return batchfile_status
-
-        elif batchfile_input in ['n', 'N', 'no', 'No', 'NO']:
-            print("Loaded records will no be published.")
-            batchfile_status = False
-            return batchfile_status
-        else:
-            print("Please input a valid entry. ")
-            continue
-
+# log generators
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
     if len(error_log) > 0:

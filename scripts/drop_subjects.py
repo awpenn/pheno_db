@@ -13,8 +13,6 @@ import time
 from flagchecks import *
 from pheno_utils import *
 
-new_records = []
-success_id_log = []
 error_log = {}
 
 user_input_subject_type = ''
@@ -33,6 +31,10 @@ def create_drop_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     global user_input_subject_type
     drop_dict = {}
+    if user_input_subject_type == 'case/control':
+        view_based_on_subject_type = 'get_unpublished_updates_cc'
+    if user_input_subject_type == 'family':
+        view_based_on_subject_type = 'get_unpublished_updates_fam'
 
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         pheno_file = csv.reader(csv_file)
@@ -40,10 +42,12 @@ def create_drop_data_dict(LOADFILE):
         
         for row in pheno_file:
             if pheno_file.line_num > 1:
-                blob = {}
                 for index, value in enumerate(row):
                     if headers[index].lower() == 'subject_id':
-                        id = value
+                        if check_subject_exists(view_based_on_subject_type, value, row[headers.index("release_version")]):
+                            id = value
+                        else:
+                            print(f"No record found for {value} in given data version.  Check that id and release name are correct.")
                     elif headers[index].lower() == 'release_version':
                         release_version = get_data_version_id(value)
                     else:
@@ -65,5 +69,6 @@ def drop_from_database(drop_dict):
     """takes dict keyed by subject id, with id for data version in which subject's record will be deleted."""
     for key, value in drop_dict.items():
         database_connection(f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = '{key}' AND _data->>'data_version' = '{value}' AND published = FALSE")
+
 if __name__ == '__main__':
     main()
