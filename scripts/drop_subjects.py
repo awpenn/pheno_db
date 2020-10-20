@@ -15,32 +15,32 @@ from pheno_utils import *
 
 error_log = {}
 
-user_input_subject_type = ''
-
-
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
-    global user_input_subject_type
 
     user_input_subject_type = get_subject_type()
-    is_batch_file = user_input_batch_loading()
-
-    if is_batch_file:
-       LOADFILE = get_filename()
-       drop_dict = create_drop_data_dict(LOADFILE)
-    else:
-       drop_dict = get_subject_to_drop()
-    # drop_dict returns dict keyed by subject id with data_version (pkey from table) as value
-    drop_from_database(drop_dict)
-
-def create_drop_data_dict(LOADFILE):
-    """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
-    global user_input_subject_type
-    drop_dict = {}
+    
     if user_input_subject_type == 'case/control':
         view_based_on_subject_type = 'get_unpublished_updates_cc'
     if user_input_subject_type == 'family':
         view_based_on_subject_type = 'get_unpublished_updates_fam'
+
+    is_batch_file = user_input_batch_loading()
+
+    if is_batch_file:
+       LOADFILE = get_filename()
+       drop_dict = create_drop_data_dict( LOADFILE, view_based_on_subject_type )
+
+    else:
+       drop_dict = get_subject_to_drop( view_based_on_subject_type )
+    
+    # drop_dict returns dict keyed by subject id with data_version (pkey from table) as value
+    drop_from_database(drop_dict)
+
+def create_drop_data_dict(LOADFILE, view_based_on_subject_type):
+    """takes loadfile name and view to look up based on subject_type as args, 
+    returns dict of json data keyed by subject id of data to be entered in database"""
+    drop_dict = {}
 
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         pheno_file = csv.reader(csv_file)

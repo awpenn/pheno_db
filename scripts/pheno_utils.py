@@ -73,7 +73,7 @@ def get_data_version_id(release_version):
     except:
         print(f"No id found for release_version {release_version}. Check that the data_version has been added to the database")
         # then need to do something like return a signal that there's a problem
-        return 'release_version has not found in db'
+        return 'Release_version has not found in db'
 
 def check_subject_exists(subject_type_view, subject_id, release_version):
     """takes id and release_version, makes sure that record exists for subject in target data version"""
@@ -170,8 +170,54 @@ def user_input_batch_loading():
             print("Please input a valid entry. ")
             continue
         
-def get_subject_to_drop():
-    """takes no args, returns dict with single entry, subject_id key with data_version table pkey as value"""
+def get_subject_to_drop(view_based_on_subject_type):
+    """takes subject_type, returns dict with single entry, subject_id key with data_version table pkey as value"""
+    single_dict = {}
+
+    def get_release_version():
+        """takes no args, returns release_version id after checking is there"""
+        while True:
+            try:
+                release_name_input = input(f"Enter release_version for subjects to be dropped. ")
+            except ValueError:
+                continue
+            if len(release_name_input) < 1:
+                print('Please enter a release name.')
+                continue
+            else:
+                data_version_id = get_data_version_id(release_name_input)
+                if isinstance(data_version_id, int):
+                    return data_version_id
+                else:
+                    print(f"{data_version_id}. Please check for correctness.")
+                    continue
+        
+    def get_subject_id( data_version_id, view_to_check ):
+        """returns subject_id inputed, after checking that it exists for given release_version"""
+        while True:
+            try:
+                subject_id_input = input(f"Enter subject_id to be dropped. ")
+            except ValueError:
+                continue
+            if len(subject_id_input) < 1:
+                print('Please enter a subject_id.')
+                continue
+            else:
+                release_version = database_connection(f"SELECT release_version FROM data_versions WHERE id = {data_version_id}")
+                if check_subject_exists( view_to_check, subject_id_input, release_version[0][0] ):
+                    return subject_id_input
+                else:
+                    print(f"No record for {subject_id_input} found for this release_version.  Check for correctness")
+                    continue
+
+    data_version_id = get_release_version()
+    subject_id = get_subject_id( data_version_id, view_based_on_subject_type )
+
+    if subject_id and data_version_id:
+        single_dict[subject_id] = data_version_id
+    
+    return single_dict
+
 # log generators
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
