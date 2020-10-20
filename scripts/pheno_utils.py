@@ -100,7 +100,14 @@ def get_filename():
                 continue
             else:
                 filename = filename_input
-                break
+                ## put check here to see that file exists
+                try:
+                    with open(f'./source_files/{filename}', mode='r', encoding='utf-8-sig') as csv_file:
+                        pheno_file = csv.reader(csv_file)
+                        break
+                except:
+                    print(f"{filename} not found, please confirm file in correct location and filename typed correctly.")
+                    continue
 
     return filename
         
@@ -143,6 +150,28 @@ def get_publish_action():
             print("Please input a valid entry. ")
             continue
 
+def user_input_batch_loading():
+    """takes no args, returns boolean for whether dropping subjects by batch file or manual input"""
+    while True:
+        try:
+            isbatch_input = input(f"Are you dropping subjects via batchfile? ")
+        except ValueError:
+            continue
+        if isbatch_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
+            isbatch_status = True
+            print("You will be prompted to input loadfile name.")
+            return isbatch_status
+
+        elif isbatch_input in ['n', 'N', 'no', 'No', 'NO']:
+            print("You will be prompted for subject_id and release_version of intended drop subject.")
+            isbatch_status = False
+            return isbatch_status
+        else:
+            print("Please input a valid entry. ")
+            continue
+        
+def get_subject_to_drop():
+    """takes no args, returns dict with single entry, subject_id key with data_version table pkey as value"""
 # log generators
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""

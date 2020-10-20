@@ -23,8 +23,14 @@ def main():
     global user_input_subject_type
 
     user_input_subject_type = get_subject_type()
-    LOADFILE = get_filename()
-    drop_dict = create_drop_data_dict(LOADFILE)
+    is_batch_file = user_input_batch_loading()
+
+    if is_batch_file:
+       LOADFILE = get_filename()
+       drop_dict = create_drop_data_dict(LOADFILE)
+    else:
+       drop_dict = get_subject_to_drop()
+    # drop_dict returns dict keyed by subject id with data_version (pkey from table) as value
     drop_from_database(drop_dict)
 
 def create_drop_data_dict(LOADFILE):
