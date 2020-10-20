@@ -7,4 +7,5 @@ __pycache__
 pheno-fdw-setup.sql
 drop.sql
 tada.csv
+tada.txt
 adsp_pheno_tracking_scripts
