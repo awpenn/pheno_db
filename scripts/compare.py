@@ -18,6 +18,7 @@ success_id_log = []
 error_log = {}
 
 compare_family_data = ''
+query_type = ''
 
 def main():
     """main conductor function for the script."""
@@ -28,20 +29,28 @@ def main():
     if user_input_subject_type == 'family':
         views_based_on_subject_type = 'get_current_fam', 'get_unpublished_updates_fam'
 
-    comparison_dataframe = create_comparison_dataframe( views_based_on_subject_type )
-    breakpoint()
-    build_comparison_table( comparison_dataframe )
+    query_type = 'update_to_latest' #hardcoding this for now, but need to make user input
+    data_from_db = get_data( query_type, views_based_on_subject_type )
 
-def create_comparison_dataframe( views_based_on_subject_type ):
-    """takes views based on subject type as arg, and creates comparison dict and list of headers"""
-    # compare_dict = {}
-    # headers_list = []
+    df = build_dataframe( data_from_db )
+    breakpoint()
+
+def get_data( query_type, views_based_on_subject_type ):
+    """takes query_type (if update/latest or update/baseline) and views based on subject type as args, and creates comparison dict and list of headers"""
     current_view, update_view = views_based_on_subject_type
 
-    data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
-    # headers = database_connection(f"SELECT table_name, ordinal_position, column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
-    header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
-    
+    if query_type == 'update_to_latest':
+        data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
+        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
+    # if query_type == 'update_to_baseline:
+        # // queries for data and headers for update-to-baseline query
+        
+    return header_data, data
+
+def build_dataframe( header_and_data_db_responses ):
+    """takes the _data and headers responses from get_data as arg, returns appropriately constructed comparison dataframe"""
+    header_data, data = header_and_data_db_responses
+
     headers_unpacked = [''.join(header) for header in header_data] 
     unique_headers_len = int( len( headers_unpacked )/2 )
     headers_cleaned = []
@@ -64,26 +73,6 @@ def create_comparison_dataframe( views_based_on_subject_type ):
     unsorted_df = pd.DataFrame(data, columns=[headers_cleaned])
     #this is same frame but with like columns next to eachother
     sorted_df = unsorted_df[headers_sorted]
-
-    # for p_value in data:
-    #     subject_id = p_value[ 0 ]
-    #     subject_dict = {}
-
-    #     for index, h_value in enumerate(headers):
-    #         if index <= unique_headers_len-1:
-
-    #             phenotype = h_value[ 1 ]
-    #             headers_list.append( phenotype )
-    #             update_val = p_value[ index ]
-    #             current_val = p_value[ index + unique_headers_len]
-    #             if update_val != current_val:
-    #                 values = f"{update_val}, {current_val}"
-    #             else:
-    #                 values = ""
-    #             subject_dict[phenotype] = values
-
-    #     subject_dict.pop("subject_id")
-    #     compare_dict[subject_id] = subject_dict
 
     return sorted_df
 
