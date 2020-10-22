@@ -28,14 +28,14 @@ def main():
     if user_input_subject_type == 'family':
         views_based_on_subject_type = 'get_current_fam', 'get_unpublished_updates_fam'
 
-    comparison_dict_and_headers = create_comparison_dict( views_based_on_subject_type )
+    comparison_dataframe = create_comparison_dataframe( views_based_on_subject_type )
+    breakpoint()
+    build_comparison_table( comparison_dataframe )
 
-    build_comparison_table( comparison_dict_and_headers )
-
-def create_comparison_dict( views_based_on_subject_type ):
+def create_comparison_dataframe( views_based_on_subject_type ):
     """takes views based on subject type as arg, and creates comparison dict and list of headers"""
-    compare_dict = {}
-    headers_list = []
+    # compare_dict = {}
+    # headers_list = []
     current_view, update_view = views_based_on_subject_type
 
     data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
@@ -65,32 +65,29 @@ def create_comparison_dict( views_based_on_subject_type ):
     #this is same frame but with like columns next to eachother
     sorted_df = unsorted_df[headers_sorted]
 
-    breakpoint()
-    
+    # for p_value in data:
+    #     subject_id = p_value[ 0 ]
+    #     subject_dict = {}
 
-    for p_value in data:
-        subject_id = p_value[ 0 ]
-        subject_dict = {}
+    #     for index, h_value in enumerate(headers):
+    #         if index <= unique_headers_len-1:
 
-        for index, h_value in enumerate(headers):
-            if index <= unique_headers_len-1:
+    #             phenotype = h_value[ 1 ]
+    #             headers_list.append( phenotype )
+    #             update_val = p_value[ index ]
+    #             current_val = p_value[ index + unique_headers_len]
+    #             if update_val != current_val:
+    #                 values = f"{update_val}, {current_val}"
+    #             else:
+    #                 values = ""
+    #             subject_dict[phenotype] = values
 
-                phenotype = h_value[ 1 ]
-                headers_list.append( phenotype )
-                update_val = p_value[ index ]
-                current_val = p_value[ index + unique_headers_len]
-                if update_val != current_val:
-                    values = f"{update_val}, {current_val}"
-                else:
-                    values = ""
-                subject_dict[phenotype] = values
+    #     subject_dict.pop("subject_id")
+    #     compare_dict[subject_id] = subject_dict
 
-        subject_dict.pop("subject_id")
-        compare_dict[subject_id] = subject_dict
+    return sorted_df
 
-    return compare_dict, headers_list
-
-def build_comparison_table(comparison_dict_and_headers):
+def build_comparison_table( comparison_dataframe ):
     """takes comparison dict and list of headers, creates table for comparison"""
     comparison_dict = comparison_dict_and_headers[ 0 ]
     headers = comparison_dict_and_headers[ 1 ]
