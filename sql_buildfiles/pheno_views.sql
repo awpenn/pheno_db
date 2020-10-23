@@ -348,6 +348,57 @@ CREATE OR REPLACE VIEW get_current_and_baseline_fam
     WHERE ds_subjects_phenotypes_baseline.subject_type = 'family'
     ORDER BY subject_id;
 
+
+CREATE OR REPLACE VIEW get_baseline_cc
+    AS
+    SELECT
+        subject_id,
+        CAST(_baseline_data->>'ad' as INT) as baseline_ad,
+        CAST(_baseline_data->>'age' as INT) as baseline_age,
+        _baseline_data->>'sex' as baseline_sex,
+        _baseline_data->>'apoe' as baseline_apoe,
+        CAST(_baseline_data->>'race' as INT) as baseline_race,
+        _baseline_data->>'braak' as baseline_braak,
+        _baseline_data->>'incad' as baseline_incad,
+        _baseline_data->>'prevad' as baseline_prevad,
+        _baseline_data->>'autopsy' as baseline_autopsy,
+        _baseline_data->>'comment' as baseline_comment,
+        _baseline_data->>'bthnicity' as baseline_ethnicity,
+        CAST(_baseline_data->>'selection' as INT) as baseline_selection,
+        _baseline_data->>'age_baseline' as baseline_age_baseline,
+        CAST(_baseline_data->>'data_version' as INT) as baseline_data_version,
+        data_versions.release_version as baseline_release_version
+    FROM ds_subjects_phenotypes_baseline
+    JOIN data_versions
+        ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'data_version' AS INT)
+    WHERE ds_subjects_phenotypes_baseline.subject_type = 'case/control'
+    ORDER BY subject_id;
+
+CREATE OR REPLACE VIEW get_baseline_fam
+    AS
+    SELECT 
+        subject_id,
+       _baseline_data::json->>'bamily_id' as baseline_family_id,
+       _baseline_data::json->>'mother_id' as baseline_mother_id,
+       _baseline_data::json->>'bather_id' as baseline_father_id,
+       _baseline_data::json->>'sex' as baseline_sex,
+       CAST(_baseline_data::json->>'age' as INT) as baseline_age,
+       _baseline_data::json->>'apoe' as baseline_apoe,
+       CAST(_baseline_data::json->>'race' as INT) as baseline_race,
+       _baseline_data::json->>'braak' as baseline_braak,
+       _baseline_data::json->>'autopsy' as baseline_autopsy,
+       CAST(_baseline_data::json->>'ad' as INT) as baseline_ad,
+       CAST(_baseline_data::json->>'family_group' as INT) as baseline_family_group,
+       _baseline_data::json->>'comment' as baseline_comment,
+       _baseline_data::json->>'ethnicity' as baseline_ethnicity,
+       _baseline_data::json->>'age_baseline' as baseline_age_baseline,
+       CAST(_baseline_data::json->>'data_version' as INT) as baseline_data_version,
+       data_versions.release_version as baseline_release_version       
+    FROM ds_subjects_phenotypes_baseline 
+    JOIN data_versions
+        ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'data_version' AS INT)
+    WHERE ds_subjects_phenotypes_baseline.subject_type = 'family'
+    ORDER BY subject_id;
 /*WiP connect to consent db*/
 -- CREATE OR REPLACE VIEW subjects_phenotypes_consents
 --     AS
