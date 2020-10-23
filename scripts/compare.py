@@ -17,73 +17,89 @@ new_records = []
 success_id_log = []
 error_log = {}
 
-compare_family_data = ''
-
 def main():
     """main conductor function for the script."""
     user_input_subject_type = get_subject_type()
     
     if user_input_subject_type == 'case/control':
-        views_based_on_subject_type = 'get_current_cc', 'get_unpublished_updates_cc'
+        views_based_on_subject_type = 'get_current_cc', 'get_unpublished_updates_cc', 'get_baseline_cc'
     if user_input_subject_type == 'family':
-        views_based_on_subject_type = 'get_current_fam', 'get_unpublished_updates_fam'
+        views_based_on_subject_type = 'get_current_fam', 'get_unpublished_updates_fam', 'get_baseline_fam'
 
-    comparison_dataframe = create_comparison_dataframe( views_based_on_subject_type )
-    breakpoint()
-    build_comparison_table( comparison_dataframe )
+    query_type = get_compare_query_type()
 
-def create_comparison_dataframe( views_based_on_subject_type ):
-    """takes views based on subject type as arg, and creates comparison dict and list of headers"""
-    # compare_dict = {}
-    # headers_list = []
-    current_view, update_view = views_based_on_subject_type
+    data_from_db = get_data( query_type, views_based_on_subject_type )
 
-    data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
-    # headers = database_connection(f"SELECT table_name, ordinal_position, column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
-    header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
+    df = build_dataframe( query_type, data_from_db )
+
+def get_data( query_type, views_based_on_subject_type ):
+    """takes query_type (if update/latest or update/baseline) and views based on subject type as args, and creates comparison dict and list of headers"""
+    current_view, update_view, baseline_view = views_based_on_subject_type
+
+    if query_type == 'update_to_latest':
+        data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
+        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
     
+    if query_type == 'update_to_baseline': # need to fix this, needs to pull unpacked baseline data from view that doesnt exist yet
+        data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {baseline_view} ON {update_view}.subject_id = {baseline_view}.subject_id")
+        #n.b. query below is hacky, figure out how to do without the sorting based on table name and ord                                              
+        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{baseline_view}') ORDER BY table_name DESC, ordinal_position;;" )
+        
+    return header_data, data
+
+def build_dataframe( query_type, header_and_data_db_responses ):
+    """takes query_type, the _data and headers responses from get_data as args, returns appropriately constructed comparison dataframe"""
+    header_data, data = header_and_data_db_responses
     headers_unpacked = [''.join(header) for header in header_data] 
+    # breakpoint()
     unique_headers_len = int( len( headers_unpacked )/2 )
     headers_cleaned = []
     headers_sorted = []
 
-    for index, header in enumerate( headers_unpacked ):
-        """takes headers, gives the 'current' ones a 'baseline_' appendage"""
-        if index >= unique_headers_len:
-            headers_cleaned.append( f"baseline_{header}" )
-        else:
-            headers_cleaned.append( header )
+    if query_type == 'update_to_latest':
+        """for update to latest, need to have _baseline added to differentiate between the current and update cols"""
+        for index, header in enumerate( headers_unpacked ):
+            """takes headers, gives the 'current' ones a 'baseline_' appendage"""
+            if index >= unique_headers_len:
+                headers_cleaned.append( f"prev_{header}" )
+            else:
+                headers_cleaned.append( header )
 
-    for index, header in enumerate( headers_cleaned ):
-        """orders cleaned headers so like columns are next to eachother (may discard)"""
-        if index < unique_headers_len:
-            headers_sorted.append( header )
-            headers_sorted.append( headers_cleaned[ headers_cleaned.index( f"baseline_{header}" ) ] )
+        for index, header in enumerate( headers_cleaned ):
+            """orders cleaned headers so like columns are next to eachother (may discard)"""
+            if index <= unique_headers_len:
+                if header not in ['subject_id', 'prev_subject_id']:
+                    headers_sorted.append( header )
+                    try:
+                        headers_sorted.append( headers_cleaned[ headers_cleaned.index( f"prev_{header}" ) ] )
+                    except:
+                        continue
+                elif header != 'prev_subject_id':
+                    headers_sorted.append( header )
     
-    #this unsorted_df is same as the merged tables in JM code
-    unsorted_df = pd.DataFrame(data, columns=[headers_cleaned])
-    #this is same frame but with like columns next to eachother
-    sorted_df = unsorted_df[headers_sorted]
+    if query_type == 'update_to_baseline':
+        for index, header in enumerate( headers_unpacked ):
+            if header != 'subject_id':
+                headers_cleaned.append( header )
+            elif header in headers_cleaned:
+                headers_cleaned.append( f"DISCARD_subject_id" )
+            else:
+                headers_cleaned.append( header )
 
-    # for p_value in data:
-    #     subject_id = p_value[ 0 ]
-    #     subject_dict = {}
+        for index, header in enumerate( headers_cleaned ):
+            """orders headers so like columns are next to eachother (may discard)"""
+            # cant go on "unique header len" because the baseline view is different than subject view
+            if header not in headers_sorted:
+                if 'baseline_' not in header: #hack way to eliminate the extra subject_id col
+                    if header != 'DISCARD_subject_id':
+                        headers_sorted.append( header )
+                        try:
+                            headers_sorted.append( headers_cleaned[ headers_cleaned.index( f"baseline_{header}" ) ] )
+                        except:
+                            continue
 
-    #     for index, h_value in enumerate(headers):
-    #         if index <= unique_headers_len-1:
-
-    #             phenotype = h_value[ 1 ]
-    #             headers_list.append( phenotype )
-    #             update_val = p_value[ index ]
-    #             current_val = p_value[ index + unique_headers_len]
-    #             if update_val != current_val:
-    #                 values = f"{update_val}, {current_val}"
-    #             else:
-    #                 values = ""
-    #             subject_dict[phenotype] = values
-
-    #     subject_dict.pop("subject_id")
-    #     compare_dict[subject_id] = subject_dict
+    unsorted_df = pd.DataFrame( data, columns=[ headers_cleaned ] )
+    sorted_df = unsorted_df[ headers_sorted ]
 
     return sorted_df
 

@@ -150,6 +150,26 @@ def get_publish_action():
             print("Please input a valid entry. ")
             continue
 
+def get_compare_query_type():
+    """takes nothing as arg, and returns query type for comparison (ie. update vs. current or update vs. baseline"""
+    while True:
+        response_dict = {
+            1: "update_to_latest",
+            2: "update_to_baseline"
+        }
+        try:
+            querytype_input = input(f"Select type of comparison (by key) to generate: {response_dict} ")
+        except ValueError:
+            continue
+        if int(querytype_input) in response_dict.keys():
+            query_type = response_dict[ int( querytype_input ) ]
+            print(f"{query_type} comparison file will be generated. ")
+            return query_type
+
+        else:
+            print("Please input a valid entry. Make sure you entered a numeric choice designation.")
+            continue
+
 def user_input_batch_loading():
     """takes no args, returns boolean for whether dropping subjects by batch file or manual input"""
     while True:

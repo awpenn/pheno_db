@@ -1,0 +1,4 @@
+subject_id	sex	baseline_sex	prevad	baseline_prevad	incad	baseline_incad	age	baseline_age	age_baseline	baseline_age_baseline	apoe	baseline_apoe	autopsy	baseline_autopsy	braak	baseline_braak	race	baseline_race	ethnicity	baseline_ethnicity	selection	baseline_selection	ad	baseline_ad	comments	baseline_comments	data_version	baseline_data_version	record_published	release_version	baseline_release_version	version_published	latest_update_version	update_baseline	update_latest	update_adstatus	correction
+A1	1	1	0	0	0	0	78	76	60	60	33	33	0	0	NA	NA	6	6	1	NA	1	1	0	0		NA	4	3	False	ng00067.v3	ng00067.v2	True	ng00067.v2	False	False	False	False
+A2	1	1	0	0	0	0	76	76	60	60	33	33	0	0	NA	NA	6	6	1	NA	1	1	0	0		NA	4	3	False	ng00067.v3	ng00067.v2	True	ng00067.v2	False	False	False	False
+A3	1	1	0	0	0	0	76	76	60	60	33	33	0	0	NA	NA	6	6	1	NA	1	1	0	0		NA	4	3	False	ng00067.v3	ng00067.v2	True	ng00067.v2	False	False	False	False
