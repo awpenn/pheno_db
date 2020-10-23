@@ -29,10 +29,11 @@ def main():
     if user_input_subject_type == 'family':
         views_based_on_subject_type = 'get_current_fam', 'get_unpublished_updates_fam'
 
-    query_type = 'update_to_latest' #hardcoding this for now, but need to make user input
+    query_type = get_compare_query_type()
+
     data_from_db = get_data( query_type, views_based_on_subject_type )
 
-    df = build_dataframe( data_from_db )
+    df = build_dataframe( query_type, data_from_db )
     breakpoint()
 
 def get_data( query_type, views_based_on_subject_type ):
@@ -42,13 +43,15 @@ def get_data( query_type, views_based_on_subject_type ):
     if query_type == 'update_to_latest':
         data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
         header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
-    # if query_type == 'update_to_baseline:
-        # // queries for data and headers for update-to-baseline query
+    
+    if query_type == 'update_to_baseline': # need to fix this, needs to pull unpacked baseline data from view that doesnt exist yet
+        data = database_connection(f"SELECT update_view.*,  FROM {update_view} LEFT JOIN ds_subjects_phenotypes_baseline ON {update_view}.subject_id = ds_subjects_phenotypes_baseline.subject_id")
+        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'ds_subjects_phenotypes_baseline');" )
         
     return header_data, data
 
-def build_dataframe( header_and_data_db_responses ):
-    """takes the _data and headers responses from get_data as arg, returns appropriately constructed comparison dataframe"""
+def build_dataframe( query_type, header_and_data_db_responses ):
+    """takes query_type, the _data and headers responses from get_data as args, returns appropriately constructed comparison dataframe"""
     header_data, data = header_and_data_db_responses
 
     headers_unpacked = [''.join(header) for header in header_data] 
@@ -62,7 +65,7 @@ def build_dataframe( header_and_data_db_responses ):
             headers_cleaned.append( f"baseline_{header}" )
         else:
             headers_cleaned.append( header )
-
+    breakpoint()
     for index, header in enumerate( headers_cleaned ):
         """orders cleaned headers so like columns are next to eachother (may discard)"""
         if index < unique_headers_len:
