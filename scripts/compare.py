@@ -32,6 +32,8 @@ def main():
 
     df = build_dataframe( query_type, data_from_db )
 
+    df.to_csv("tada.txt",sep="\t",index=False,na_rep="NA")
+
 def get_data( query_type, views_based_on_subject_type ):
     """takes query_type (if update/latest or update/baseline) and views based on subject type as args, and creates comparison dict and list of headers"""
     current_view, update_view, baseline_view = views_based_on_subject_type
