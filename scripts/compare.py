@@ -32,7 +32,7 @@ def main():
 
     sorted_df = build_dataframe( query_type, data_from_db )
 
-    sorted_df_with_highlights = highlight_change( sorted_df )
+    sorted_df_with_highlights = highlight_change( query_type, sorted_df )
 
     build_comparison_table( sorted_df_with_highlights )
 
@@ -109,14 +109,15 @@ def build_dataframe( query_type, header_and_data_db_responses ):
 
     return sorted_df
 
-def build_comparison_table( comparison_dataframe ):
-    """takes finished dataframe and creates csv"""
-    comparison_dataframe.to_csv("tada.txt",sep="\t",index=False,na_rep="NA")
-
-def highlight_change( sorted_dataframe ):
-    """takes comparison dataframe, checks if there are differences between update and latest/baseline, 
+def highlight_change( query_type, sorted_dataframe ):
+    """takes query_type and comparison dataframe, checks if there are differences between update and latest/baseline, 
     adds 'X.value TO Y.value' to end of row
     """
+    if query_type == 'update_to_latest':
+        compare_prefix = 'prev'
+    if query_type == 'update_to_baseline':
+        compare_prefix = 'baseline'
+
     def add_update(var_update,var_y,var_x):
         comp_update = sorted_dataframe[var_y].apply(str) + " to " + sorted_dataframe[var_x].apply(str)
         comp_update[sorted_dataframe[var_y] == sorted_dataframe[var_x]] = ""
@@ -125,14 +126,17 @@ def highlight_change( sorted_dataframe ):
     ## access columns eg. sorted_dataframe[['sex', 'prev_sex']] //note twin brackets
     skip_column_keywords = ['update', 'published', 'release', 'version']
 
-
     for j in sorted_dataframe.columns:
         ## if no part of any keyword appears in the current column name (j)
         if not any(k in j for k in skip_column_keywords):
-            if f"prev_{j}" in sorted_dataframe:
-                add_update(f"{j}_change", f"prev_{j}", j)
+            if f"{compare_prefix}_{j}" in sorted_dataframe:
+                add_update(f"{j}_change", f"{compare_prefix}_{j}", j)
 
     return sorted_dataframe
+
+def build_comparison_table( comparison_dataframe ):
+    """takes finished dataframe and creates csv"""
+    comparison_dataframe.to_csv("tada.txt",sep="\t",index=False,na_rep="NA")
 
 if __name__ == '__main__':
     main()
