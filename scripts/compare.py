@@ -138,7 +138,8 @@ def highlight_change( sorted_dataframe ):
     for i in sorted_dataframe.columns:
             ## if no part of any keyword appears in the current column name (j)
         if not any(k in i for k in skip_column_keywords):
-            add_update(f"{i}_change", f"prev_{i}", i)
+            if f"prev_{j}" in sorted_dataframe:
+                add_update(f"{i}_change", f"prev_{i}", i)
 
     breakpoint()
 
