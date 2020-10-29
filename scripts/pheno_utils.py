@@ -238,6 +238,7 @@ def get_subject_to_drop(view_based_on_subject_type):
     
     return single_dict
 
+
 # log generators
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
