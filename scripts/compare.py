@@ -34,7 +34,7 @@ def main():
 
     sorted_df_with_highlights = highlight_change( sorted_df )
 
-
+    build_comparison_table( sorted_df_with_highlights )
 
 def get_data( query_type, views_based_on_subject_type ):
     """takes query_type (if update/latest or update/baseline) and views based on subject type as args, and creates comparison dict and list of headers"""
@@ -110,38 +110,29 @@ def build_dataframe( query_type, header_and_data_db_responses ):
     return sorted_df
 
 def build_comparison_table( comparison_dataframe ):
-    """takes comparison dict and list of headers, creates table for comparison"""
-    comparison_dict = comparison_dict_and_headers[ 0 ]
-    headers = comparison_dict_and_headers[ 1 ]
-
-    with open('tada.csv', mode='w') as csv_file:
-        fieldnames = headers
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        writer.writeheader()
-
-        for subject_id, data in comparison_dict.items():
-            data["subject_id"] = subject_id
-            writer.writerow(data)
+    """takes finished dataframe and creates csv"""
+    comparison_dataframe.to_csv("tada.txt",sep="\t",index=False,na_rep="NA")
 
 def highlight_change( sorted_dataframe ):
     """takes comparison dataframe, checks if there are differences between update and latest/baseline, 
     adds 'X.value TO Y.value' to end of row
     """
     def add_update(var_update,var_y,var_x):
-        comp_update = sorted_dataframe[var_y] + " to " + sorted_dataframe[var_x]
+        comp_update = sorted_dataframe[var_y].apply(str) + " to " + sorted_dataframe[var_x].apply(str)
         comp_update[sorted_dataframe[var_y] == sorted_dataframe[var_x]] = ""
         sorted_dataframe[var_update] = comp_update
 
     ## access columns eg. sorted_dataframe[['sex', 'prev_sex']] //note twin brackets
     skip_column_keywords = ['update', 'published', 'release', 'version']
 
-    for i in sorted_dataframe.columns:
-            ## if no part of any keyword appears in the current column name (j)
-        if not any(k in i for k in skip_column_keywords):
-            if f"prev_{j}" in sorted_dataframe:
-                add_update(f"{i}_change", f"prev_{i}", i)
 
-    breakpoint()
+    for j in sorted_dataframe.columns:
+        ## if no part of any keyword appears in the current column name (j)
+        if not any(k in j for k in skip_column_keywords):
+            if f"prev_{j}" in sorted_dataframe:
+                add_update(f"{j}_change", f"prev_{j}", j)
+
+    return sorted_dataframe
 
 if __name__ == '__main__':
     main()
