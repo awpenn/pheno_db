@@ -127,17 +127,21 @@ def highlight_change( sorted_dataframe ):
     """takes comparison dataframe, checks if there are differences between update and latest/baseline, 
     adds 'X.value TO Y.value' to end of row
     """
+    def add_update(var_update,var_y,var_x):
+        comp_update = sorted_dataframe[var_y] + " to " + sorted_dataframe[var_x]
+        comp_update[sorted_dataframe[var_y] == sorted_dataframe[var_x]] = ""
+        sorted_dataframe[var_update] = comp_update
+
     ## access columns eg. sorted_dataframe[['sex', 'prev_sex']] //note twin brackets
     skip_column_keywords = ['update', 'published', 'release', 'version']
-    
-    for i in sorted_dataframe.index:
-        for j in sorted_dataframe.columns:
+
+    for i in sorted_dataframe.columns:
             ## if no part of any keyword appears in the current column name (j)
-            if not any(k in j for k in skip_column_keywords):
-                if f"prev_{j}" in sorted_dataframe:
-                    if sorted_dataframe.loc[i][j] != sorted_dataframe.loc[0][f"prev_{j}"]:
-                        sorted_dataframe[f"{j}_change"] = f"{sorted_dataframe.loc[i][j]} to {sorted_dataframe.loc[0][f'prev_{j}']}"
+        if not any(k in i for k in skip_column_keywords):
+            add_update(f"{i}_change", f"prev_{i}", i)
+
     breakpoint()
+
 if __name__ == '__main__':
     main()
     # generate_errorlog()
