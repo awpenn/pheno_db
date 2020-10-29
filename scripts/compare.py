@@ -30,9 +30,11 @@ def main():
 
     data_from_db = get_data( query_type, views_based_on_subject_type )
 
-    df = build_dataframe( query_type, data_from_db )
+    sorted_df = build_dataframe( query_type, data_from_db )
 
-    df.to_csv("tada.txt",sep="\t",index=False,na_rep="NA")
+    sorted_df_with_highlights = highlight_change( sorted_df )
+
+
 
 def get_data( query_type, views_based_on_subject_type ):
     """takes query_type (if update/latest or update/baseline) and views based on subject type as args, and creates comparison dict and list of headers"""
@@ -102,6 +104,8 @@ def build_dataframe( query_type, header_and_data_db_responses ):
 
     unsorted_df = pd.DataFrame( data, columns=[ headers_cleaned ] )
     sorted_df = unsorted_df[ headers_sorted ]
+    # convert column names to strings (from tuples)
+    sorted_df.columns = [str(i[0]) for i in sorted_df.columns]
 
     return sorted_df
 
@@ -119,6 +123,15 @@ def build_comparison_table( comparison_dataframe ):
             data["subject_id"] = subject_id
             writer.writerow(data)
 
+def highlight_change( sorted_dataframe ):
+    """takes comparison dataframe, checks if there are differences between update and latest/baseline, 
+    adds 'X.value TO Y.value' to end of row
+    """
+    ## read this: https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html
+    ## access columns eg. sorted_dataframe[['sex', 'prev_sex']] //note twin brackets
+    ## need to maybe rename colums in dataframe builder to convert from tuple to string to clean up
+
+    breakpoint()
 if __name__ == '__main__':
     main()
     # generate_errorlog()
