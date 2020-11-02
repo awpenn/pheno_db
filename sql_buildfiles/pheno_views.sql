@@ -324,9 +324,9 @@ CREATE OR REPLACE VIEW get_current_and_baseline_fam
     AS 
     SELECT  
        get_current_fam.*, 
-       _baseline_data::json->>'bamily_id' as baseline_family_id,
+       _baseline_data::json->>'family_id' as baseline_family_id,
        _baseline_data::json->>'mother_id' as baseline_mother_id,
-       _baseline_data::json->>'bather_id' as baseline_father_id,
+       _baseline_data::json->>'father_id' as baseline_father_id,
        _baseline_data::json->>'sex' as baseline_sex,
        CAST(_baseline_data::json->>'age' as INT) as baseline_age,
        _baseline_data::json->>'apoe' as baseline_apoe,
@@ -378,9 +378,9 @@ CREATE OR REPLACE VIEW get_baseline_fam
     AS
     SELECT 
         subject_id,
-       _baseline_data::json->>'bamily_id' as baseline_family_id,
+       _baseline_data::json->>'family_id' as baseline_family_id,
        _baseline_data::json->>'mother_id' as baseline_mother_id,
-       _baseline_data::json->>'bather_id' as baseline_father_id,
+       _baseline_data::json->>'father_id' as baseline_father_id,
        CAST(_baseline_data::json->>'sex' as INT) as baseline_sex,
        CAST(_baseline_data::json->>'age' as INT) as baseline_age,
        _baseline_data::json->>'apoe' as baseline_apoe,
