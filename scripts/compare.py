@@ -136,7 +136,7 @@ def highlight_change( query_type, sorted_dataframe ):
 
 def build_comparison_table( query_type, comparison_dataframe ):
     """takes query_type for filename and finished dataframe and creates csv"""
-    comparison_dataframe.to_csv(f"{query_type}_comparison.txt",sep="\t",index=False,na_rep="NA")
+    comparison_dataframe.to_csv(f"/comparison_files/{query_type}_comparison.txt",sep="\t",index=False,na_rep="NA")
 
 if __name__ == '__main__':
     main()
