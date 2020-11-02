@@ -71,7 +71,7 @@ def create_data_dict(LOADFILE):
                     
 
                 if type(blob["data_version"]) == int:
-                    if check_not_duplicate( blob, 'PUBLISHED = FALSE' ) and check_not_duplicate( blob, 'PUBLISHED = TRUE' ):
+                    if check_not_duplicate( blob, 'PUBLISHED = FALSE', user_input_subject_type ) and check_not_duplicate( blob, 'PUBLISHED = TRUE', user_input_subject_type ):
                         data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
                     else:
                         print(f'Already an update or published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')

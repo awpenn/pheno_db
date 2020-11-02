@@ -54,7 +54,8 @@ def write_to_db(data_dict):
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{subject_id}', '{_data}') WHERE subject_id = '{subject_id}' AND subject_type = '{user_input_subject_type}' AND _data->>'data_version' = '{version}' AND published = FALSE")
 
 def create_data_dict(LOADFILE):
-    """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
+    """takes loadfile name and subject_type as args, returns dict of json data keyed by subject id of data to be entered in database"""
+    global user_input_subject_type
     data_dict = {}
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         """"get the relationship table names and indexes from the csv file headers"""
@@ -75,7 +76,7 @@ def create_data_dict(LOADFILE):
                         blob["latest_update_version"] = get_data_version_id(value)
 
                 if type(blob["data_version"]) == int:
-                    if check_not_duplicate( blob, "PUBLISHED = TRUE" ):
+                    if check_not_duplicate( blob, "PUBLISHED = TRUE", user_input_subject_type ):
                         data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
                     else:
                         print(f'Already a published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
