@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS "ds_subjects_phenotypes_baseline"
         PRIMARY KEY ("id")
     );
 
+CREATE TABLE IF NOT EXISTS "data_dictionaries"
+    (
+        "id" SERIAL NOT NULL,
+        "variable_name" VARCHAR(50) NOT NULL,
+        "dictionary_name" VARCHAR(50) NOT NULL,
+        "variable_description" VARCHAR(500),
+        "data_values" jsonb,
+        "comments" VARCHAR(500),
+        "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
+        "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
+        PRIMARY KEY ("id")
+    );
+
 -- /* example cc _data for subject_phenotypes table _data */
 -- {
 --     "ad": 0,
