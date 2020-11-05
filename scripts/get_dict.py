@@ -20,25 +20,11 @@ def main():
     make_dictionary_csv( dict_name )
 
 def make_dictionary_csv( dict_name ):
-    """takes dict_name as arg, and..."""
-    dict_data = [ return_tuple[ 0 ] for return_tuple in database_connection(f"SELECT _dict_data FROM data_dictionaries WHERE dictionary_name = '{ dict_name }'") ][ 0 ]
-    ## create dataframe from returned json, with keys as rows
-    data_df = pd.DataFrame.from_dict( dict_data, orient='index' )
-
-    ## add the index (varname) as column in df
-    data_df[ 'variable' ] = data_df.index
-
-    ## save the dictionary name (to create filename) before deleting column
-    dictionary_name = set( data_df[ 'dictionary_name' ] ).pop()
-
-    ## create dictname column from df
-    del data_df[ 'dictionary_name' ]
-
-    ## re-order the columns in df
-    data_df = data_df[ [ 'variable', 'variable_description', 'data_values', 'comments' ] ]
+    """takes dict_name as arg, calls data retrieve function, writes csv"""
+    data_df = get_dict_data( dict_name )
 
     ## write df as tab-separated file
-    data_df.to_csv( f'{ dictionary_name }_dict.txt', sep="\t", index=False )
+    data_df.to_csv( f'{ dict_name }_dict.txt', sep="\t", index=False )
 
 
 def user_select_dictionary():

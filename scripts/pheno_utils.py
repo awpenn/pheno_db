@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 import os
 import json
 
+import pandas as pd
+
 error_log = {}
 
 load_dotenv()
@@ -263,6 +265,26 @@ def generate_success_list():
 
         f.close()
 
+# fetching data
+def get_dict_data( dict_name ):
+    """takes dict name as arg, returns dataframe with dict info"""
+    dict_data = [ return_tuple[ 0 ] for return_tuple in database_connection(f"SELECT _dict_data FROM data_dictionaries WHERE dictionary_name = '{ dict_name }'") ][ 0 ]
+    ## create dataframe from returned json, with keys as rows
+    data_df = pd.DataFrame.from_dict( dict_data, orient='index' )
+
+    ## add the index (varname) as column in df
+    data_df[ 'variable' ] = data_df.index
+
+    ## save the dictionary name (to create filename) before deleting column
+    dictionary_name = set( data_df[ 'dictionary_name' ] ).pop()
+
+    ## create dictname column from df
+    del data_df[ 'dictionary_name' ]
+
+    ## re-order the columns in df
+    data_df = data_df[ [ 'variable', 'variable_description', 'data_values', 'comments' ] ]
+
+    return data_df
 # for dev/debugging
 def write_json_to_file( json_data ):
     """for checking data and ect, takes json and writes as json file"""
