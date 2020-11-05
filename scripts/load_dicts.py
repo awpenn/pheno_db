@@ -93,11 +93,17 @@ def create_data_dict( LOADFILE ):
     return data_dict
 
 def write_to_db( data_dict ):
-    """writes record to db"""
+    """writes record to db (for now writing to a dict.json to check correctness)"""
+    dictionary_name = get_dictionary_name( data_dict )
+    ## .replace to replace the single with two-single, allows to write to db, comes back as should be written
+    _dict_data = json.dumps( data_dict ).replace("'", "''")
+
+    database_connection(f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES('{ dictionary_name }', '{ _dict_data }');")
+
     with open('dict.json', 'w') as f:
         json.dump( data_dict, f )
 
-def get_user_input(value_list):  
+def get_user_input( value_list ):  
     """takes the list of values pulled from dataframe in cases where there is more than one,
      (e.g. same variable has two assoc. dictionary names), gets user to choose correct one and returns"""
     while True:
@@ -122,6 +128,22 @@ def cleanup_string_numbers( value_dict ):
             cleaned_up_dict[ key ] = value
 
     return cleaned_up_dict
+
+def get_dictionary_name( data_dict ):
+    """checks that all the var entries have same dictionary name, 
+    returns if does, else alerts the user that there is error in data and ends program"""
+    dictionary_name_list = []
+    for key, value in data_dict.items():
+        for dkey, dvalue in value.items():
+            if dkey == 'dictionary_name':
+                dictionary_name_list.append( dvalue )
+    
+    if any( dictionary_name_list[ 0 ] != dname for dname in dictionary_name_list ):
+        print(f" There is more than dictionary_name found in the uploaded dict { set( dictionary_name_list ) }.  Check upload file and retry.  Program will exit. ")
+        sys.exit()
+    else:
+        return dictionary_name_list[ 0 ]
+
 
 if __name__ == '__main__':
     main()
