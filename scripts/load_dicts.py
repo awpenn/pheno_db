@@ -17,8 +17,7 @@ from pheno_utils import *
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
-    LOADFILE = 'CC_DD_upload.csv'
-    # LOADFILE = get_filename()
+    LOADFILE = get_filename()
     data_dict = create_data_dict( LOADFILE )
 
     cleanup_string_numbers( data_dict )
