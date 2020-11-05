@@ -263,3 +263,8 @@ def generate_success_list():
 
         f.close()
 
+# for dev/debugging
+def write_json_to_file( json_data ):
+    """for checking data and ect, takes json and writes as json file"""
+    with open('data.json', 'w') as outfile:
+        json.dump( json_data, outfile )
