@@ -55,7 +55,7 @@ def build_dataframe( query_type, header_and_data_db_responses ):
     """takes query_type, the _data and headers responses from get_data as args, returns appropriately constructed comparison dataframe"""
     header_data, data = header_and_data_db_responses
     headers_unpacked = [''.join(header) for header in header_data] 
-    # breakpoint()
+
     unique_headers_len = int( len( headers_unpacked )/2 )
     headers_cleaned = []
     headers_sorted = []
