@@ -1,0 +1,70 @@
+{
+    "case/control": {
+        "ad": 0,
+        "age": 76,
+        "sex": 1,
+        "apoe": 33,
+        "race": 6,
+        "braak": "NA",
+        "incad": 0,
+        "prevad": 0,
+        "autopsy": 0,
+        "comments": "",
+        "ethnicity": 1,
+        "selection": 1,
+        "correction": 0,
+        "age_baseline": 60,
+        "data_version": 3,
+        "update_latest": 1,
+        "update_adstatus": 0,
+        "update_baseline": 0,
+        "latest_update_version": 3
+    },
+    "family": {
+        "ad": 0,
+        "age": 76,
+        "sex": 1,
+        "apoe": 33,
+        "race": 1,
+        "braak": "NA",
+        "autopsy": "NA",
+        "comments": "",
+        "ethnicity": 1,
+        "family_id": 1,
+        "father_id": "A5",
+        "mother_id": "A4",
+        "correction": 0,
+        "age_baseline": 60,
+        "data_version": 3,
+        "family_group": 0,
+        "update_latest": 1,
+        "update_adstatus": 0,
+        "update_baseline": 0,
+        "latest_update_version": 3
+    },
+    "ADNI":{
+        "sex": 1,
+        "prevad": 0,
+        "incad": 0,
+        "age_current": 87,
+        "age_baseline": 76,
+        "age_mci_onset": "NA",
+        "age_ad_onset": "NA",
+        "apoe": 33,
+        "autopsy": 0,
+        "braak": "NA",
+        "race": 5,
+        "ethnicity": 0,
+        "ad_last_visit": 0,
+        "mci_last_visit": 0,
+        "Comments": "",
+        "data_version": 3,
+        "update_latest": 1,
+        "update_adstatus": 0,
+        "update_diagnosis": 0  <-- this one is different from the other types
+    }
+}
+
+
+
+
