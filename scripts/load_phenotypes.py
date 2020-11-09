@@ -34,6 +34,7 @@ def main():
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     global user_input_subject_type
+    global publish_status
     data_dict = {}
 
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
@@ -56,7 +57,10 @@ def create_data_dict(LOADFILE):
                     
 
                 if type(blob["data_version"]) == int:
-                    data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                    if check_not_duplicate( blob, publish_status, user_input_subject_type ):
+                        data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                    else:
+                        print(f'{ blob["subject_id"]} already has record in {blob["release_version"]}')
                 else:
                     print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
 
@@ -86,8 +90,10 @@ def write_to_db(data_dict):
 
         _data = json.dumps(value)
 
+
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
         save_baseline(subject_id, value)
+
 
 def create_baseline_json(data):
     """takes dict entry for subject being added to database and creates the copy of data for baseline table, returning json string"""
