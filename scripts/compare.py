@@ -21,7 +21,7 @@ def main():
     """main conductor function for the script."""
     user_input_subject_type = get_subject_type()
     
-    ## n.b replace these with function in utils file that returns tuple of views based on the user_input above
+    ## calls function that returns the three view names based on user_input
     views_based_on_subject_type = get_views_by_subject_type( user_input_subject_type )
 
     query_type = get_compare_query_type()

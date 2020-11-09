@@ -107,7 +107,7 @@ def save_baseline(subject_id, data):
     if check_not_dupe_baseline( subject_id , user_input_subject_type ):
         database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
     else:
-        print(f'There is already a case/control baseline record for {subject_id}.')
+        print(f'There is already a {user_input_subject_type} baseline record for {subject_id}.')
 
 
 

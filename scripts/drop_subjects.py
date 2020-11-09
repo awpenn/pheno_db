@@ -19,12 +19,13 @@ def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
 
     user_input_subject_type = get_subject_type()
-    
-    if user_input_subject_type == 'case/control':
-        view_based_on_subject_type = 'get_unpublished_updates_cc'
-    if user_input_subject_type == 'family':
-        view_based_on_subject_type = 'get_unpublished_updates_fam'
+    views_based_on_subject_type = get_views_by_subject_type( user_input_subject_type )
 
+    for view in views_based_on_subject_type:
+        if 'unpublished' in view:
+            view_based_on_subject_type = view
+
+    breakpoint()
     is_batch_file = user_input_batch_loading()
 
     if is_batch_file:
@@ -35,9 +36,9 @@ def main():
        drop_dict = get_subject_to_drop( view_based_on_subject_type )
     
     # drop_dict returns dict keyed by subject id with data_version (pkey from table) as value
-    drop_from_database(drop_dict)
+    drop_from_database( user_input_subject_type, drop_dict )
 
-def create_drop_data_dict(LOADFILE, view_based_on_subject_type):
+def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
     """takes loadfile name and view to look up based on subject_type as args, 
     returns dict of json data keyed by subject id of data to be entered in database"""
     drop_dict = {}
@@ -51,7 +52,6 @@ def create_drop_data_dict(LOADFILE, view_based_on_subject_type):
             release_version = row[headers.index( "release_version" ) ] or None
             data_version_id = get_data_version_id( release_version ) or None
             
-            #res = True in (ele > 10 for ele in test_list) 
             missing_data = True in ( ele == None for ele in [ subject_id, release_version, data_version_id ] )
 
             if missing_data:
@@ -70,10 +70,10 @@ def create_drop_data_dict(LOADFILE, view_based_on_subject_type):
               
     return drop_dict
 
-def drop_from_database(drop_dict):
-    """takes dict keyed by subject id, with id for data version in which subject's record will be deleted."""
+def drop_from_database( subject_type, drop_dict ):
+    """takes subject_type and dict keyed by subject id, with id for data version in which subject's record will be deleted."""
     for key, value in drop_dict.items():
-        database_connection(f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = '{key}' AND _data->>'data_version' = '{value}' AND published = FALSE")
+        database_connection(f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = '{ key }' AND _data->>'data_version' = '{ value }' AND subject_type = '{ subject_type }' AND published = FALSE")
 
 if __name__ == '__main__':
     main()
