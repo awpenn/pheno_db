@@ -21,10 +21,8 @@ def main():
     """main conductor function for the script."""
     user_input_subject_type = get_subject_type()
     
-    if user_input_subject_type == 'case/control':
-        views_based_on_subject_type = 'get_current_cc', 'get_unpublished_updates_cc', 'get_baseline_cc'
-    if user_input_subject_type == 'family':
-        views_based_on_subject_type = 'get_current_fam', 'get_unpublished_updates_fam', 'get_baseline_fam'
+    ## n.b replace these with function in utils file that returns tuple of views based on the user_input above
+    views_based_on_subject_type = get_views_by_subject_type( user_input_subject_type )
 
     query_type = get_compare_query_type()
 

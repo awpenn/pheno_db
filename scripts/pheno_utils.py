@@ -115,19 +115,15 @@ def get_filename():
         
 def get_subject_type():
     """takes nothing, returns subject_type for data being handled"""
+    subject_types = [ type_tuple[ 0 ] for type_tuple in database_connection("SELECT DISTINCT subject_type FROM ds_subjects_phenotypes") ]
     while True:
         try:
-            casefam_input = input(f"Are you uploading family data? ")
+            casefam_input = input(f"What type of data are you working with (select from list)? {subject_types}")
         except ValueError:
             continue
-        if casefam_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-            user_input_subject_type = 'family'
-            print("Loading family data.")
-            return user_input_subject_type
-        elif casefam_input in ['n', 'N', 'no', 'No', 'NO']:
-            user_input_subject_type = 'case/control'                
-            print("Loading case/control data.")
-            return user_input_subject_type
+        if casefam_input in subject_types:
+            print(f"Loading {casefam_input} data.")
+            return casefam_input
         else:
             print("Please input a valid entry. ")
             continue
@@ -285,6 +281,11 @@ def get_dict_data( dict_name ):
     data_df = data_df[ [ 'variable', 'variable_description', 'data_values', 'comments' ] ]
 
     return data_df
+def get_views_by_subject_type( subject_type ):
+    """takes user-supplied subject_type, returns tuple of appropriate views from database table"""
+    return database_connection(f"SELECT current_view_name, unpublished_update_view_name, baseline_view_name FROM views_by_subject_type WHERE subject_type = '{subject_type}'")[ 0 ]
+
+
 # for dev/debugging
 def write_json_to_file( json_data ):
     """for checking data and ect, takes json and writes as json file"""
