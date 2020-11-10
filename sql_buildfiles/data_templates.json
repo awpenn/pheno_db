@@ -61,7 +61,8 @@
         "data_version": 3,
         "update_latest": 1,
         "update_adstatus": 0,
-        "update_diagnosis": 0  <-- this one is different from the other types
+        "update_diagnosis": 0,  <-- this one is different from the other types
+        "correction": 0
     }
 }
 
