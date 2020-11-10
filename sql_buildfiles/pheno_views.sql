@@ -376,7 +376,6 @@ CREATE OR REPLACE VIEW get_all_adni
         d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
-        CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
 
@@ -415,7 +414,6 @@ CREATE OR REPLACE VIEW get_current_adni
         d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
-        CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
         
@@ -454,7 +452,6 @@ CREATE OR REPLACE VIEW get_newest_adni
         d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
-        CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
         
@@ -492,7 +489,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_adni
         d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
-        CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
         CAST(_data::json->>'correction' as BOOLEAN) as correction
         
