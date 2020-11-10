@@ -114,7 +114,7 @@ def update_diagnosis_check( subject_id, subject_type, data ):
         print(f'No {subject_type} baseline record found for {subject_id}.')
         return 0
     
-    if data[ "ad_last_visit" ] == baseline_ad or data[ "mci_last_visit" ] == baseline_mci:
+    if data[ "ad_last_visit" ] == baseline_ad and data[ "mci_last_visit" ] == baseline_mci:
         return 0
     else:
         return 1
