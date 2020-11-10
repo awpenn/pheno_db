@@ -81,17 +81,21 @@ def write_to_db(data_dict):
         """key is id + version, so cuts off version part to get id"""
         split = key.index("_")
         subject_id = key[:split]
-
+        breakpoint()
         #have to add these to data here because otherwise will always show as "new not in database"
         value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
         value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
-        value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
         value["correction"] = correction_check( value )
+
+        if user_input_subject_type == 'case/control' or user_input_subject_type == 'family':
+            value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
+        if user_input_subject_type == 'ADNI':
+            value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
 
         _data = json.dumps(value)
 
 
-        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{subject_id}', '{_data}', '{user_input_subject_type}', {publish_status})")
+        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', { publish_status })")
         save_baseline(subject_id, value)
 
 

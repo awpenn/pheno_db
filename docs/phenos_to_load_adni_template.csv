@@ -1,0 +1,2 @@
+subject_id,Sex,PrevAD,IncAD,Age_current,Age_baseline,Age_MCI_onset,Age_AD_onset,APOE,AUTOPSY,Braak,Race,Ethnicity,AD_last_visit,MCI_last_visit,Comments,release_version,Latest_Update_Version
+ADNI_1,1,0,0,87,76,NA,NA,33,0,NA,5,0,0,0,,ng00067.v2,ng00067.v2

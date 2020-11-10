@@ -99,3 +99,22 @@ def correction_check( data ):
                 return 1
             else:
                 return 0 
+
+
+def update_diagnosis_check( subject_id, subject_type, data ):
+    """takes subject_id, subject_type, and data to be written to database, 
+    checks diagnosis value (eg. for adni data) for baseline version, returns appropriate value for new data for diagnosis_update flag"""
+    
+    baseline_data = database_connection(f"SELECT _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{ subject_id }' AND subject_type = '{ subject_type }'")
+
+    try:
+        baseline_ad = baseline_data[ 0 ][ 0 ][ "ad_last_visit" ]
+        baseline_mci = baseline_data[ 0 ][ 0 ][ "mci_last_visit" ]
+    except:
+        print(f'No {subject_type} baseline record found for {subject_id}.')
+        return 0
+    
+    if data[ "ad_last_visit" ] == baseline_ad or data[ "mci_last_visit" ] == baseline_mci:
+        return 0
+    else:
+        return 1
