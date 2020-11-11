@@ -32,7 +32,7 @@ def main():
 
     sorted_df_with_highlights = highlight_change( query_type, sorted_df )
 
-    build_comparison_table( query_type, sorted_df_with_highlights )
+    build_comparison_table( user_input_subject_type, query_type, sorted_df_with_highlights )
 
 def get_data( query_type, views_based_on_subject_type ):
     """takes query_type (if update/latest or update/baseline) and views based on subject type as args, and creates comparison dict and list of headers"""
@@ -132,9 +132,11 @@ def highlight_change( query_type, sorted_dataframe ):
 
     return sorted_dataframe
 
-def build_comparison_table( query_type, comparison_dataframe ):
+def build_comparison_table( subject_type, query_type, comparison_dataframe ):
     """takes query_type for filename and finished dataframe and creates csv"""
-    comparison_dataframe.to_csv(f"./comparison_files/{query_type}_comparison.txt",sep="\t",index=False,na_rep="NA")
+    ## need to remove any `/` in subject_type for placement in filename
+    subject_type_corrected = subject_type.replace( "/", "-" )
+    comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison.txt",sep="\t",index=False,na_rep="NA")
 
 if __name__ == '__main__':
     main()
