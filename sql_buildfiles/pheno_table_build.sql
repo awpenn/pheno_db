@@ -47,13 +47,14 @@ CREATE TABLE IF NOT EXISTS "data_dictionaries"
         PRIMARY KEY ("id")
     );
 
-CREATE TABLE IF NOT EXISTS "views_by_subject_type"
+CREATE TABLE IF NOT EXISTS "env_var_by_subject_type"
     (
         "id" SERIAL NOT NULL,
         "subject_type" VARCHAR(50) NOT NULL,
         "current_view_name" VARCHAR(50) NOT NULL,
         "unpublished_update_view_name" VARCHAR(50) NOT NULL,
         "baseline_view_name" VARCHAR(50) NOT NULL,
+        "dictionary_name" VARCHAR(50) NOT NULL,
         "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
         "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
         PRIMARY KEY ("id")
