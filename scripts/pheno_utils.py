@@ -115,7 +115,7 @@ def get_filename():
         
 def get_subject_type():
     """takes nothing, returns subject_type for data being handled"""
-    subject_types = [ type_tuple[ 0 ] for type_tuple in database_connection("SELECT DISTINCT subject_type FROM views_by_subject_type") ]
+    subject_types = [ type_tuple[ 0 ] for type_tuple in database_connection("SELECT DISTINCT subject_type FROM env_var_by_subject_type") ]
 
     while True:
         try:
@@ -286,7 +286,7 @@ def get_dict_data( dict_name ):
 def get_views_by_subject_type( subject_type ):
     """takes user-supplied subject_type, returns tuple of appropriate views from database table"""
     try:
-        return database_connection(f"SELECT current_view_name, unpublished_update_view_name, baseline_view_name FROM views_by_subject_type WHERE subject_type = '{ subject_type }'")[ 0 ]
+        return database_connection(f"SELECT current_view_name, unpublished_update_view_name, baseline_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'")[ 0 ]
     except:
         print(f"No views found for datatype { subject_type }. Check database.  Program will exit.")
         sys.exit()
