@@ -45,8 +45,8 @@ def create_data_dict( LOADFILE ):
         ## get the value-pairs from the value_list, split by colon, and assign as key-value pair to value_dict
         for value in value_list:
             if not pd.isnull(value):
-                key_and_value = value.split(':')
-                value_dict[ key_and_value[ 0 ] ] = key_and_value[1]
+                v_key, v_value = value.split(':')
+                value_dict[ v_key ] = v_value
         
         ## write dict of values and keys to the variable's data object
         variable_data_object[ 'data_values' ] = cleanup_string_numbers( value_dict )
@@ -97,10 +97,12 @@ def write_to_db( data_dict ):
     ## .replace to replace the single with two-single, allows to write to db, comes back as should be written
     _dict_data = json.dumps( data_dict ).replace("'", "''")
 
-    database_connection(f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES('{ dictionary_name }', '{ _dict_data }');")
+    if check_dict_not_dupe( dictionary_name ):
 
-    with open('dict.json', 'w') as f:
-        json.dump( data_dict, f )
+        database_connection(f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES('{ dictionary_name }', '{ _dict_data }');")
+    else:
+
+        print(f'There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added. ')
 
 def get_user_input( value_list ):  
     """takes the list of values pulled from dataframe in cases where there is more than one,
@@ -143,6 +145,12 @@ def get_dictionary_name( data_dict ):
     else:
         return dictionary_name_list[ 0 ]
 
+def check_dict_not_dupe( dict_name ):
+    """takes dict name, returns true boolean if dictname not in db, false if already exists"""
+    if database_connection(f"SELECT COUNT(*) FROM data_dictionaries WHERE dictionary_name = '{ dict_name }'")[ 0 ][ 0 ] > 0:
+        return 0
+    else:
+        return 1
 
 if __name__ == '__main__':
     main()
