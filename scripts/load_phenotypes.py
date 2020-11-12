@@ -12,6 +12,7 @@ import time
 
 from flagchecks import *
 from pheno_utils import *
+from initial_validation_checks import *
 
 new_records = []
 success_id_log = []
@@ -26,10 +27,15 @@ def main():
     global publish_status
     
     user_input_subject_type = get_subject_type()
+    
     publish_status = get_publish_action()
+    
     LOADFILE = get_filename()
+    
     data_dict = create_data_dict(LOADFILE)
+
     write_to_db(data_dict)
+    
 
 def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""

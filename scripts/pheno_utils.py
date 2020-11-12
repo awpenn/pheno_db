@@ -296,3 +296,10 @@ def write_json_to_file( json_data ):
     """for checking data and ect, takes json and writes as json file"""
     with open('data.json', 'w') as outfile:
         json.dump( json_data, outfile )
+
+def get_test_json_from_file( filename ):
+    """takes json file and reads to dict for testing functions w/o db read"""
+    with open(f'./source_files/{ filename }') as json_file:
+        data = json.load(json_file)
+
+    return data
