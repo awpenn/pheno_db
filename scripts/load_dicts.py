@@ -98,10 +98,8 @@ def write_to_db( data_dict ):
     _dict_data = json.dumps( data_dict ).replace("'", "''")
 
     if check_dict_not_dupe( dictionary_name ):
-
         database_connection(f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES('{ dictionary_name }', '{ _dict_data }');")
     else:
-
         print(f'There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added. ')
 
 def get_user_input( value_list ):  
