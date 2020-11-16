@@ -36,7 +36,7 @@ def main():
         else:
             # print(f'Found no errors { key }')
             continue
-    
+
     print(f"No data errors found in { LOADFILE }.")
 
 def create_data_dict( LOADFILE, subject_type ):
@@ -110,15 +110,20 @@ def run_checks( data_dict, dictionary ):
         error_list = []
         for phenotype, pheno_value in value.items():
             ## gets values_dict in dictionary by the current phenotype in current subject entry in data_dict.
-            try:
-                dict_values = dictionary.data_values[ dictionary.variable == f'{ phenotype }' ].values[ 0 ]
 
-            except Exception as e:
-                # print(f"{ phenotype } does not appear in the dictionary { key }.")
-                reviewed_subject_object[ phenotype ] = pheno_value
-                continue
+            if pheno_value == '' and phenotype.lower() != 'comments':
+                checked_phenotype_value = [ pheno_value, f"Blank value given for { phenotype }." ]
 
-            checked_phenotype_value = check_data_value( key, dict_values, phenotype, pheno_value )
+            else:
+                try:
+                    dict_values = dictionary.data_values[ dictionary.variable == f'{ phenotype }' ].values[ 0 ]
+
+                except Exception as e:
+                    # print(f"{ phenotype } does not appear in the dictionary { key }.")
+                    reviewed_subject_object[ phenotype ] = pheno_value
+                    continue
+
+                checked_phenotype_value = check_data_value( key, dict_values, phenotype, pheno_value )
 
             if isinstance( checked_phenotype_value, list ):
                 p_value, error_msg = checked_phenotype_value
