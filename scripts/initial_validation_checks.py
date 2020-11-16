@@ -13,12 +13,8 @@ import pandas as pd
 from pheno_utils import *
 
 def main():
-    # user_input_subject_type = get_subject_type()
-    ##hardcoded values for dev
-    user_input_subject_type = 'case/control'
-    # LOADFILE = get_filename()
-    ##hardcoded values for dev
-    LOADFILE = 'starting_data_for_test.csv'
+    user_input_subject_type = get_subject_type()
+    LOADFILE = get_filename()
 
     data_dict = create_data_dict( LOADFILE, user_input_subject_type )
     dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
@@ -28,6 +24,7 @@ def main():
     for key, value in reviewed_dict.items():
 
         if 'data_errors' in value.keys():
+            ## have to flip the dataframe columns/rows with .transpose()
             df = pd.read_json( json.dumps( reviewed_dict ) ).transpose()
             create_tsv( df, user_input_subject_type )
             print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
@@ -93,7 +90,7 @@ def run_checks( data_dict, dictionary ):
                     return [ pheno_value, f"'{pheno_value}' is NOT valid for { phenotype }" ]
         
         else:
-            if len( dict_values ) > 1:
+            if len( dict_values ) > 0:
 
                 if str(pheno_value) in dict_values:
                     return pheno_value
