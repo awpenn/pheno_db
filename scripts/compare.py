@@ -56,8 +56,8 @@ def get_data( query_type, views_based_on_subject_type ):
         #n.b. query below is hacky, figure out how to do without the sorting based on table name and ord                                              
         header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{baseline_view}') ORDER BY table_name DESC, ordinal_position;;" )
         headers = [ ''.join(header) for header in header_data ]
-        ## split the table reference off each tracking var, and preprend latest_pub to it, then append to headers list
-        cleaned_tracking_vars = [ headers.append( ''.join(( 'LATEST_PUB_', var[ var.index( "." ) + 1: ] )) ) for var in tracking_columns ]
+        ## split the table reference off each tracking var, and preprend latest_pub to it, then APPEND to headers list
+        [ headers.append( ''.join(( 'LATEST_PUB_', var[ var.index( "." ) + 1: ] )) ) for var in tracking_columns ]
 
     return headers, data
 
@@ -163,9 +163,11 @@ def get_latest_published_tracking_varnames( current_view ):
                         WHERE table_name = '{ current_view }' \
                         and column_name like 'update_%' \
                     ")
-                    
-    tracking_vars = [ f"{current_view}.{str( var[ 0 ] )}" for var in column_names ]
     
+    tracking_vars = [ f"{current_view}.{str( var[ 0 ] )}" for var in column_names ]
+    tracking_vars.append(f"{current_view}.comments")
+    tracking_vars.append(f"{current_view}.correction")
+
     return tracking_vars
 
 if __name__ == '__main__':
