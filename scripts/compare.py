@@ -28,7 +28,7 @@ def main():
 
     data_from_db = get_data( query_type, views_based_on_subject_type )
 
-    sorted_df = build_dataframe( query_type, data_from_db )
+    sorted_df = build_dataframe( query_type, views_based_on_subject_type, data_from_db )
 
     sorted_df_with_highlights = highlight_change( query_type, sorted_df )
 
@@ -41,19 +41,30 @@ def get_data( query_type, views_based_on_subject_type ):
     if query_type == 'update_to_latest':
         data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
         header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
-    
-    if query_type == 'update_to_baseline': # need to fix this, needs to pull unpacked baseline data from view that doesnt exist yet
-        data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {baseline_view} ON {update_view}.subject_id = {baseline_view}.subject_id")
+        headers = [ ''.join(header) for header in header_data ]
+
+    if query_type == 'update_to_baseline': 
+        ##need to get update_ tracking variables first and add to the query
+        tracking_columns = get_latest_published_tracking_varnames( current_view )
+        ## join them as a string to be inserted into the query
+        tracking_columns_query_string = ', '.join( tracking_columns )
+        data = database_connection(f"SELECT {update_view}.*, {baseline_view}.*, {tracking_columns_query_string} \
+                                    FROM {update_view} \
+                                    LEFT JOIN {baseline_view} ON {update_view}.subject_id = {baseline_view}.subject_id \
+                                    LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id \
+                                  ")
         #n.b. query below is hacky, figure out how to do without the sorting based on table name and ord                                              
         header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{baseline_view}') ORDER BY table_name DESC, ordinal_position;;" )
-        
-    return header_data, data
+        headers = [ ''.join(header) for header in header_data ]
+        ## split the table reference off each tracking var, and preprend latest_pub to it, then append to headers list
+        cleaned_tracking_vars = [ headers.append( ''.join(( 'LATEST_PUB_', var[ var.index( "." ) + 1: ] )) ) for var in tracking_columns ]
 
-def build_dataframe( query_type, header_and_data_db_responses ):
-    """takes query_type, the _data and headers responses from get_data as args, returns appropriately constructed comparison dataframe"""
-    header_data, data = header_and_data_db_responses
-    headers_unpacked = [''.join(header) for header in header_data] 
+    return headers, data
 
+def build_dataframe( query_type, views_based_on_subject_type, header_and_data_db_responses ):
+    """takes query_type, views, the _data and headers responses from get_data as args, returns appropriately constructed comparison dataframe"""
+    headers_unpacked, data = header_and_data_db_responses
+    skip_column_keywords = [ 'update', 'published', 'comment', 'correction' ]
     unique_headers_len = int( len( headers_unpacked )/2 )
     headers_cleaned = []
     headers_sorted = []
@@ -105,6 +116,12 @@ def build_dataframe( query_type, header_and_data_db_responses ):
     # convert column names to strings (from tuples)
     sorted_df.columns = [str(i[0]) for i in sorted_df.columns]
 
+    ## delete the columns for update versions tracking vars
+    for column in sorted_df:
+        if "prev_" not in column and "LATEST_PUB" not in column and any( k in column for k in skip_column_keywords ):
+                del sorted_df[ column ]
+
+
     return sorted_df
 
 def highlight_change( query_type, sorted_dataframe ):
@@ -137,6 +154,19 @@ def build_comparison_table( subject_type, query_type, comparison_dataframe ):
     ## need to remove any `/` in subject_type for placement in filename
     subject_type_corrected = subject_type.replace( "/", "-" )
     comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison.txt",sep="\t",index=False,na_rep="NA")
+
+def get_latest_published_tracking_varnames( current_view ):
+    """takes current_view and returns latest published tracking variables list to be added to query"""
+    ## first get column names from view with _update, because differnet for ADNI
+    column_names = database_connection(f"SELECT column_name \
+                        FROM information_schema.columns \
+                        WHERE table_name = '{ current_view }' \
+                        and column_name like 'update_%' \
+                    ")
+                    
+    tracking_vars = [ f"{current_view}.{str( var[ 0 ] )}" for var in column_names ]
+    
+    return tracking_vars
 
 if __name__ == '__main__':
     main()
