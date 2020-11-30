@@ -163,7 +163,7 @@ def get_latest_published_tracking_varnames( current_view ):
                         WHERE table_name = '{ current_view }' \
                         and column_name like 'update_%' \
                     ")
-    
+
     tracking_vars = [ f"{current_view}.{str( var[ 0 ] )}" for var in column_names ]
     tracking_vars.append(f"{current_view}.comments")
     tracking_vars.append(f"{current_view}.correction")
