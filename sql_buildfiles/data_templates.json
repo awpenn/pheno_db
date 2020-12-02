@@ -63,7 +63,25 @@
         "update_adstatus": 0,
         "update_diagnosis": 0,  <-- this one is different from the other types
         "correction": 0
+    },
+    
+    "CDB/PSP":{
+        "sex": 1,
+        "diagnosis" : 1,
+        "age_onset": 99,
+        "age_death": 99,
+        "race": 6,
+        "duplicate_subjid": 0, <----is either 0, 1, NC (not available/not checked)
+        "comments": "",
+        "latest_update_version": 3,
+        "base_diagnosis": 1,
+        "base_version": 3, <------ this just in the baseline and then grabbed/joined in query?
+        "update_baseline": 0,
+        "update_latest": 0,
+        "update_diagnosis": 0,
+        "correction":0
     }
+
 }
 
 

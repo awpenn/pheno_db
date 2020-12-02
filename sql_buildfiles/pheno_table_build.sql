@@ -1,5 +1,5 @@
 /*enum lists*/
-CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'ADNI', 'other');   
+CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'ADNI', 'CDB/PSP', 'other');   
 /* Table definitions for phenotype database*/
 
 CREATE TABLE IF NOT EXISTS "data_versions" 
