@@ -33,6 +33,9 @@ def write_to_db(data_dict):
     """takes data dict and writes to database"""
 
     global user_input_subject_type
+    requires_ad_status_check = ['case/control', 'family']
+    requires_diagnosis_update_check = ['ADNI', 'PSP/CDB']
+
     for key, value in data_dict.items():
         # subject_id = value["subject_id"]
         subject_id = value.pop("subject_id")
@@ -41,9 +44,9 @@ def write_to_db(data_dict):
         value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
         value["correction"] = correction_check( value )
 
-        if user_input_subject_type == 'case/control' or user_input_subject_type == 'family':
+        if user_input_subject_type in requires_ad_status_check:
             value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
-        if user_input_subject_type == 'ADNI':
+        if user_input_subject_type in requires_diagnosis_update_check:
             value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
 
         _data = json.dumps(value)

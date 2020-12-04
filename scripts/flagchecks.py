@@ -38,7 +38,7 @@ def update_baseline_check( subject_id, subject_type, data ):
         if value == modified_baseline_dict[key]:
             continue
         else:
-            print(f'different between new record and baseline version found for {key}')
+            print(f'{ subject_id }: different between new record and baseline version found for {key}')
             return 1
     
     return 0
@@ -67,7 +67,7 @@ def update_latest_check( subject_id, subject_type, data ):
         if value == modified_previous_version_dict[key]:
             continue
         else:
-            print(f'different between new record and previous version found for {key}')
+            print(f' {subject_id }: different between new record and previous version found for {key}')
             return 1
     
     return 0
@@ -106,15 +106,29 @@ def update_diagnosis_check( subject_id, subject_type, data ):
     checks diagnosis value (eg. for adni data) for baseline version, returns appropriate value for new data for diagnosis_update flag"""
     
     baseline_data = database_connection(f"SELECT _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{ subject_id }' AND subject_type = '{ subject_type }'")
-
-    try:
-        baseline_ad = baseline_data[ 0 ][ 0 ][ "ad_last_visit" ]
-        baseline_mci = baseline_data[ 0 ][ 0 ][ "mci_last_visit" ]
-    except:
-        print(f'No {subject_type} baseline record found for {subject_id}.')
-        return 0
     
-    if data[ "ad_last_visit" ] == baseline_ad and data[ "mci_last_visit" ] == baseline_mci:
-        return 0
-    else:
-        return 1
+    if subject_type == 'ADNI':
+        try:
+            baseline_ad = baseline_data[ 0 ][ 0 ][ "ad_last_visit" ]
+            baseline_mci = baseline_data[ 0 ][ 0 ][ "mci_last_visit" ]
+        except:
+            print(f'No {subject_type} baseline record found for {subject_id} or no value found for baseline_ad or baseline_mci.')
+            return 0
+        
+        if data[ "ad_last_visit" ] == baseline_ad and data[ "mci_last_visit" ] == baseline_mci:
+            return 0
+        else:
+            return 1
+    
+    if subject_type == 'PSP/CDB':
+        try:
+            diagnosis = baseline_data[ 0 ][ 0 ][ "diagnosis" ]
+
+        except:
+            print(f'No {subject_type} baseline record found for {subject_id} or no value found for diagnosis.')
+            return 0
+        
+        if data[ "diagnosis" ] == diagnosis:
+            return 0
+        else:
+            return 1

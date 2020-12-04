@@ -97,10 +97,6 @@ def write_to_db(data_dict):
         value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
         value["correction"] = correction_check( value )
 
-        # if user_input_subject_type == 'case/control' or user_input_subject_type == 'family':
-        #     value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
-        # if user_input_subject_type == 'ADNI':
-        #     value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
 
         if user_input_subject_type in requires_ad_status_check:
             value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )     
