@@ -65,7 +65,7 @@
         "correction": 0
     },
     
-    "CDB/PSP":{
+    "PSP/CDB":{
         "sex": 1,
         "diagnosis" : 1,
         "age_onset": 99,
@@ -73,9 +73,8 @@
         "race": 6,
         "duplicate_subjid": 0, <----is either 0, 1, NC (not available/not checked)
         "comments": "",
+        "data_version": 3,
         "latest_update_version": 3,
-        "base_diagnosis": 1,
-        "base_version": 3, <------ this just in the baseline and then grabbed/joined in query?
         "update_baseline": 0,
         "update_latest": 0,
         "update_diagnosis": 0,
@@ -83,7 +82,4 @@
     }
 
 }
-
-
-
 

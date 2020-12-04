@@ -1,0 +1,11 @@
+subject_id,Sex,Diagnosis,AgeOnset,AgeDeath,Race,Comments,Duplicate_SUBJID,release_version,latest_update_version
+P-1,1,2,72,82,5,,0,ng00067.v2,ng00067.v2
+P-2,0,2,NA,80,5,,0,ng00067.v2,ng00067.v2
+P-3,0,2,NA,51,5,,0,ng00067.v2,ng00067.v2
+P-4,1,2,NA,73,5,,0,ng00067.v2,ng00067.v2
+P-5,0,2,NA,60,5,,0,ng00067.v2,ng00067.v2
+P-6,0,2,NA,69,5,,0,ng00067.v2,ng00067.v2
+P-7,1,2,71,78,5,,0,ng00067.v2,ng00067.v2
+P-8,1,2,NA,76,5,,0,ng00067.v2,ng00067.v2
+P-9,1,2,70,77,5,,0,ng00067.v2,ng00067.v2
+P-10,0,2,64,68,5,,0,ng00067.v2,ng00067.v2

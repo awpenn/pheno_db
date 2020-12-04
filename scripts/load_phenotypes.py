@@ -53,13 +53,13 @@ def create_data_dict(LOADFILE):
                 blob = {}
                 for index, value in enumerate(row):
                     try:
-                        blob[headers[index].lower()] = int(value)
+                        blob[headers[ index ].lower()] = int( value )
                     except:
-                        blob[headers[index].lower()] = value
-                    if headers[index].lower() == 'release_version':
-                        blob["data_version"] = get_data_version_id(value)
-                    if headers[index].lower() == 'latest_update_version':
-                        blob["latest_update_version"] = get_data_version_id(value)
+                        blob[headers[ index ].lower()] = value
+                    if headers[ index ].lower() == 'release_version':
+                        blob[ "data_version" ] = get_data_version_id(value)
+                    if headers[ index ].lower() == 'latest_update_version':
+                        blob[ "latest_update_version" ] = get_data_version_id(value)
                     
 
                 if type(blob["data_version"]) == int:
@@ -80,6 +80,10 @@ def create_data_dict(LOADFILE):
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
+
+    requires_ad_status_check = ['case/control', 'family']
+    requires_diagnosis_update_check = ['ADNI', 'PSP/CDB']
+
     global user_input_subject_type
     global publish_status
 
@@ -93,15 +97,21 @@ def write_to_db(data_dict):
         value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
         value["correction"] = correction_check( value )
 
-        if user_input_subject_type == 'case/control' or user_input_subject_type == 'family':
-            value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
-        if user_input_subject_type == 'ADNI':
+        # if user_input_subject_type == 'case/control' or user_input_subject_type == 'family':
+        #     value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
+        # if user_input_subject_type == 'ADNI':
+        #     value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
+
+        if user_input_subject_type in requires_ad_status_check:
+            value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )     
+
+        if user_input_subject_type in requires_diagnosis_update_check:
             value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
 
-        _data = json.dumps(value)
+        _data = json.dumps( value )
 
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', { publish_status })")
-        save_baseline(subject_id, value)
+        save_baseline( subject_id, value )
 
 
 def create_baseline_json(data):
@@ -111,13 +121,13 @@ def create_baseline_json(data):
         if "update" not in key and "correction" not in key:
             baseline_data[key] = value
  
-    return json.dumps(baseline_data)
+    return json.dumps( baseline_data )
 
 def save_baseline(subject_id, data):
     """takes data dict and writes to database"""
     global user_input_subject_type
 
-    _baseline_data = create_baseline_json(data)
+    _baseline_data = create_baseline_json( data )
 
     if check_not_dupe_baseline( subject_id , user_input_subject_type ):
         database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
