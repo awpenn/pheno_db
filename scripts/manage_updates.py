@@ -41,7 +41,7 @@ def write_to_db(data_dict):
     
     for key, value in data_dict.items():
         # subject_id = value["subject_id"]
-        subject_id = value.pop("subject_id")
+        subject_id = value.pop("subjid")
         version = value["data_version"]
 
         value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
@@ -85,9 +85,9 @@ def create_data_dict(LOADFILE):
 
                 if type(blob["data_version"]) == int:
                     if check_not_duplicate( blob, "PUBLISHED = TRUE", user_input_subject_type ):
-                        data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                        data_dict[f'{blob["subjid"]}_{blob["release_version"]}'] = blob
                     else:
-                        print(f'Already a published entry for {blob["subject_id"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
+                        print(f'Already a published entry for {blob["subjid"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
                 else:
                     print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
 

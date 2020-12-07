@@ -1,4 +1,4 @@
-subject_id,Sex,Diagnosis,AgeOnset,AgeDeath,Race,Comments,Duplicate_SUBJID,release_version,latest_update_version
+SUBJID,Sex,Diagnosis,AgeOnset,AgeDeath,Race,Comments,Duplicate_SUBJID,release_version,latest_update_version
 P-1,1,2,72,82,5,,0,ng00067.v2,ng00067.v2
 P-2,0,2,NA,80,5,,0,ng00067.v2,ng00067.v2
 P-3,0,2,NA,51,5,,0,ng00067.v2,ng00067.v2

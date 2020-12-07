@@ -48,25 +48,25 @@ def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
         headers = next(pheno_file)
         
         for index, row in enumerate(pheno_file): 
-            subject_id = row[headers.index( "subject_id" ) ] or None
+            subjid = row[headers.index( "subjid" ) ] or None
             release_version = row[headers.index( "release_version" ) ] or None
             data_version_id = get_data_version_id( release_version ) or None
             
-            missing_data = True in ( ele == None for ele in [ subject_id, release_version, data_version_id ] )
+            missing_data = True in ( ele == None for ele in [ subjid, release_version, data_version_id ] )
 
             if missing_data:
                 print(f'There are empty fields and/or data errors in the the loadfile, row { index + 1 }')
                 continue
             else:
                 if pheno_file.line_num > 1:
-                    if check_subject_exists( view_based_on_subject_type, subject_id, release_version ):
+                    if check_subject_exists( view_based_on_subject_type, subjid, release_version ):
                         try:
                             if isinstance(data_version_id, int):
-                                drop_dict[subject_id] = data_version_id
+                                drop_dict[subjid] = data_version_id
                         except:
-                            print(f"release_version ({release_version}) given for {subject_id} is not in database.  Subject drop discarded.  Check data.")
+                            print(f"release_version ({release_version}) given for {subjid} is not in database.  Subject drop discarded.  Check data.")
                     else:
-                        print(f'{subject_id} has no unpublished record in {row[headers.index("release_version")]}.  Subject drop discarded. Check data.')
+                        print(f'{subjid} has no unpublished record in {row[headers.index("release_version")]}.  Subject drop discarded. Check data.')
               
     return drop_dict
 

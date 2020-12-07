@@ -53,7 +53,7 @@ def database_connection(query):
 def check_not_duplicate(subject_json, pub_check, subject_type):
     """takes current subject's compiled json blob and subject_type, checks if a dupe (if published record for that subject in that data_version exists) and returns boolean"""
 
-    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subject_id']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND {pub_check} AND subject_type = '{subject_type}'")
+    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subjid']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND {pub_check} AND subject_type = '{subject_type}'")
     if query:
         return False
     else:

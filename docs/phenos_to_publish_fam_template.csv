@@ -1,2 +1,2 @@
-subject_id,family_id,mother_id,father_id,sex,age,age_baseline,apoe,autopsy,braak,race,ethnicity,ad,family_group,comments,release_version,latest_update_version
+SUBJID,family_id,mother_id,father_id,sex,age,age_baseline,apoe,autopsy,braak,race,ethnicity,ad,family_group,comments,release_version,latest_update_version
 A1,1,A4,A5,1,77,60,33,NA,NA,1,1,0,0,,ng00067.v2,ng00067.v2

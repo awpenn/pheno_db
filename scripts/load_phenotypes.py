@@ -64,16 +64,16 @@ def create_data_dict(LOADFILE):
 
                 if type(blob["data_version"]) == int:
                     if check_not_duplicate( blob, publish_status, user_input_subject_type ):
-                        data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                        data_dict[f'{blob["subjid"]}_{blob["release_version"]}'] = blob
                     else:
-                        print(f'{ blob["subject_id"]} already has record in {blob["release_version"]}')
+                        print(f'{ blob["subjid"]} already has record in {blob["release_version"]}')
                 else:
                     print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
 
 
     for key, record in data_dict.items():
         """remove subject id from blob for each record in dict"""
-        record.pop('subject_id')
+        record.pop('subjid')
         record.pop('release_version')
 
     return data_dict

@@ -59,14 +59,14 @@ def create_data_dict( LOADFILE, subject_type ):
                         blob["latest_update_version"] = get_data_version_id( value )
                     
                 if type(blob["data_version"]) == int:
-                    data_dict[f'{blob["subject_id"]}_{blob["release_version"]}'] = blob
+                    data_dict[f'{blob["subjid"]}_{blob["release_version"]}'] = blob
                 else:
                     print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
 
 
     for key, record in data_dict.items():
         """remove subject id from blob for each record in dict"""
-        record.pop('subject_id')
+        record.pop('subjid')
         record.pop('release_version')
 
     return data_dict
