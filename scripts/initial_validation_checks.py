@@ -144,5 +144,8 @@ def create_tsv( dataframe, subject_type ):
     corrected_subject_type = subject_type.replace( "/", "+" )
 
     dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt",sep="\t",index=True)
+
 if __name__ == '__main__':
+    print('start ', datetime.datetime.now().strftime("%H:%M:%S") )
     main()  
+    print('end ', datetime.datetime.now().strftime("%H:%M:%S") )
