@@ -64,7 +64,9 @@ def write_to_db(data_dict):
 def create_data_dict(LOADFILE):
     """takes loadfile name and subject_type as args, returns dict of json data keyed by subject id of data to be entered in database"""
     global user_input_subject_type
+    release_dict = build_release_dict()   
     data_dict = {}
+
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         """"get the relationship table names and indexes from the csv file headers"""
         pheno_file = csv.reader(csv_file)
@@ -78,11 +80,13 @@ def create_data_dict(LOADFILE):
                         blob[headers[index].lower()] = int(value)
                     except:
                         blob[headers[index].lower()] = value
-                    if headers[index].lower() == 'release_version':
-                        blob["data_version"] = get_data_version_id(value)
-                    if headers[index].lower() == 'latest_update_version':
-                        blob["latest_update_version"] = get_data_version_id(value)
-
+                    if headers[ index ].lower() == 'release_version':
+                        try:
+                            blob[ "data_version" ] = release_dict[ value ]
+                        except KeyError:
+                            print(f'{ subject_id }: {value} is not in the database, but is given as data_version.  Please check for correctness and/or add the release to the data_versions table. Script will now exit.')
+                            sys.exit()
+                            
                 if type(blob["data_version"]) == int:
                     if check_not_duplicate( blob, "PUBLISHED = TRUE", user_input_subject_type ):
                         data_dict[f'{blob["subjid"]}_{blob["release_version"]}'] = blob

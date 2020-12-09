@@ -23,7 +23,6 @@ CREATE OR REPLACE VIEW get_all_cc
         ds_subjects_phenotypes.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -31,8 +30,6 @@ CREATE OR REPLACE VIEW get_all_cc
     FROM ds_subjects_phenotypes
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
     WHERE subject_type = 'case/control'
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -58,7 +55,6 @@ CREATE OR REPLACE VIEW get_current_cc
         get_current_published_cc_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -67,8 +63,6 @@ CREATE OR REPLACE VIEW get_current_cc
     FROM get_current_published_cc_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -94,7 +88,6 @@ CREATE OR REPLACE VIEW get_newest_cc
         get_newest_cc_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -103,8 +96,6 @@ CREATE OR REPLACE VIEW get_newest_cc
     FROM get_newest_cc_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -130,7 +121,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_cc
         get_updates_cc_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -139,8 +129,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_cc
     FROM get_updates_cc_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 /*baseline_cc*/
@@ -193,7 +181,6 @@ CREATE OR REPLACE VIEW get_all_fam
         ds_subjects_phenotypes.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -201,8 +188,6 @@ CREATE OR REPLACE VIEW get_all_fam
     FROM ds_subjects_phenotypes
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
     WHERE subject_type = 'family'
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -229,7 +214,6 @@ CREATE OR REPLACE VIEW get_current_fam
         get_current_published_family_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -238,8 +222,6 @@ CREATE OR REPLACE VIEW get_current_fam
     FROM get_current_published_family_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -266,7 +248,6 @@ CREATE OR REPLACE VIEW get_newest_fam
         get_newest_family_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -275,8 +256,6 @@ CREATE OR REPLACE VIEW get_newest_fam
     FROM get_newest_family_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -303,7 +282,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_fam
         get_updates_family_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_adstatus' as BOOLEAN) as update_adstatus,
@@ -312,8 +290,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_fam
     FROM get_updates_family_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 /*baseline_fam*/
@@ -369,7 +345,6 @@ CREATE OR REPLACE VIEW get_all_adni
         ds_subjects_phenotypes.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -378,8 +353,6 @@ CREATE OR REPLACE VIEW get_all_adni
     FROM ds_subjects_phenotypes
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
     WHERE subject_type = 'ADNI'
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -407,7 +380,6 @@ CREATE OR REPLACE VIEW get_current_adni
         get_current_published_adni_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -416,8 +388,6 @@ CREATE OR REPLACE VIEW get_current_adni
     FROM get_current_published_adni_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
     WHERE subject_type = 'ADNI'
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -445,7 +415,6 @@ CREATE OR REPLACE VIEW get_newest_adni
         get_newest_adni_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -454,8 +423,6 @@ CREATE OR REPLACE VIEW get_newest_adni
     FROM get_newest_adni_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
     WHERE subject_type = 'ADNI'
     ORDER BY subject_id ASC, data_version DESC;
 /**/
@@ -482,7 +449,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_adni
         get_updates_adni_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -491,8 +457,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_adni
     FROM get_updates_adni_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
     WHERE subject_type = 'ADNI'
     ORDER BY subject_id ASC, data_version DESC;
 /*baseline data for adni records*/
@@ -608,7 +572,6 @@ CREATE OR REPLACE VIEW get_all_psp_cdb
         ds_subjects_phenotypes.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -617,8 +580,6 @@ CREATE OR REPLACE VIEW get_all_psp_cdb
     FROM ds_subjects_phenotypes
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
     WHERE subject_type = 'PSP/CDB'
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -638,7 +599,6 @@ CREATE OR REPLACE VIEW get_current_psp_cdb
         get_current_published_psp_cdb_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -648,8 +608,6 @@ CREATE OR REPLACE VIEW get_current_psp_cdb
     FROM get_current_published_psp_cdb_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -669,7 +627,6 @@ CREATE OR REPLACE VIEW get_newest_psp_cdb
         get_newest_psp_cdb_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -678,8 +635,6 @@ CREATE OR REPLACE VIEW get_newest_psp_cdb
     FROM get_newest_psp_cdb_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
 
@@ -699,7 +654,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_psp_cdb
         get_updates_psp_cdb_dyno.published as record_published,
         d1.release_version as release_version,
         d1.published as version_published,
-        d2.release_version as latest_update_version,
         CAST(_data::json->>'update_baseline' as BOOLEAN) as update_baseline,
         CAST(_data::json->>'update_latest' as BOOLEAN) as update_latest,
         CAST(_data::json->>'update_diagnosis' as BOOLEAN) as update_diagnosis,
@@ -708,8 +662,6 @@ CREATE OR REPLACE VIEW get_unpublished_updates_psp_cdb
     FROM get_updates_psp_cdb_dyno()
     JOIN data_versions d1
         ON d1.id = CAST(_data::json->>'data_version' as INT)
-	JOIN data_versions d2
-		ON d2.id = CAST(_data::json->>'latest_update_version' as INT)
 
     ORDER BY subject_id ASC, data_version DESC;
     

@@ -6,6 +6,7 @@ import csv
 from dotenv import load_dotenv
 import os
 import json
+import datetime
 
 import calendar
 import time
@@ -34,8 +35,9 @@ def main():
 
     user_input_subject_type = 'case/control'
     publish_status =True
-    LOADFILE = 'a.csv'
+    LOADFILE = 'seven.csv'
     
+    print('start ', datetime.datetime.now())
     data_dict = create_data_dict(LOADFILE)
 
     write_to_db(data_dict)
@@ -57,6 +59,8 @@ def create_data_dict(LOADFILE):
             subject_id = row[ 0 ]
             if pheno_file.line_num > 1:
                 blob = {}
+                if 100 % pheno_file.line_num == 0:
+                    print(pheno_file.line_num)
                 for index, value in enumerate( row ):
 
                     try:
@@ -69,13 +73,6 @@ def create_data_dict(LOADFILE):
                         except KeyError:
                             print(f'{ subject_id }: {value} is not in the database, but is given as data_version.  Please check for correctness and/or add the release to the data_versions table. Script will now exit.')
                             sys.exit()
-                    if headers[ index ].lower() == 'latest_update_version':
-                        try:
-                            blob[ "latest_update_version" ] = release_dict[ value ]
-                        except KeyError:
-                            print(f'{ subject_id }: {value} is not in the database, but is given as latest_update_version.  Please check for correctness and/or add the release to the data_versions table. Script will now exit.')
-                            sys.exit()
-                    
 
                 if type(blob["data_version"]) == int:
                     if check_not_duplicate( blob, publish_status, user_input_subject_type ):
@@ -108,21 +105,26 @@ def write_to_db(data_dict):
         subject_id = key[:split]
 
         #have to add these to data here because otherwise will always show as "new not in database"
-        value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
-        value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
-        value["correction"] = correction_check( value )
+        # value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
+        # value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
+        # value["correction"] = correction_check( value )
 
+        ## just for test 12/9
+        value["update_baseline"] = 1
+        value["update_latest"] = 1
+        value["correction"] = 0
+        value["update_adstatus"] = 0
 
-        if user_input_subject_type in requires_ad_status_check:
-            value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )     
+        # if user_input_subject_type in requires_ad_status_check:
+        #     value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )     
 
-        if user_input_subject_type in requires_diagnosis_update_check:
-            value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
+        # if user_input_subject_type in requires_diagnosis_update_check:
+        #     value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
 
         _data = json.dumps( value )
 
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', { publish_status })")
-        save_baseline( subject_id, value )
+        # save_baseline( subject_id, value )
 
 
 def create_baseline_json(data):
@@ -149,5 +151,6 @@ def save_baseline(subject_id, data):
 
 if __name__ == '__main__':
     main()
+    print('end ', datetime.datetime.now())
     # generate_errorlog()
     # generate_success_list()
