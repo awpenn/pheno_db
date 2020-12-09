@@ -50,19 +50,35 @@ def database_connection(query):
             # print('database connection closed')
 
 #check-functions for data correctness
-def check_not_duplicate(subject_json, pub_check, subject_type):
-    """takes current subject's compiled json blob and subject_type, checks if a dupe (if published record for that subject in that data_version exists) and returns boolean"""
+def build_dupecheck_list( data_version_id, pub_check, subject_type ):
+    """takes version, publication status and subject type as args,
+    returns list of subjects for a particular release version to check for duplicates rather than call db every time"""    
 
-    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes WHERE subject_id = '{subject_json['subjid']}' AND _data->>'data_version' = '{subject_json['data_version']}' AND {pub_check} AND subject_type = '{subject_type}'")
-    if query:
+    query = database_connection(f"SELECT subject_id FROM ds_subjects_phenotypes WHERE {pub_check} \
+    AND _data->>'data_version' = '{data_version_id}' AND {pub_check} AND subject_type = '{subject_type}'")
+
+    dupe_list = [ id_tupe[ 0 ] for id_tupe in query ]
+
+    return dupe_list
+
+def check_not_duplicate( subject_id, dupecheck_list ):
+    """takes id to check and the compiled dupe check and returns True if id is new, False if in dupe_list"""
+
+    if subject_id in dupecheck_list:
         return False
     else:
         return True
 
-def check_not_dupe_baseline(subject_id, subject_type):
-    """takes subject_id and subject_type, returns true if not a duplicate, false if record found with that subject_id/type in baseline table"""
-    query = database_connection(f"SELECT * FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{subject_id}' and subject_type = '{subject_type}'")
-    if query:
+def build_baseline_dupcheck_list( subject_type ):
+    query = database_connection(f"SELECT subject_id FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+    baseline_dupe_list = [ id_tupe[ 0 ] for id_tupe in query ]
+
+    return baseline_dupe_list
+
+def check_not_dupe_baseline( subject_id, baseline_dupecheck_list ):
+    """takes id to check and the compiled dupe check and returns True if id is new, False if in baseline_dupe_list"""
+
+    if subject_id in baseline_dupecheck_list:
         return False
     else:
         return True
@@ -237,6 +253,21 @@ def get_subject_to_drop(view_based_on_subject_type):
     
     return single_dict
 
+def user_input_data_version():
+    """takes nothing, returns subject_type for data being handled"""
+    data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection("SELECT DISTINCT release_version FROM data_versions") ]
+
+    while True:
+        try:
+            version_input = input(f"Which release_version does your data belong to (select from list) Please only load data from one release at a time? {data_versions}")
+        except ValueError:
+            continue
+        if version_input in data_versions:
+            print(f"Loading {version_input} data.")
+            return version_input
+        else:
+            print("Please input a valid entry. ")
+            continue 
 
 # log generators
 def generate_errorlog():
@@ -299,7 +330,8 @@ def build_release_dict():
     release_dict = { version[ 1 ] : version[ 0 ] for version in query }
 
     return release_dict
-    
+
+
 # for dev/debugging
 def write_json_to_file( json_data ):
     """for checking data and ect, takes json and writes as json file"""

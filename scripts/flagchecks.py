@@ -12,6 +12,15 @@ import json
 error_log = {}
 
 #flag-checkers for legacy data loading
+def build_update_baseline_check( subject_type ):
+    """takes subject_type, returns dict keyed by subject with baseline data matching correct subject_type"""
+    _baseline_data = database_connection(f"SELECT subject_id, _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+
+    ## take data and transform into dict keyed by subject_id
+    update_baseline_dict = { record[ 0 ]:  record[ 1 ] for record in _baseline_data }
+    
+    return update_baseline_dict
+
 def update_baseline_check( subject_id, subject_type, data ):
     """take subject id, subject_type, and the data being loaded from the file, gets baseline, 
     removes keys that aren't in both, compares stringified JSON to see if changed,
