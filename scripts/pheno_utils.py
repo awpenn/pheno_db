@@ -85,7 +85,7 @@ def check_subject_exists(subject_type_view, subject_id, release_version):
         return True
     else:
         return False
-        
+
 # functions for handling user input
 def get_filename():
     while True:
@@ -291,6 +291,15 @@ def get_views_by_subject_type( subject_type ):
         print(f"No views found for datatype { subject_type }. Check database.  Program will exit.")
         sys.exit()
 
+def build_release_dict():
+    """takes no args, gets all the releases from the db with their string name and id, makes a dict with key
+    as string name and id as value, so can replaces on the fly without 1 dbcall/row
+    """
+    query = database_connection("SELECT id, release_version FROM data_versions")
+    release_dict = { version[ 1 ] : version[ 0 ] for version in query }
+
+    return release_dict
+    
 # for dev/debugging
 def write_json_to_file( json_data ):
     """for checking data and ect, takes json and writes as json file"""

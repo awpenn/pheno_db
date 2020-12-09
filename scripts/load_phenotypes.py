@@ -26,11 +26,15 @@ def main():
     global user_input_subject_type
     global publish_status
     
-    user_input_subject_type = get_subject_type()
+    # user_input_subject_type = get_subject_type()
     
-    publish_status = get_publish_action()
+    # publish_status = get_publish_action()
     
-    LOADFILE = get_filename()
+    # LOADFILE = get_filename()
+
+    user_input_subject_type = 'case/control'
+    publish_status =True
+    LOADFILE = 'a.csv'
     
     data_dict = create_data_dict(LOADFILE)
 
@@ -41,6 +45,7 @@ def create_data_dict(LOADFILE):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     global user_input_subject_type
     global publish_status
+    release_dict = build_release_dict()
     data_dict = {}
 
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
@@ -49,17 +54,27 @@ def create_data_dict(LOADFILE):
         headers = next(pheno_file)
         
         for row in pheno_file:
+            subject_id = row[ 0 ]
             if pheno_file.line_num > 1:
                 blob = {}
-                for index, value in enumerate(row):
+                for index, value in enumerate( row ):
+
                     try:
                         blob[headers[ index ].lower()] = int( value )
                     except:
                         blob[headers[ index ].lower()] = value
                     if headers[ index ].lower() == 'release_version':
-                        blob[ "data_version" ] = get_data_version_id(value)
+                        try:
+                            blob[ "data_version" ] = release_dict[ value ]
+                        except KeyError:
+                            print(f'{ subject_id }: {value} is not in the database, but is given as data_version.  Please check for correctness and/or add the release to the data_versions table. Script will now exit.')
+                            sys.exit()
                     if headers[ index ].lower() == 'latest_update_version':
-                        blob[ "latest_update_version" ] = get_data_version_id(value)
+                        try:
+                            blob[ "latest_update_version" ] = release_dict[ value ]
+                        except KeyError:
+                            print(f'{ subject_id }: {value} is not in the database, but is given as latest_update_version.  Please check for correctness and/or add the release to the data_versions table. Script will now exit.')
+                            sys.exit()
                     
 
                 if type(blob["data_version"]) == int:
