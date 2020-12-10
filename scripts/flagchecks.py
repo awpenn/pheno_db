@@ -33,11 +33,11 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
     try:
         for key, value in data.items():
             ##if current key in iter over data dict is NOT in the keys_to_remove list, add to mod dict
-            if not any( key in keys for keys in keys_to_remove ):
+            if not any( keys in key for keys in keys_to_remove ):
                 modified_update_dict[ key ] = value
 
         for key, value in update_baseline_dict[ subject_id ].items():
-            if not any( key in keys for keys in keys_to_remove ):
+            if not any( keys in key for keys in keys_to_remove ):
                 modified_baseline_dict[ key ] = value
                 
     except:
@@ -53,20 +53,33 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
     
     return 0
 
-def update_latest_check( subject_id, subject_type, data ):
-    """takes subjectid, subject_type, and data dict, checks incoming against previous version, returns 0 or 1 for flag value in data object being written to db"""
+def build_update_latest_dict(  subject_type ):
+    """takes subject_type, gets all subject data from get_current_[type] view for particular subject type, keyed by subject_id"""
+
+    current_view = database_connection(f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }' ")[ 0 ][ 0 ]    
+    most_recent_published_data_version = database_connection(f"SELECT DISTINCT data_version from { current_view }")[ 0 ][ 0 ]
+
+    _latest_data = database_connection(f"SELECT subject_id, _data FROM ds_subjects_phenotypes \
+        WHERE subject_type = '{ subject_type }' AND published = 'TRUE' AND _data->>'data_version' = '{ most_recent_published_data_version }'")
+
+    update_latest_dict = { record[ 0 ]:  record[ 1 ] for record in _latest_data }
+
+    return update_latest_dict
+
+def update_latest_check( subject_id, data, update_latest_dict ):
+    """takes subject_id, data being loaded, and compiled update_latest_dict, 
+    checks incoming against data in update_latest_dict, returns 0 or 1 for flag value in data object being written to db"""
+    
+    keys_to_remove = ['update', 'correction', 'data_version', 'release_version']
     modified_update_dict = {}
     modified_previous_version_dict = {}
     
-    previous_version_data = database_connection(f"SELECT _data FROM ds_subjects_phenotypes WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}' AND published = 'TRUE' ORDER BY _data->>'data_version' DESC")
-    
     for key, value in data.items():
-        if 'update' not in key and 'correction' not in key and 'data_version' not in key:
-            modified_update_dict[key] = value
-
+        if not any( keys in key for keys in keys_to_remove ):
+            modified_update_dict[ key ] = value
     try:
-        for key, value in previous_version_data[0][0].items():
-            if 'update' not in key and 'correction' not in key and 'data_version' not in key:
+        for key, value in update_latest_dict[ subject_id ].items():
+            if not any( keys in key for keys in keys_to_remove ):                
                 modified_previous_version_dict[key] = value
 
     except:
@@ -74,10 +87,12 @@ def update_latest_check( subject_id, subject_type, data ):
         return 1
 
     for key, value in modified_update_dict.items():
-        if value == modified_previous_version_dict[key]:
+        if key == 'age':
+            breakpoint()
+        if value == modified_previous_version_dict[ key ]:
             continue
         else:
-            print(f' {subject_id }: different between new record and previous version found for {key}')
+            print(f' { subject_id }: different between new record and previous version found for {key}')
             return 1
     
     return 0
