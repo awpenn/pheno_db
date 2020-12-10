@@ -53,11 +53,15 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
     
     return 0
 
-def build_update_latest_dict(  subject_type ):
+def build_update_latest_dict( subject_type ):
     """takes subject_type, gets all subject data from get_current_[type] view for particular subject type, keyed by subject_id"""
 
     current_view = database_connection(f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }' ")[ 0 ][ 0 ]    
-    most_recent_published_data_version = database_connection(f"SELECT DISTINCT data_version from { current_view }")[ 0 ][ 0 ]
+    try:
+        most_recent_published_data_version = database_connection(f"SELECT DISTINCT data_version FROM { current_view }")[ 0 ][ 0 ]
+    except:
+        print(f'No published data from { subject_type } subjects.')
+        return {}
 
     _latest_data = database_connection(f"SELECT subject_id, _data FROM ds_subjects_phenotypes \
         WHERE subject_type = '{ subject_type }' AND published = 'TRUE' AND _data->>'data_version' = '{ most_recent_published_data_version }'")
@@ -87,8 +91,6 @@ def update_latest_check( subject_id, data, update_latest_dict ):
         return 1
 
     for key, value in modified_update_dict.items():
-        if key == 'age':
-            breakpoint()
         if value == modified_previous_version_dict[ key ]:
             continue
         else:
@@ -97,23 +99,26 @@ def update_latest_check( subject_id, data, update_latest_dict ):
     
     return 0
 
-def update_adstatus_check( subject_id, subject_type, data ):
+def build_adstatus_check_dict( subject_type ):
+    _baseline_ad_data = database_connection(f"SELECT subject_id, _baseline_data->>'ad' \
+        FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+
+    adstatus_check_dict = { record[ 0 ]:  record[ 1 ] for record in _baseline_ad_data }
+
+    return adstatus_check_dict
+
+def update_adstatus_check( subject_id, ad_status, adstatus_check_dict ):
     """takes subject_id, subject_type, and data to be written to database, 
     checks ad value for baseline version, returns appropriate value for new data for adstatus flag"""
 
-    baseline_data = database_connection(f"SELECT _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}'")
-
-    try:
-        baseline_ad = baseline_data[0][0]["ad"]
-    except:
-        print(f'No {subject_type} baseline record found for {subject_id}.')
-        return 0
-    
-
-    if data["ad"] == baseline_ad:
-        return 0
+    if subject_id in adstatus_check_dict:
+        if ad_status == int( adstatus_check_dict[ subject_id ] ):
+            return 0
+        else:
+            return 1
     else:
-        return 1
+        print(f'{ subject_id } has no previously published AD status, so 0 will be returned')
+        return 0
 
 def correction_check( data ):
     """takes data about to be written to database, 

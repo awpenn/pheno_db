@@ -109,6 +109,9 @@ def write_to_db(data_dict):
     update_baseline_dict = build_update_baseline_check_dict( user_input_subject_type )
     update_latest_dict = build_update_latest_dict( user_input_subject_type )
 
+    if user_input_subject_type in requires_ad_status_check:
+        adstatus_check_dict = build_adstatus_check_dict( user_input_subject_type )
+
     for key, value in data_dict.items():
         """key is id + version, so cuts off version part to get id"""
         split = key.index("_")
@@ -117,16 +120,12 @@ def write_to_db(data_dict):
         #have to add these to data here because otherwise will always show as "new not in database"
         value["update_baseline"] = update_baseline_check( subject_id , value, update_baseline_dict )
         value["update_latest"] = update_latest_check( subject_id, value, update_latest_dict )
-        # value["correction"] = correction_check( value )
+        value["correction"] = correction_check( value )
 
-        ## just for test 12/9
-        # value["update_baseline"] = 1
-        # value["update_latest"] = 1
-        value["correction"] = 0
         value["update_adstatus"] = 0
 
-        # if user_input_subject_type in requires_ad_status_check:
-        #     value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )     
+        if user_input_subject_type in requires_ad_status_check:
+            value["update_adstatus"] = update_adstatus_check( subject_id, value[ "ad" ], adstatus_check_dict )     
 
         # if user_input_subject_type in requires_diagnosis_update_check:
         #     value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
