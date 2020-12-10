@@ -12,7 +12,7 @@ import json
 error_log = {}
 
 #flag-checkers for legacy data loading
-def build_update_baseline_check( subject_type ):
+def build_update_baseline_check_dict( subject_type ):
     """takes subject_type, returns dict keyed by subject with baseline data matching correct subject_type"""
     _baseline_data = database_connection(f"SELECT subject_id, _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
 
@@ -21,24 +21,25 @@ def build_update_baseline_check( subject_type ):
     
     return update_baseline_dict
 
-def update_baseline_check( subject_id, subject_type, data ):
-    """take subject id, subject_type, and the data being loaded from the file, gets baseline, 
+def update_baseline_check( subject_id, data, update_baseline_dict ):
+    """take subject id, the data being loaded from the file, the compiled baseline_dict, 
     removes keys that aren't in both, compares stringified JSON to see if changed,
     the 0 or 1 needed to fill in value
     """
+    keys_to_remove = ['update', 'correction', 'data_version', 'release_version']
     modified_update_dict = {}
     modified_baseline_dict = {}
 
-    baseline_data = database_connection(f"SELECT _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{subject_id}' AND subject_type = '{subject_type}'")
-
     try:
         for key, value in data.items():
-            if 'update' not in key and 'correction' not in key and 'data_version' not in key:
-                modified_update_dict[key] = value
-    
-        for key, value in baseline_data[0][0].items():
-            if 'update' not in key and 'correction' not in key and 'data_version' not in key:
-                modified_baseline_dict[key] = value
+            ##if current key in iter over data dict is NOT in the keys_to_remove list, add to mod dict
+            if not any( key in keys for keys in keys_to_remove ):
+                modified_update_dict[ key ] = value
+
+        for key, value in update_baseline_dict[ subject_id ].items():
+            if not any( key in keys for keys in keys_to_remove ):
+                modified_baseline_dict[ key ] = value
+                
     except:
         print('This appears to be data for a subject not yet in the database.  No update from baseline to current will be indicated')
         return 0
@@ -47,7 +48,7 @@ def update_baseline_check( subject_id, subject_type, data ):
         if value == modified_baseline_dict[key]:
             continue
         else:
-            print(f'{ subject_id }: different between new record and baseline version found for {key}')
+            print(f'{ subject_id }: different between new record and baseline version found for { key }')
             return 1
     
     return 0

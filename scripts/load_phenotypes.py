@@ -37,11 +37,11 @@ def main():
 
     # data_version = user_input_data_version()
 
-    data_version = 'ng00067.v3'
+    data_version = 'ng00067.v2'
     user_input_subject_type = 'case/control'
     publish_status =True
-    # LOADFILE = 'starting_data_for_test.csv'
-    LOADFILE = '7-1000.csv'
+    LOADFILE = 'starting_data_for_test.csv'
+
     
     print('start ', datetime.datetime.now())
     data_dict = create_data_dict(LOADFILE)
@@ -112,14 +112,14 @@ def write_to_db(data_dict):
         """key is id + version, so cuts off version part to get id"""
         split = key.index("_")
         subject_id = key[:split]
-        breakpoint()
+
         #have to add these to data here because otherwise will always show as "new not in database"
-        # value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
+        value["update_baseline"] = update_baseline_check( subject_id , value, update_baseline_dict )
         # value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
         # value["correction"] = correction_check( value )
 
         ## just for test 12/9
-        value["update_baseline"] = 1
+        # value["update_baseline"] = 1
         value["update_latest"] = 1
         value["correction"] = 0
         value["update_adstatus"] = 0
@@ -131,7 +131,7 @@ def write_to_db(data_dict):
         #     value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
 
         _data = json.dumps( value )
-
+        # breakpoint(print('before db call'))
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', { publish_status })")
         save_baseline( baseline_dupecheck_list, subject_id, value )
 
