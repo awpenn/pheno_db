@@ -29,18 +29,19 @@ def main():
     global publish_status
     global data_version
     
-    # user_input_subject_type = get_subject_type()
+    user_input_subject_type = get_subject_type()
     
-    # publish_status = get_publish_action()
+    publish_status = get_publish_action()
     
-    # LOADFILE = get_filename()
+    LOADFILE = get_filename()
 
-    # data_version = user_input_data_version()
+    data_version = user_input_data_version()
 
-    data_version = 'ng00067.v4'
-    user_input_subject_type = 'case/control'
-    publish_status =True
-    LOADFILE = 'starting_data_for_test.csv'
+    # 12/11 debug
+    # data_version = 'ng00067.v2'
+    # user_input_subject_type = 'ADNI'
+    # publish_status =True
+    # LOADFILE = 'adni.csv'
 
     
     print('start ', datetime.datetime.now())
@@ -97,8 +98,8 @@ def create_data_dict(LOADFILE):
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
 
-    requires_ad_status_check = ['case/control', 'family']
-    requires_diagnosis_update_check = ['ADNI', 'PSP/CDB']
+    requires_ad_status_check = [ 'case/control', 'family' ]
+    requires_diagnosis_update_check = [ 'ADNI', 'PSP/CDB' ]
 
     global user_input_subject_type
     global publish_status
@@ -111,6 +112,9 @@ def write_to_db(data_dict):
 
     if user_input_subject_type in requires_ad_status_check:
         adstatus_check_dict = build_adstatus_check_dict( user_input_subject_type )
+    
+    if user_input_subject_type in requires_diagnosis_update_check:
+        diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
 
     for key, value in data_dict.items():
         """key is id + version, so cuts off version part to get id"""
@@ -118,20 +122,20 @@ def write_to_db(data_dict):
         subject_id = key[:split]
 
         #have to add these to data here because otherwise will always show as "new not in database"
-        value["update_baseline"] = update_baseline_check( subject_id , value, update_baseline_dict )
-        value["update_latest"] = update_latest_check( subject_id, value, update_latest_dict )
-        value["correction"] = correction_check( value )
+        value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )
+        value[ "update_latest" ] = update_latest_check( subject_id, value, update_latest_dict )
+        value[ "correction" ] = correction_check( value )
 
-        value["update_adstatus"] = 0
+        value[ "update_adstatus"] = 0
 
         if user_input_subject_type in requires_ad_status_check:
-            value["update_adstatus"] = update_adstatus_check( subject_id, value[ "ad" ], adstatus_check_dict )     
+            value[ "update_adstatus" ] = update_adstatus_check( subject_id, value[ "ad" ], adstatus_check_dict )     
 
-        # if user_input_subject_type in requires_diagnosis_update_check:
-        #     value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
+        if user_input_subject_type in requires_diagnosis_update_check:
+            value[ "update_diagnosis" ] = update_diagnosis_check( subject_id, user_input_subject_type, value, diagnosis_update_check_dict )
 
         _data = json.dumps( value )
-        # breakpoint(print('before db call'))
+
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', { publish_status })")
         save_baseline( baseline_dupecheck_list, subject_id, value )
 

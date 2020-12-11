@@ -12,6 +12,8 @@ import json
 error_log = {}
 
 #flag-checkers for legacy data loading
+
+## update_baseline
 def build_update_baseline_check_dict( subject_type ):
     """takes subject_type, returns dict keyed by subject with baseline data matching correct subject_type"""
     _baseline_data = database_connection(f"SELECT subject_id, _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
@@ -53,6 +55,7 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
     
     return 0
 
+## update_latest
 def build_update_latest_dict( subject_type ):
     """takes subject_type, gets all subject data from get_current_[type] view for particular subject type, keyed by subject_id"""
 
@@ -99,6 +102,7 @@ def update_latest_check( subject_id, data, update_latest_dict ):
     
     return 0
 
+## update adstatus
 def build_adstatus_check_dict( subject_type ):
     _baseline_ad_data = database_connection(f"SELECT subject_id, _baseline_data->>'ad' \
         FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
@@ -112,7 +116,7 @@ def update_adstatus_check( subject_id, ad_status, adstatus_check_dict ):
     checks ad value for baseline version, returns appropriate value for new data for adstatus flag"""
 
     if subject_id in adstatus_check_dict:
-        if ad_status == int( adstatus_check_dict[ subject_id ] ):
+        if str( ad_status ) == adstatus_check_dict[ subject_id ]:
             return 0
         else:
             return 1
@@ -120,6 +124,7 @@ def update_adstatus_check( subject_id, ad_status, adstatus_check_dict ):
         print(f'{ subject_id } has no previously published AD status, so 0 will be returned')
         return 0
 
+## update correction
 def correction_check( data ):
     """takes data about to be written to database, 
     checks if comments field has word 'corrected' in it and returns appropriate boolean value"""
@@ -130,19 +135,47 @@ def correction_check( data ):
             else:
                 return 0 
 
+## update diagnosis
+def build_update_diagnosis_check_dict( subject_type ):
+    """takes subject type as arg, returns dict keyed by subject_id of appropriate diagnosis update variables to compare, depending on subject_type"""
+    if subject_type == 'ADNI':
+        query_variables = [ 'ad_last_visit', 'mci_last_visit' ]
+    
+    if subject_type == 'PSP/CDB':
+        query_variables = [ 'diagnosis' ]
 
-def update_diagnosis_check( subject_id, subject_type, data ):
-    """takes subject_id, subject_type, and data to be written to database, 
+    query = database_connection(f"SELECT subject_id, _baseline_data \
+        FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+    
+    _baseline_diagnosis_data = { record[ 0 ]: record[ 1 ] for record in query }
+
+    diagnosis_update_check_dict = {}
+    for subject_id, data in _baseline_diagnosis_data.items():
+        diagnosis_data = {}
+        for key, value in data.items():
+            ## needed to get the json so have the variable keys, but only want the ones needed for diagnosis update check, so those only get added to a new dict
+            if key in query_variables:
+                diagnosis_data[ key ] = value
+        
+        diagnosis_update_check_dict[ subject_id ] = diagnosis_data
+
+    return diagnosis_update_check_dict
+
+def update_diagnosis_check( subject_id, subject_type, data, diagnosis_update_check_dict ):
+    """takes subject_id, subject_type, data to be written to database, and diagnosis_check_dict (generated based on subject_type),
     checks diagnosis value (eg. for adni data) for baseline version, returns appropriate value for new data for diagnosis_update flag"""
-    
-    baseline_data = database_connection(f"SELECT _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_id = '{ subject_id }' AND subject_type = '{ subject_type }'")
-    
+    try:
+        subject_diagnosis_dict = diagnosis_update_check_dict[ subject_id ]
+    except KeyError:
+        print( f'{ subject_id } has no previous diagnosis value(s).' )
+        return 0
+
     if subject_type == 'ADNI':
         try:
-            baseline_ad = baseline_data[ 0 ][ 0 ][ "ad_last_visit" ]
-            baseline_mci = baseline_data[ 0 ][ 0 ][ "mci_last_visit" ]
+            baseline_ad = subject_diagnosis_dict[ "ad_last_visit" ]
+            baseline_mci = subject_diagnosis_dict[ "mci_last_visit" ]
         except:
-            print(f'No {subject_type} baseline record found for {subject_id} or no value found for baseline_ad or baseline_mci.')
+            print(f'{ subject_id }: no value found for baseline_ad or baseline_mci.')
             return 0
         
         if data[ "ad_last_visit" ] == baseline_ad and data[ "mci_last_visit" ] == baseline_mci:
@@ -152,10 +185,10 @@ def update_diagnosis_check( subject_id, subject_type, data ):
     
     if subject_type == 'PSP/CDB':
         try:
-            diagnosis = baseline_data[ 0 ][ 0 ][ "diagnosis" ]
+            diagnosis = subject_diagnosis_dict[ "diagnosis" ]
 
         except:
-            print(f'No {subject_type} baseline record found for {subject_id} or no value found for diagnosis.')
+            print( f'{ subject_type }: no value found for diagnosis.' )
             return 0
         
         if data[ "diagnosis" ] == diagnosis:
