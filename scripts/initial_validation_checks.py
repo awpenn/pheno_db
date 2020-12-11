@@ -54,24 +54,13 @@ def create_data_dict( LOADFILE, subject_type ):
                         blob[headers[index].lower()] = int(value)
                     except:
                         blob[headers[index].lower()] = value
-                    if headers[ index ].lower() == 'release_version':
-                        try:
-                            blob[ "data_version" ] = release_dict[ value ]
-                        except KeyError:
-                            print(f'{ subject_id }: {value} is not in the database, but is given as data_version.  Please check for correctness and/or add the release to the data_versions table. Script will now exit.')
-                            sys.exit()
-
                     
-                if type(blob["data_version"]) == int:
-                    data_dict[f'{blob["subjid"]}_{blob["release_version"]}'] = blob
-                else:
-                    print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
+                data_dict[ blob["subjid"] ] = blob
 
 
     for key, record in data_dict.items():
         """remove subject id from blob for each record in dict"""
         record.pop('subjid')
-        record.pop('release_version')
 
     return data_dict
 
