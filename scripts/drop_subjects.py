@@ -25,7 +25,6 @@ def main():
         if 'unpublished' in view:
             view_based_on_subject_type = view
 
-    breakpoint()
     is_batch_file = user_input_batch_loading()
 
     if is_batch_file:
