@@ -17,57 +17,83 @@ new_records = []
 success_id_log = []
 error_log = {}
 
-publish_data = False
-user_input_subject_type = 'other'
+user_input_subject_type = 'ther'
+data_version = ''
+publish_status = False
+
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
-    global LOADFILE
-    global publish_data
     global user_input_subject_type
+    global publish_status
+    global data_version
 
-    publish_data = get_publish_action()
     user_input_subject_type = get_subject_type()
+
+    publish_status = get_publish_action()
+
     LOADFILE = get_filename()
-    data_dict = create_data_dict(LOADFILE)
-    write_to_db(data_dict)
+
+    data_version = user_input_data_version()
+
+    data_dict = create_data_dict( LOADFILE )
+    write_to_db( data_dict )
 
 def write_to_db(data_dict):
     """takes data dict and publish boolean and writes to database"""
-
-    global publish_data
     requires_ad_status_check = ['case/control', 'family']
     requires_diagnosis_update_check = ['ADNI', 'PSP/CDB']
+
+    global user_input_subject_type
+    global publish_status
+        ## gets list of subjects in baseline table of type matching the user_input_subject_type, so can see if have to add to baseline table
+    baseline_dupecheck_list = build_baseline_dupcheck_list( user_input_subject_type )
+
+    ## dicts for dbcall-less flag updates
+    update_baseline_dict = build_update_baseline_check_dict( user_input_subject_type )
+    update_latest_dict = build_update_latest_dict( user_input_subject_type )
+
+    if user_input_subject_type in requires_ad_status_check:
+        adstatus_check_dict = build_adstatus_check_dict( user_input_subject_type )
     
+    if user_input_subject_type in requires_diagnosis_update_check:
+        diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
+
     for key, value in data_dict.items():
         # subject_id = value["subject_id"]
         subject_id = value.pop("subjid")
         version = value["data_version"]
 
-        value["update_baseline"] = update_baseline_check( subject_id , user_input_subject_type , value )
-        value["update_latest"] = update_latest_check( subject_id, user_input_subject_type, value )
-        value["correction"] = correction_check( value )
+        #have to add these to data here because otherwise will always show as "new not in database"
+        value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )
+        value[ "update_latest" ] = update_latest_check( subject_id, value, update_latest_dict )
+        value[ "correction" ] = correction_check( value )
 
         if user_input_subject_type in requires_ad_status_check:
-            value["update_adstatus"] = update_adstatus_check( subject_id, user_input_subject_type, value )
+            value[ "update_adstatus" ] = update_adstatus_check( subject_id, value[ "ad" ], adstatus_check_dict )     
 
         if user_input_subject_type in requires_diagnosis_update_check:
-            value["update_diagnosis"] = update_diagnosis_check( subject_id, user_input_subject_type, value )
+            value[ "update_diagnosis" ] = update_diagnosis_check( subject_id, user_input_subject_type, value, diagnosis_update_check_dict )
 
-        _data = json.dumps(value)
+        _data = json.dumps( value )
 
-        if publish_data:
-            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{subject_id}', '{_data}', TRUE) WHERE subject_id = '{subject_id}' AND subject_type = '{user_input_subject_type}' AND _data->>'data_version' = '{version}' AND published = FALSE")
+        if publish_status:
+            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{ subject_id }', '{ _data }', TRUE) WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
         else:
-            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{subject_id}', '{_data}') WHERE subject_id = '{subject_id}' AND subject_type = '{user_input_subject_type}' AND _data->>'data_version' = '{version}' AND published = FALSE")
+            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{ subject_id }', '{ _data }') WHERE subject_id = ' {subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
 
 def create_data_dict(LOADFILE):
     """takes loadfile name and subject_type as args, returns dict of json data keyed by subject id of data to be entered in database"""
     global user_input_subject_type
+    global data_version
+
     release_dict = build_release_dict()   
+    ## just the published true dict, because if not publishing, will want to replace an unpublished record for subject+version combo (this is manager not loader)
+    dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = TRUE', user_input_subject_type )
+    
     data_dict = {}
 
-    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'./source_files/{ LOADFILE }', mode='r', encoding='utf-8-sig') as csv_file:
         """"get the relationship table names and indexes from the csv file headers"""
         pheno_file = csv.reader(csv_file)
         headers = next(pheno_file)
@@ -75,30 +101,19 @@ def create_data_dict(LOADFILE):
         for row in pheno_file:
             if pheno_file.line_num > 1:
                 blob = {}
-                for index, value in enumerate(row):
+                for index, value in enumerate( row ):
+
                     try:
-                        blob[headers[index].lower()] = int(value)
+                        blob[headers[ index ].lower()] = int( value )
                     except:
-                        blob[headers[index].lower()] = value
-                    if headers[ index ].lower() == 'release_version':
-                        try:
-                            blob[ "data_version" ] = release_dict[ value ]
-                        except KeyError:
-                            print(f'{ subject_id }: {value} is not in the database, but is given as data_version.  Please check for correctness and/or add the release to the data_versions table. Script will now exit.')
-                            sys.exit()
-                            
-                if type(blob["data_version"]) == int:
-                    if check_not_duplicate( blob, "PUBLISHED = TRUE", user_input_subject_type ):
-                        data_dict[f'{blob["subjid"]}_{blob["release_version"]}'] = blob
-                    else:
-                        print(f'Already a published entry for {blob["subjid"]} in {blob["release_version"]}. No update will be added to database.  Check database and loadfile')
+                        blob[headers[ index ].lower()] = value
+
+                    blob[ "data_version" ] = release_dict[ data_version ]
+
+                if check_not_duplicate( blob, dupecheck_list ):
+                    data_dict[ f'{ blob[ "subjid" ]}_{ data_version }' ] = blob
                 else:
-                    print(f"Version {blob['data_version']} not found. Record will not be added. Check database.")
-
-
-    for key, record in data_dict.items():
-        """remove release_version from blob for each record in dict, in db is joined from data_version table"""
-        record.pop('release_version')
+                    print(f'Already a published entry for { blob[ "subjid" ] } in { blob[ "release_version" ] }. No update will be added to database.  Check database and loadfile')
 
     return data_dict
 

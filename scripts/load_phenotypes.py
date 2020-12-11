@@ -83,7 +83,7 @@ def create_data_dict(LOADFILE):
                 if check_not_duplicate( blob[ "subjid" ], dupecheck_list ):
                     data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
                 else:
-                    print(f'{ blob["subjid"] } already has record in { data_version }')
+                    print(f'{ blob[ "subjid" ] } already has record in { data_version }')
 
 
     for key, record in data_dict.items():
