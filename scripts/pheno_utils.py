@@ -54,8 +54,8 @@ def build_dupecheck_list( data_version_id, pub_check, subject_type ):
     """takes version, publication status and subject type as args,
     returns list of subjects for a particular release version to check for duplicates rather than call db every time"""    
 
-    query = database_connection(f"SELECT subject_id FROM ds_subjects_phenotypes WHERE {pub_check} \
-    AND _data->>'data_version' = '{data_version_id}' AND {pub_check} AND subject_type = '{subject_type}'")
+    query = database_connection(f"SELECT subject_id FROM ds_subjects_phenotypes WHERE { pub_check } \
+    AND _data->>'data_version' = '{ data_version_id }' AND subject_type = '{ subject_type }'")
 
     dupe_list = [ id_tupe[ 0 ] for id_tupe in query ]
 

@@ -34,7 +34,7 @@ def main():
     publish_status = get_publish_action()
     
     LOADFILE = get_filename()
-
+    
     data_version = user_input_data_version()
 
     # 12/11 debug
@@ -45,9 +45,9 @@ def main():
 
     
     print('start ', datetime.datetime.now())
-    data_dict = create_data_dict(LOADFILE)
+    data_dict = create_data_dict( LOADFILE )
 
-    write_to_db(data_dict)
+    write_to_db( data_dict )
     
 
 def create_data_dict(LOADFILE):
@@ -80,13 +80,10 @@ def create_data_dict(LOADFILE):
 
                     blob[ "data_version" ] = release_dict[ data_version ]
 
-                if type(blob["data_version"]) == int:
-                    if check_not_duplicate( blob[ "subjid" ], dupecheck_list ):
-                        data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
-                    else:
-                        print(f'{ blob["subjid"] } already has record in { data_version }')
+                if check_not_duplicate( blob[ "subjid" ], dupecheck_list ):
+                    data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
                 else:
-                    print(f"Version { blob['data_version'] } not found. Record will not be added. Check database.")
+                    print(f'{ blob["subjid"] } already has record in { data_version }')
 
 
     for key, record in data_dict.items():
@@ -125,8 +122,6 @@ def write_to_db(data_dict):
         value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )
         value[ "update_latest" ] = update_latest_check( subject_id, value, update_latest_dict )
         value[ "correction" ] = correction_check( value )
-
-        value[ "update_adstatus"] = 0
 
         if user_input_subject_type in requires_ad_status_check:
             value[ "update_adstatus" ] = update_adstatus_check( subject_id, value[ "ad" ], adstatus_check_dict )     
