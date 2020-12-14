@@ -102,6 +102,9 @@ def check_subject_exists(subject_type_view, subject_id, release_version):
     else:
         return False
 
+def check_loadfile_variables_match_dictionary(  ):
+    """Gets the appropriate dictionary, checks phenotype variables in are correct and complete"""
+    dictionary = database_connection(f"SELECT _dict_data from data_dictionaries WHERE dictionary_name = '{}'")
 # functions for handling user input
 def get_filename():
     while True:
