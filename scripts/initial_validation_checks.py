@@ -18,14 +18,14 @@ def main():
 
     ## 12/13 debug
     user_input_subject_type = 'case/control'
-    # LOADFILE = 'starting_data_for_test.csv'
-    LOADFILE = 'adni.csv'
+    LOADFILE = 'starting_data_for_test.csv'
+    # LOADFILE = 'adni.csv'
 
     data_dict = create_data_dict( LOADFILE, user_input_subject_type )
     dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
 
-    variables_match_dictionary, msg = check_loadfile_variables_match_dictionary( data_dict, dictionary, user_input_subject_type )
+    variables_match_dictionary, msg = check_loadfile_variables_match_dictionary( data_dict, dictionary, user_input_subject_type, LOADFILE )
     
     if not variables_match_dictionary:
         print( msg )

@@ -102,7 +102,7 @@ def check_subject_exists(subject_type_view, subject_id, release_version):
     else:
         return False
 
-def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_type ):
+def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_type, LOADFILE ):
     """Gets the appropriate dictionary, checks phenotype variables in are correct and complete"""
     keys_to_remove = ['update', 'correction', 'data_version', 'release_version', 'base_', 'subjid']
     dictionary_vars = [ var for var in dictionary[ "variable" ] ]
@@ -111,21 +111,21 @@ def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_ty
     ## use next/iter to get first key in data_dict(ie. a subject id), then gets the keys for that subjects phenotype data dict
     data_dict_vars = [ var for var in data_dict[ next( iter( data_dict ) ) ].keys() ]
 
-    if len( data_dict_vars ) == len( modified_dictionary_varlist ):
-        for var in dictionary_vars:
-            if not any( keys in var for keys in keys_to_remove ):                
-                modified_dictionary_varlist.append( var )
+    for var in dictionary_vars:
+        if not any( keys in var for keys in keys_to_remove ):                
+            modified_dictionary_varlist.append( var )
 
+    if len( data_dict_vars ) == len( modified_dictionary_varlist ):
         for var in data_dict_vars:
             if var in modified_dictionary_varlist:
                 continue
             else:
                 return 0, f'{ var } is not in the { subject_type } dictionary.  Please check the correctness of your loadfile.'
         
-        return 1, f'Variables in loadfile match those in dictionary for { subject_type }'
+        return 1, f'Variables in { LOADFILE } match those in dictionary for { subject_type }'
 
     else:
-        return 1, f'Loadfile and { subject_type } dictionary do not have the same number of variables.  Please check loadfile for correctness.'
+        return 0, f'{ LOADFILE } and { subject_type } dictionary do not have the same number of variables.  Please check loadfile for correctness.'
 
 # functions for handling user input
 def get_filename():
