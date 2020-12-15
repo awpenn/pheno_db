@@ -367,9 +367,10 @@ def create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_ve
         published_dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = TRUE', user_input_subject_type )
         unpublished_dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = FALSE', user_input_subject_type )
 
+    ## 12/15 have to think about this more, right now 'else' runs if load_pheno or manage_updates, don't think in either of those cases want
+    ## to worry about duplicate unpublished records.  
     else:
-        dupecheck_list = build_dupecheck_list( release_dict[ data_version ], f'PUBLISHED = { publish_status }', user_input_subject_type )
-        breakpoint()
+        dupecheck_list = build_dupecheck_list( release_dict[ data_version ], f'PUBLISHED = TRUE', user_input_subject_type )
     
     data_dict = {}
 

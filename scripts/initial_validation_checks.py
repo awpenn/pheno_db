@@ -28,8 +28,6 @@ def main():
     else:
         print( msg )
 
-
-        breakpoint()
         reviewed_dict = run_checks( data_dict, dictionary )
         for key, value in reviewed_dict.items():
 
