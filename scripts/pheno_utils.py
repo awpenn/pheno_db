@@ -356,6 +356,58 @@ def build_release_dict():
 
     return release_dict
 
+def create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name ):
+    """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
+    scripts_requiring_pub_and_unpub_check = ['load_unpublished_updates.py']
+    release_dict = build_release_dict()
+
+    ## if running script in s_r_p_a_u_c list above, create the two checklists with hardcoded pub values.  Otherwise, where scripts can 
+    ## run data that is either to be published or unpublished, make one checklist with pubstat depending on arg passed into function
+    if script_name in scripts_requiring_pub_and_unpub_check:
+        published_dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = TRUE', user_input_subject_type )
+        unpublished_dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = FALSE', user_input_subject_type )
+
+    else:
+        dupecheck_list = build_dupecheck_list( release_dict[ data_version ], f'PUBLISHED = { publish_status }', user_input_subject_type )
+        breakpoint()
+    
+    data_dict = {}
+
+    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+        """"get the relationship table names and indexes from the csv file headers"""
+        pheno_file = csv.reader(csv_file)
+        headers = next(pheno_file)
+        
+        for row in pheno_file:
+            subject_id = row[ 0 ]
+            if pheno_file.line_num > 1:
+                blob = {}
+
+                for index, value in enumerate( row ):
+
+                    try:
+                        blob[headers[ index ].lower()] = int( value )
+                    except:
+                        blob[headers[ index ].lower()] = value
+
+                    blob[ "data_version" ] = release_dict[ data_version ]
+
+                ## if need to check for published AND unpublished records for subject, use the two checklists created, 
+                # otherwise, just the one with pubstat dependant on user input
+                if script_name in scripts_requiring_pub_and_unpub_check:
+                    if check_not_duplicate( blob[ "subjid" ], published_dupecheck_list ) and check_not_duplicate( blob[ "subjid" ], unpublished_dupecheck_list ):
+                        data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
+                    else:
+                        print( f'{ blob[ "subjid" ] } already has record in { data_version }')
+                else:
+                    if check_not_duplicate( blob[ "subjid" ], dupecheck_list ):
+                        data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
+                    else:
+                        print(f'{ blob[ "subjid" ] } already has record in { data_version }')
+
+    return data_dict
+
+
 
 # for dev/debugging
 def write_json_to_file( json_data ):

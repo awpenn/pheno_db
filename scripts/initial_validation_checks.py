@@ -13,15 +13,10 @@ import pandas as pd
 from pheno_utils import *
 
 def main():
-    # user_input_subject_type = get_subject_type()
-    # LOADFILE = get_filename()
+    user_input_subject_type = get_subject_type()
+    LOADFILE = get_filename()
 
-    ## 12/13 debug
-    user_input_subject_type = 'case/control'
-    LOADFILE = 'starting_data_for_test.csv'
-    # LOADFILE = 'adni.csv'
-
-    data_dict = create_data_dict( LOADFILE, user_input_subject_type )
+    data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
     dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
 
@@ -51,7 +46,7 @@ def main():
 
         print(f"No data errors found in { LOADFILE }.")
 
-def create_data_dict( LOADFILE, subject_type ):
+def create_comparison_data_dict( LOADFILE, subject_type ):
     """takes loadfile, subject_type as args, returns dict of json data keyed by subject id of data to be valcheck"""
     release_dict = build_release_dict()
     data_dict = {}

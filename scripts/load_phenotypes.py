@@ -20,77 +20,29 @@ success_id_log = []
 error_log = {}
 
 user_input_subject_type = ''
-data_version = ''
 publish_status = False
+script_name = 'load_phenotypes.py'
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global user_input_subject_type
     global publish_status
-    global data_version
-    
+
     user_input_subject_type = get_subject_type()
-    
-    publish_status = get_publish_action()
-    
-    LOADFILE = get_filename()
     
     data_version = user_input_data_version()
 
-    # 12/11 debug
-    # data_version = 'ng00067.v2'
-    # user_input_subject_type = 'ADNI'
-    # publish_status =True
-    # LOADFILE = 'adni.csv'
-
+    publish_status = get_publish_action()
     
+    LOADFILE = get_filename()
+
     print('start ', datetime.datetime.now())
-    data_dict = create_data_dict( LOADFILE )
+
+    ## 12/15 create_data_dict generalized and moved to utils
+    data_dict = create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name )
 
     write_to_db( data_dict )
-    
 
-def create_data_dict(LOADFILE):
-    """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
-    global user_input_subject_type
-    global publish_status
-    global data_version
-
-    release_dict = build_release_dict()
-    dupecheck_list = build_dupecheck_list( release_dict[ data_version ], publish_status, user_input_subject_type )
-    
-    data_dict = {}
-
-    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
-        """"get the relationship table names and indexes from the csv file headers"""
-        pheno_file = csv.reader(csv_file)
-        headers = next(pheno_file)
-        
-        for row in pheno_file:
-            subject_id = row[ 0 ]
-            if pheno_file.line_num > 1:
-                blob = {}
-
-                for index, value in enumerate( row ):
-
-                    try:
-                        blob[headers[ index ].lower()] = int( value )
-                    except:
-                        blob[headers[ index ].lower()] = value
-
-                    blob[ "data_version" ] = release_dict[ data_version ]
-
-                if check_not_duplicate( blob[ "subjid" ], dupecheck_list ):
-                    data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
-                else:
-                    print(f'{ blob[ "subjid" ] } already has record in { data_version }')
-
-
-    for key, record in data_dict.items():
-        """remove subject id from blob for each record in dict"""
-        record.pop('subjid')
-
-    return data_dict
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""
@@ -114,9 +66,7 @@ def write_to_db(data_dict):
         diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
 
     for key, value in data_dict.items():
-        """key is id + version, so cuts off version part to get id"""
-        split = key.index("_")
-        subject_id = key[:split]
+        subject_id = value.pop('subjid')
 
         #have to add these to data here because otherwise will always show as "new not in database"
         value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )
@@ -133,7 +83,6 @@ def write_to_db(data_dict):
 
         database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', { publish_status })")
         save_baseline( baseline_dupecheck_list, subject_id, value )
-
 
 def create_baseline_json( data ):
     """takes dict entry for subject being added to database and creates the copy of data for baseline table, returning json string"""

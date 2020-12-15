@@ -17,26 +17,26 @@ new_records = []
 success_id_log = []
 error_log = {}
 
-user_input_subject_type = 'ther'
-data_version = ''
+user_input_subject_type = 'other'
 publish_status = False
-
+script_name = 'manage_updates.py'
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global user_input_subject_type
     global publish_status
-    global data_version
 
     user_input_subject_type = get_subject_type()
+
+    data_version = user_input_data_version()
 
     publish_status = get_publish_action()
 
     LOADFILE = get_filename()
+    
 
-    data_version = user_input_data_version()
+    data_dict = create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name )
 
-    data_dict = create_data_dict( LOADFILE )
     write_to_db( data_dict )
 
 def write_to_db(data_dict):
@@ -81,42 +81,6 @@ def write_to_db(data_dict):
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{ subject_id }', '{ _data }', TRUE) WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
         else:
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{ subject_id }', '{ _data }') WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
-
-def create_data_dict(LOADFILE):
-    """takes loadfile name and subject_type as args, returns dict of json data keyed by subject id of data to be entered in database"""
-    global user_input_subject_type
-    global data_version
-
-    release_dict = build_release_dict()   
-    ## just the published true dict, because if not publishing, will want to replace an unpublished record for subject+version combo (this is manager not loader)
-    dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = TRUE', user_input_subject_type )
-    
-    data_dict = {}
-
-    with open(f'./source_files/{ LOADFILE }', mode='r', encoding='utf-8-sig') as csv_file:
-        """"get the relationship table names and indexes from the csv file headers"""
-        pheno_file = csv.reader(csv_file)
-        headers = next(pheno_file)
-        
-        for row in pheno_file:
-            if pheno_file.line_num > 1:
-                blob = {}
-                for index, value in enumerate( row ):
-
-                    try:
-                        blob[headers[ index ].lower()] = int( value )
-                    except:
-                        blob[headers[ index ].lower()] = value
-
-                    blob[ "data_version" ] = release_dict[ data_version ]
-
-                if check_not_duplicate( blob, dupecheck_list ):
-                    data_dict[ f'{ blob[ "subjid" ]}_{ data_version }' ] = blob
-                else:
-                    print(f'Already a published entry for { blob[ "subjid" ] } in { blob[ "release_version" ] }. No update will be added to database.  Check database and loadfile')
-
-    return data_dict
-
 
 if __name__ == '__main__':
     main()
