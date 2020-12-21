@@ -17,11 +17,10 @@ def main():
 
     LOADFILE = get_filename()
 
-    data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
     dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
 
-    comparison_data = create_data_dict( user_input_subject_type, LOADFILE )
+    comparison_data = create_data_dict( LOADFILE, user_input_subject_type )
     breakpoint()
 
 def create_data_dict( LOADFILE, subject_type ):
@@ -42,7 +41,7 @@ def create_data_dict( LOADFILE, subject_type ):
                         blob[headers[index].lower()] = int(value)
                     except:
                         blob[headers[index].lower()] = value
-                    
+
                 data_dict[ blob["subject_id"] ] = blob
 
     return data_dict
