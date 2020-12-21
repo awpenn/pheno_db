@@ -82,21 +82,21 @@ def build_dataframe( query_type, views_based_on_subject_type, header_and_data_db
         for index, header in enumerate( headers_cleaned ):
             """orders cleaned headers so like columns are next to eachother (may discard)"""
             if index <= unique_headers_len:
-                if header not in ['subjid', 'prev_subjid']:
+                if header not in ['subject_id', 'prev_subject_id']:
                     headers_sorted.append( header )
                     try:
                         headers_sorted.append( headers_cleaned[ headers_cleaned.index( f"prev_{header}" ) ] )
                     except:
                         continue
-                elif header != 'prev_subjid':
+                elif header != 'prev_subject_id':
                     headers_sorted.append( header )
     
     if query_type == 'update_to_baseline':
         for index, header in enumerate( headers_unpacked ):
-            if header != 'subjid':
+            if header != 'subject_id':
                 headers_cleaned.append( header )
             elif header in headers_cleaned:
-                headers_cleaned.append( f"DISCARD_subjid" )
+                headers_cleaned.append( f"DISCARD_subject_id" )
             else:
                 headers_cleaned.append( header )
 
@@ -104,8 +104,8 @@ def build_dataframe( query_type, views_based_on_subject_type, header_and_data_db
             """orders headers so like columns are next to eachother (may discard)"""
             # cant go on "unique header len" because the baseline view is different than subject view
             if header not in headers_sorted:
-                if 'baseline_' not in header: #hack way to eliminate the extra subjid col
-                    if header != 'DISCARD_subjid':
+                if 'baseline_' not in header: #hack way to eliminate the extra subject_id col
+                    if header != 'DISCARD_subject_id':
                         headers_sorted.append( header )
                         try:
                             headers_sorted.append( headers_cleaned[ headers_cleaned.index( f"baseline_{header}" ) ] )
