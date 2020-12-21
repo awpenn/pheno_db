@@ -138,7 +138,7 @@ def get_filename():
             print('Please enter a valid filename.')
             continue
         else:
-            if '.csv' not in filename_input:
+            if '.csv' not in filename_input or '.txt' not in filenmae_input:
                 print("Please make sure you've uploaded a .csv file.")
                 continue
             else:
