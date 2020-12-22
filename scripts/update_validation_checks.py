@@ -17,9 +17,14 @@ def main():
     ## dict of class names for different subject_types to pass into update_checks function
     classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
 
-    user_input_subject_type = get_subject_type()
+    # user_input_subject_type = get_subject_type()
 
-    LOADFILE = get_filename()
+    # LOADFILE = get_filename()
+
+    ## testing vars
+    
+    user_input_subject_type = 'case/control'
+    LOADFILE = 'a.csv'
 
     dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
@@ -52,9 +57,18 @@ def create_data_dict( LOADFILE, subject_type ):
     return data_dict
 
 def run_update_checks( comparison_data, dictionary, classname_dict, subject_type ):
+    """takes the jsonified comparison_data, the appropriate dictionary, subject_type, and classname_dict..."""
+    errors_dict = {}
     for key, value in comparison_data.items():
+        ## uses the etattr to get the reference to class based on classname from dict, then instantiates subject object with 'value' data
         subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value )
-        breakpoint()
+
+        subject_data_errors = subject.run_checks()
+
+        if subject_data_errors:
+            errors_dict[ key ] = subject_data_errors
+            
+    print( errors_dict )
 
 if __name__ == '__main__':
     print('start ', datetime.datetime.now().strftime("%H:%M:%S") )
