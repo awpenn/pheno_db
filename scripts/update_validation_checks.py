@@ -11,8 +11,12 @@ import datetime
 import pandas as pd
 
 from pheno_utils import *
-
+from subject_objects import *
+    
 def main():
+    ## dict of class names for different subject_types to pass into update_checks function
+    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
+
     user_input_subject_type = get_subject_type()
 
     LOADFILE = get_filename()
@@ -20,8 +24,9 @@ def main():
     dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
 
+    ## data from comparison csv now in subjid-keyed json
     comparison_data = create_data_dict( LOADFILE, user_input_subject_type )
-    breakpoint()
+    run_update_checks( comparison_data, dictionary, classname_dict, user_input_subject_type )
 
 def create_data_dict( LOADFILE, subject_type ):
     """takes loadfile, subject_type as args, returns dict of json data keyed by subject id of data to be valcheck"""
@@ -45,6 +50,11 @@ def create_data_dict( LOADFILE, subject_type ):
                 data_dict[ blob["subject_id"] ] = blob
 
     return data_dict
+
+def run_update_checks( comparison_data, dictionary, classname_dict, subject_type ):
+    for key, value in comparison_data.items():
+        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value )
+        breakpoint()
 
 if __name__ == '__main__':
     print('start ', datetime.datetime.now().strftime("%H:%M:%S") )

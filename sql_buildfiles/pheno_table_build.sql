@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS "env_var_by_subject_type"
         "unpublished_update_view_name" VARCHAR(50) NOT NULL,
         "baseline_view_name" VARCHAR(50) NOT NULL,
         "dictionary_name" VARCHAR(50) NOT NULL,
+        "subject_classname" VARCHAR(50) NOT NULL,
         "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
         "updatedat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp, 
         PRIMARY KEY ("id")
