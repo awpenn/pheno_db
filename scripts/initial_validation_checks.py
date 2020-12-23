@@ -38,9 +38,6 @@ def main():
                 print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
                 ## Found an error, generated the tsv and now will exit. 
                 sys.exit()
-            else:
-                # print(f'Found no errors { key }')
-                continue
 
         print(f"No data errors found in { LOADFILE }.")
 

@@ -24,6 +24,65 @@ class Non_PSP_Subject():
         self.sex = data[ "sex" ]
         self.previous_sex = data[ "prev_sex" ]
 
+    def age_check( self ):
+        if not self.age >= self.previous_age:
+            self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+    
+    def ad_check( self ):
+        if self.ad == 1:
+            if not ( self.incad == 1 or self.prevad == 1 ):
+                self.data_errors[ "ad_check" ] = "AD has value of 1 but 0 values for incad and prevad. "
+            else:
+                if self.incad == 1 and self.prevad == 1:
+                    self.data_errors[ "ad_check" ] = "AD has value of 1 but both incad and prevad have 1 values"
+
+        else:
+            if not ( self.incad == 0 and self.prevad == 0 ):
+                self.data_errors[ "ad_check" ] = "AD has value of 0 but 1 values in either incad or prevad"
+
+    def ad_status_switch_check( self ):
+        if self.ad == 0 and self.previous_ad == 1:
+            self.data_errors[ "ad_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
+
+    def prevad_age_baseline_check( self ):
+        if self.prevad == 1:
+            if self.age_baseline != 'NA':
+                self.data_errors[ "prevad_age_baseline_check" ] = "Prevad value of 1 with non-NA age_baseline value."
+
+    def age_under_50_check( self ):
+        if self.age < 50:
+            self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
+    def braak_inc_prev_check( self ):
+        if isinstance( self.braak, int ):
+            if self.braak < 4:
+                if not (self.incad == 0 and self.prevad == 0):
+                    self.data_errors[ "braak_inc_prev_check" ] = "Braak score less than 4 but inc/prev_ad indicated."
+            else:
+                if not (self.incad == 1 or self.prevad == 1):
+                    self.data_errors[ "braak_inc_prev_check" ] = "Braak score greater than 3 but no inc/prev_ad indicated."       
+        else:
+            self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
+
+class PSP_Subject():
+    def __init__( self, data ):
+        self.previous_comments = data["prev_comments"]
+
+        self.race = data[ "race" ]
+        self.previous_race = data[ "prev_race" ]
+
+        self.sex = data[ "sex" ]
+        self.previous_sex = data[ "prev_sex" ]
+
+        self.diagnosis  = data[ "diagnosis" ]
+        self.previous_diagnosis  = data[ "prev_diagnosis" ]
+
+        self.ageonset = data[ "ageonset" ]
+        self.previous_ageonset = data[ "prev_ageonset" ]
+
+        self.agedeath = data[ "agedeath" ]
+        self.previous_agedeath = data[ "prev_agedeath" ]
+
 class Case_Control_Subject( Non_PSP_Subject ):
     def __init__( self, data ):
         super().__init__( data )
@@ -45,49 +104,14 @@ class Case_Control_Subject( Non_PSP_Subject ):
 
         self.data_errors = {}
     
-    def age_check( self ):
-        return self.age >= self.previous_age
-    
-    def ad_check( self ):
-        if self.ad == 1:
-            return ( self.incad or self.prevad == 1 ) and not (self.incad == 1 and self.prevad == 1)
-        else:
-            return self.incad == 0 and self.prevad == 0
-
-    def prevad_age_baseline_check( self ):
-        return self.age_baseline == 'NA'
-
-    def braak_inc_prev_check( self ):
-        if isinstance( self.braak, int ):
-            if self.braak < 4:
-                return self.incad == 0 and self.prevad == 0
-            else:
-                return self.incad == 1 or self.prevad == 1
-        
-
     def run_checks( self ):
-        if not self.age_check():
-            self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+        self.age_check()
+        self.ad_check()
+        self.ad_status_switch_check()
+        self.prevad_age_baseline_check()
+        self.age_under_50_check()
+        self.braak_inc_prev_check()
 
-        if self.ad == 0 and self.previous_ad == 1:
-            self.data_errors[ "ad_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
-
-        if not self.ad_check():
-            self.data_errors[ "ad_check" ] = "Either AD has value of 1 but 0 values for incad and prevad, or both incad and prevad have 1 values"
-        
-        if self.age < 50:
-            self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
-
-        if self.prevad == 1:
-            if not self.prevad_age_baseline_check():
-                self.data_errors[ "prevad_age_baseline_check" ] = "Prevad value of 1 with non-NA age_baseline value."
-
-        if isinstance( self.braak, int ):
-            if not self.braak_inc_prev_check():
-                self.data_errors[ "braak_inc_prev_check" ] = "Inconsistency between braak value and either inc_ad or prev_ad value."
-        else:
-            self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
-        
         return self.data_errors
         
 class Family_Subject( Non_PSP_Subject ):
@@ -137,21 +161,4 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.mci_last_visit = data[ "mci_last_visit" ]
         self.previous_mci_last_visit = data[ "prev_mci_last_visit" ]
 
-class PSP_Subject():
-    def __init__( self, data ):
-        self.previous_comments = data["prev_comments"]
 
-        self.race = data[ "race" ]
-        self.previous_race = data[ "prev_race" ]
-
-        self.sex = data[ "sex" ]
-        self.previous_sex = data[ "prev_sex" ]
-
-        self.diagnosis  = data[ "diagnosis" ]
-        self.previous_diagnosis  = data[ "prev_diagnosis" ]
-
-        self.ageonset = data[ "ageonset" ]
-        self.previous_ageonset = data[ "prev_ageonset" ]
-
-        self.agedeath = data[ "agedeath" ]
-        self.previous_agedeath = data[ "prev_agedeath" ]

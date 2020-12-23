@@ -26,12 +26,9 @@ def main():
     user_input_subject_type = 'case/control'
     LOADFILE = 'a.csv'
 
-    dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
-    dictionary = get_dict_data( dict_name )
-
     ## data from comparison csv now in subjid-keyed json
     comparison_data = create_data_dict( LOADFILE, user_input_subject_type )
-    run_update_checks( comparison_data, dictionary, classname_dict, user_input_subject_type )
+    run_update_checks( comparison_data, classname_dict, user_input_subject_type )
 
 def create_data_dict( LOADFILE, subject_type ):
     """takes loadfile, subject_type as args, returns dict of json data keyed by subject id of data to be valcheck"""
@@ -56,7 +53,7 @@ def create_data_dict( LOADFILE, subject_type ):
 
     return data_dict
 
-def run_update_checks( comparison_data, dictionary, classname_dict, subject_type ):
+def run_update_checks( comparison_data, classname_dict, subject_type ):
     """takes the jsonified comparison_data, the appropriate dictionary, subject_type, and classname_dict..."""
     errors_dict = {}
     for key, value in comparison_data.items():
