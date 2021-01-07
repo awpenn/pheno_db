@@ -1,0 +1,2 @@
+SUBJID,famid,mother,father,sex,age,age_baseline,apoe,autopsy,braak,race,ethnicity,ad,famgrp,comments,Duplicate_subjid
+AFAM1,1,A4,A5,1,77,60,33,0,NA,1,1,0,1,comment,0

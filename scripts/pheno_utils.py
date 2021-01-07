@@ -112,7 +112,10 @@ def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_ty
     data_dict_vars = [ var for var in data_dict[ next( iter( data_dict ) ) ].keys() ]
 
     for var in dictionary_vars:
-        if not any( keys in var for keys in keys_to_remove ):                
+        if var  != 'duplicate_subjid':
+            if not any( keys in var for keys in keys_to_remove ):                
+                modified_dictionary_varlist.append( var )
+        else:
             modified_dictionary_varlist.append( var )
 
     if len( data_dict_vars ) == len( modified_dictionary_varlist ):
@@ -125,8 +128,14 @@ def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_ty
         return 1, f'Variables in { LOADFILE } match those in dictionary for { subject_type }'
 
     else:
-        return 0, f'{ LOADFILE } and { subject_type } dictionary do not have the same number of variables.  Please check loadfile for correctness.'
-
+        ## if loadfile has more vars than dict
+        if len( data_dict_vars ) > len( modified_dictionary_varlist ):
+            var_diff = set( data_dict_vars ).difference( set( modified_dictionary_varlist ) )  
+            return 0, f'{ LOADFILE } contains the following variable(s) not found in the dictionary: { var_diff }.  Please check loadfile for correctness.'
+        else:
+            var_diff = set( modified_dictionary_varlist ).difference( set( data_dict_vars ) )
+            return 0, f'the following dictionary variables are missing from { LOADFILE }: { var_diff }.  Please check loadfile for correctness.'
+            
 # functions for handling user input
 def get_filename():
     while True:
