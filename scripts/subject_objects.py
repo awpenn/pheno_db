@@ -24,6 +24,8 @@ class Non_PSP_Subject():
         self.sex = data[ "sex" ]
         self.previous_sex = data[ "prev_sex" ]
 
+        self.data_errors = {}
+
     def age_check( self ):
         if not self.age >= self.previous_age:
             self.data_errors[ "age_check" ] = "Age decreased between last release and update."
@@ -64,56 +66,6 @@ class Non_PSP_Subject():
         else:
             self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
 
-class PSP_Subject():
-    def __init__( self, data ):
-        self.previous_comments = data["prev_comments"]
-
-        self.race = data[ "race" ]
-        self.previous_race = data[ "prev_race" ]
-
-        self.sex = data[ "sex" ]
-        self.previous_sex = data[ "prev_sex" ]
-
-        self.diagnosis  = data[ "diagnosis" ]
-        self.previous_diagnosis  = data[ "prev_diagnosis" ]
-
-        self.ageonset = data[ "ageonset" ]
-        self.previous_ageonset = data[ "prev_ageonset" ]
-
-        self.agedeath = data[ "agedeath" ]
-        self.previous_agedeath = data[ "prev_agedeath" ]
-
-class Case_Control_Subject( Non_PSP_Subject ):
-    def __init__( self, data ):
-        super().__init__( data )
-        
-        self.ad = data[ "ad" ]
-        self.previous_ad = data[ "prev_ad" ]
-
-        self.age = data[ "age" ]
-        self.previous_age = data[ "prev_age" ]
-
-        self.incad = data[ "incad" ]
-        self.previous_incad = data[ "prev_incad" ]
-
-        self.prevad = data[ "prevad" ]
-        self.previous_prevad = data[ "prev_prevad" ]
-
-        self.selection = data[ "selection" ]
-        self.previous_selection = data[ "prev_selection" ]
-
-        self.data_errors = {}
-    
-    def run_checks( self ):
-        self.age_check()
-        self.ad_check()
-        self.ad_status_switch_check()
-        self.prevad_age_baseline_check()
-        self.age_under_50_check()
-        self.braak_inc_prev_check()
-
-        return self.data_errors
-        
 class Family_Subject( Non_PSP_Subject ):
     def __init__( self, data ):
         super().__init__( data )
@@ -136,6 +88,44 @@ class Family_Subject( Non_PSP_Subject ):
         self.famgrp = data[ "famgrp" ]
         self.previous_famgrp = data[ "prev_famgrp" ]
 
+        ##// add famid, mother/father check functions (or could add to parent)?
+
+    def run_checks( self ):
+        self.age_check()
+        self.ad_status_switch_check()
+        self.age_under_50_check()
+        ##// add the id checks when written
+        return self.data_errors
+
+class Case_Control_Subject( Non_PSP_Subject ):
+    def __init__( self, data ):
+        super().__init__( data )
+        
+        self.ad = data[ "ad" ]
+        self.previous_ad = data[ "prev_ad" ]
+
+        self.age = data[ "age" ]
+        self.previous_age = data[ "prev_age" ]
+
+        self.incad = data[ "incad" ]
+        self.previous_incad = data[ "prev_incad" ]
+
+        self.prevad = data[ "prevad" ]
+        self.previous_prevad = data[ "prev_prevad" ]
+
+        self.selection = data[ "selection" ]
+        self.previous_selection = data[ "prev_selection" ]
+    
+    def run_checks( self ):
+        self.age_check()
+        self.ad_check()
+        self.ad_status_switch_check()
+        self.prevad_age_baseline_check()
+        self.age_under_50_check()
+        self.braak_inc_prev_check()
+
+        return self.data_errors
+        
 class ADNI_Subject( Non_PSP_Subject ):
     def __init__( self, data ):
         super().__init__( data )
@@ -161,4 +151,21 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.mci_last_visit = data[ "mci_last_visit" ]
         self.previous_mci_last_visit = data[ "prev_mci_last_visit" ]
 
+class PSP_Subject():
+    def __init__( self, data ):
+        self.previous_comments = data["prev_comments"]
 
+        self.race = data[ "race" ]
+        self.previous_race = data[ "prev_race" ]
+
+        self.sex = data[ "sex" ]
+        self.previous_sex = data[ "prev_sex" ]
+
+        self.diagnosis  = data[ "diagnosis" ]
+        self.previous_diagnosis  = data[ "prev_diagnosis" ]
+
+        self.ageonset = data[ "ageonset" ]
+        self.previous_ageonset = data[ "prev_ageonset" ]
+
+        self.agedeath = data[ "agedeath" ]
+        self.previous_agedeath = data[ "prev_agedeath" ]

@@ -23,7 +23,7 @@ def main():
 
     ## testing vars
     
-    user_input_subject_type = 'case/control'
+    user_input_subject_type = 'family'
     LOADFILE = 'a.csv'
 
     ## data from comparison csv now in subjid-keyed json
