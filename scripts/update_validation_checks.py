@@ -24,7 +24,7 @@ def main():
     ## testing vars
     
     user_input_subject_type = 'family'
-    LOADFILE = 'up_fam.csv'
+    LOADFILE = 'fam_comp.csv'
 
     ## data from comparison csv now in subjid-keyed json
     comparison_data = create_data_dict( LOADFILE, user_input_subject_type )
