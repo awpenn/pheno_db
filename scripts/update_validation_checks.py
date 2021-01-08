@@ -11,7 +11,7 @@ import datetime
 import pandas as pd
 
 from pheno_utils import *
-from subject_objects import *
+from Subjects import *
     
 def main():
     ## dict of class names for different subject_types to pass into update_checks function
