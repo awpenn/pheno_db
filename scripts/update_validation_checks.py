@@ -39,7 +39,6 @@ def main():
             sys.exit()
 
     print(f"No data errors found in { LOADFILE }.")
-    breakpoint()
 
 def create_data_dict( LOADFILE, subject_type ):
     """takes loadfile, subject_type as args, returns dict of json data keyed by subject id of data to be valcheck"""
@@ -69,8 +68,9 @@ def run_update_checks( comparison_data, classname_dict, subject_type ):
     review_dict = {}
     for key, value in comparison_data.items():
         reviewed_subject_object = value
+        
         ## uses the etattr to get the reference to class based on classname from dict, then instantiates subject object with 'value' data
-        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value )
+        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value, comparison_data )
 
         subject_data_errors = subject.run_checks()
 

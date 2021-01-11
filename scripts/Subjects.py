@@ -1,28 +1,38 @@
+"""
+classes for different datatypes in phenotype database, contain checks required for update_validation.  
+takes the individual subject's phenotype data ( "subject_data" ) as argument, also the whole comparison data object ( "all_data" ) for doing
+things like checking family data
+"""
+
 class Non_PSP_Subject():
-    def __init__( self, data ):
+    def __init__( self, subject_data, all_data ):
 
-        self.age_baseline = data[ "age_baseline" ]
-        self.previous_age_baseline = data[ "prev_age_baseline" ]
-        
-        self.apoe = data[ "apoe" ]
-        self.previous_apoe = data[ "prev_apoe" ]
-        
-        self.autopsy = data[ "autopsy" ]
-        self.previous_autopsy = data[ "prev_autopsy" ]
-        
-        self.braak = data[ "braak" ]
-        self.previous_braak = data[ "prev_braak" ]
+        self.subject_id = subject_data[ "subject_id" ]
 
-        self.previous_comments = data["prev_comments"]
+        self.age_baseline = subject_data[ "age_baseline" ]
+        self.previous_age_baseline = subject_data[ "prev_age_baseline" ]
         
-        self.ethnicity = data[ "ethnicity" ]
-        self.previous_ethnicity = data[ "prev_ethnicity" ]
+        self.apoe = subject_data[ "apoe" ]
+        self.previous_apoe = subject_data[ "prev_apoe" ]
         
-        self.race = data[ "race" ]
-        self.previous_race = data[ "prev_race" ]
+        self.autopsy = subject_data[ "autopsy" ]
+        self.previous_autopsy = subject_data[ "prev_autopsy" ]
         
-        self.sex = data[ "sex" ]
-        self.previous_sex = data[ "prev_sex" ]
+        self.braak = subject_data[ "braak" ]
+        self.previous_braak = subject_data[ "prev_braak" ]
+
+        self.previous_comments = subject_data["prev_comments"]
+        
+        self.ethnicity = subject_data[ "ethnicity" ]
+        self.previous_ethnicity = subject_data[ "prev_ethnicity" ]
+        
+        self.race = subject_data[ "race" ]
+        self.previous_race = subject_data[ "prev_race" ]
+        
+        self.sex = subject_data[ "sex" ]
+        self.previous_sex = subject_data[ "prev_sex" ]
+
+        self.all_data = all_data
 
         self.data_errors = {}
 
@@ -67,54 +77,75 @@ class Non_PSP_Subject():
             self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
 
 class Family_Subject( Non_PSP_Subject ):
-    def __init__( self, data ):
-        super().__init__( data )
+    def __init__( self, subject_data, all_data ):
+        super().__init__( subject_data, all_data )
 
-        self.ad = data[ "ad" ]
-        self.previous_ad = data[ "prev_ad" ]
+        self.ad = subject_data[ "ad" ]
+        self.previous_ad = subject_data[ "prev_ad" ]
 
-        self.age = data[ "age" ]
-        self.previous_age = data[ "prev_age" ]
+        self.age = subject_data[ "age" ]
+        self.previous_age = subject_data[ "prev_age" ]
 
-        self.famid = data[ "famid" ]
-        self.previous_famid = data[ "prev_famid" ]
+        self.famid = subject_data[ "famid" ]
+        self.previous_famid = subject_data[ "prev_famid" ]
 
-        self.father = data[ "father" ]
-        self.previous_father = data[ "prev_father" ]
+        self.father = subject_data[ "father" ]
+        self.previous_father = subject_data[ "prev_father" ]
 
-        self.mother = data[ "mother" ]
-        self.previous_mother = data[ "prev_mother" ]
+        self.mother = subject_data[ "mother" ]
+        self.previous_mother = subject_data[ "prev_mother" ]
 
-        self.famgrp = data[ "famgrp" ]
-        self.previous_famgrp = data[ "prev_famgrp" ]
+        self.famgrp = subject_data[ "famgrp" ]
+        self.previous_famgrp = subject_data[ "prev_famgrp" ]
 
         ##// add famid, mother/father check functions (or could add to parent)?
+
+    def check_father_exists( self ):
+        ## check if father is 0, mother must be 0
+        ##   - if != 0, then mother cant be zero (and vice versa)
+        ##   - if is an id, check that theres an entry for the subject
+        if self.father == 0:
+            if self.mother != 0:
+                self.data_errors[ "father_check" ] = f"Subject's father_id is { self.father }, but mother_id is non-zero"
+        else:
+            if self.father not in self.all_data.keys():
+                self.data_errors[ "father_check" ] = f"There is no subject entry for { self.father }, given as father of { self.subject_id }"
+    
+    def check_mother_exists( self ):
+        if self.mother == 0:
+            if self.father != 0:
+                self.data_errors[ "mother_check" ] = f"Subject's mother_id is { self.mother }, but father_id is non-zero"
+        else:
+            if self.mother not in self.all_data.keys():
+                self.data_errors[ "mother_check" ] = f"There is no subject entry for { self.mother }, given as mother of { self.subject_id }"
 
     def run_checks( self ):
         self.age_check()
         self.ad_status_switch_check()
         self.age_under_50_check()
+        self.check_father_exists()
+        self.check_mother_exists()
         ##// add the id checks when written
         return self.data_errors
 
 class Case_Control_Subject( Non_PSP_Subject ):
-    def __init__( self, data ):
-        super().__init__( data )
+    def __init__( self, subject_data, all_data ):
+        super().__init__( subject_data, all_data )
         
-        self.ad = data[ "ad" ]
-        self.previous_ad = data[ "prev_ad" ]
+        self.ad = subject_data[ "ad" ]
+        self.previous_ad = subject_data[ "prev_ad" ]
 
-        self.age = data[ "age" ]
-        self.previous_age = data[ "prev_age" ]
+        self.age = subject_data[ "age" ]
+        self.previous_age = subject_data[ "prev_age" ]
 
-        self.incad = data[ "incad" ]
-        self.previous_incad = data[ "prev_incad" ]
+        self.incad = subject_data[ "incad" ]
+        self.previous_incad = subject_data[ "prev_incad" ]
 
-        self.prevad = data[ "prevad" ]
-        self.previous_prevad = data[ "prev_prevad" ]
+        self.prevad = subject_data[ "prevad" ]
+        self.previous_prevad = subject_data[ "prev_prevad" ]
 
-        self.selection = data[ "selection" ]
-        self.previous_selection = data[ "prev_selection" ]
+        self.selection = subject_data[ "selection" ]
+        self.previous_selection = subject_data[ "prev_selection" ]
     
     def run_checks( self ):
         self.age_check()
@@ -127,45 +158,50 @@ class Case_Control_Subject( Non_PSP_Subject ):
         return self.data_errors
         
 class ADNI_Subject( Non_PSP_Subject ):
-    def __init__( self, data ):
-        super().__init__( data )
+    def __init__( self, subject_data, all_data ):
+        super().__init__( subject_data, all_data )
 
-        self.ad_last_visit = data[ "ad_last_visit" ]
-        self.previous_ad_last_visit = data[ "prev_ad_last_visit" ]
+        self.ad_last_visit = subject_data[ "ad_last_visit" ]
+        self.previous_ad_last_visit = subject_data[ "prev_ad_last_visit" ]
 
-        self.age_current = data[ "age_current" ]
-        self.previous_age_current = data[ "prev_age_current" ]
+        self.age_current = subject_data[ "age_current" ]
+        self.previous_age_current = subject_data[ "prev_age_current" ]
 
-        self.incad = data[ "incad" ]
-        self.previous_incad = data[ "prev_incad" ]
+        self.incad = subject_data[ "incad" ]
+        self.previous_incad = subject_data[ "prev_incad" ]
 
-        self.prevad = data[ "prevad" ]
-        self.previous_prevad = data[ "prev_prevad" ]
+        self.prevad = subject_data[ "prevad" ]
+        self.previous_prevad = subject_data[ "prev_prevad" ]
 
-        self.age_ad_onset = data[ "age_ad_onset" ]
-        self.previous_age_ad_onset = data[ "prev_age_ad_onset" ]
+        self.age_ad_onset = subject_data[ "age_ad_onset" ]
+        self.previous_age_ad_onset = subject_data[ "prev_age_ad_onset" ]
 
-        self.age_mci_onset = data[ "age_mci_onset" ]
-        self.previous_age_mci_onset = data[ "prev_age_mci_onset" ]
+        self.age_mci_onset = subject_data[ "age_mci_onset" ]
+        self.previous_age_mci_onset = subject_data[ "prev_age_mci_onset" ]
 
-        self.mci_last_visit = data[ "mci_last_visit" ]
-        self.previous_mci_last_visit = data[ "prev_mci_last_visit" ]
+        self.mci_last_visit = subject_data[ "mci_last_visit" ]
+        self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
 
 class PSP_Subject():
-    def __init__( self, data ):
-        self.previous_comments = data["prev_comments"]
+    def __init__( self, subject_data, all_data ):
 
-        self.race = data[ "race" ]
-        self.previous_race = data[ "prev_race" ]
+        self.subject_id = subject_data[ "subject_id" ]
 
-        self.sex = data[ "sex" ]
-        self.previous_sex = data[ "prev_sex" ]
+        self.previous_comments = subject_data["prev_comments"]
 
-        self.diagnosis  = data[ "diagnosis" ]
-        self.previous_diagnosis  = data[ "prev_diagnosis" ]
+        self.race = subject_data[ "race" ]
+        self.previous_race = subject_data[ "prev_race" ]
 
-        self.ageonset = data[ "ageonset" ]
-        self.previous_ageonset = data[ "prev_ageonset" ]
+        self.sex = subject_data[ "sex" ]
+        self.previous_sex = subject_data[ "prev_sex" ]
 
-        self.agedeath = data[ "agedeath" ]
-        self.previous_agedeath = data[ "prev_agedeath" ]
+        self.diagnosis  = subject_data[ "diagnosis" ]
+        self.previous_diagnosis  = subject_data[ "prev_diagnosis" ]
+
+        self.ageonset = subject_data[ "ageonset" ]
+        self.previous_ageonset = subject_data[ "prev_ageonset" ]
+
+        self.agedeath = subject_data[ "agedeath" ]
+        self.previous_agedeath = subject_data[ "prev_agedeath" ]
+
+        self.all_data = all_data
