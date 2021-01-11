@@ -116,7 +116,6 @@ def run_checks( data_dict, dictionary ):
                 except Exception as e:
                     # print(f"{ phenotype } does not appear in the dictionary { key }.")
                     reviewed_subject_object[ phenotype ] = pheno_value
-                    continue
 
                 checked_phenotype_value = check_data_value( key, dict_values, phenotype, pheno_value )
 
@@ -136,12 +135,6 @@ def run_checks( data_dict, dictionary ):
 
     return review_dict
 
-def create_tsv( dataframe, subject_type ):
-    """takes the compiled dataframe and subject-type (to formulate filename) and creates a TSV."""
-    datestamp = datetime.date.today()
-    corrected_subject_type = subject_type.replace( "/", "+" )
-
-    dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt",sep="\t",index=True)
 
 if __name__ == '__main__':
     print('start ', datetime.datetime.now().strftime("%H:%M:%S") )

@@ -6,6 +6,7 @@ import csv
 from dotenv import load_dotenv
 import os
 import json
+import datetime
 
 import pandas as pd
 
@@ -326,6 +327,13 @@ def generate_success_list():
                 f.write(id + ', ')
 
         f.close()
+
+def create_tsv( dataframe, subject_type ):
+    """takes the compiled dataframe and subject-type (to formulate filename) and creates a TSV."""
+    datestamp = datetime.date.today()
+    corrected_subject_type = subject_type.replace( "/", "+" )
+
+    dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt",sep="\t",index=True)
 
 # fetching data
 def get_dict_data( dict_name ):
