@@ -4,6 +4,9 @@ takes the individual subject's phenotype data ( "subject_data" ) as argument, al
 things like checking family data
 """
 
+import pandas as pd
+import json
+
 class Non_PSP_Subject():
     def __init__( self, subject_data, all_data ):
 
@@ -101,9 +104,10 @@ class Family_Subject( Non_PSP_Subject ):
         ##// add famid, mother/father check functions (or could add to parent)?
 
     def check_father_exists( self ):
-        ## check if father is 0, mother must be 0
-        ##   - if != 0, then mother cant be zero (and vice versa)
-        ##   - if is an id, check that theres an entry for the subject
+        """check if father is 0, mother must be 0
+            - if != 0, then mother cant be zero (and vice versa)
+            - if is an id, check that theres an entry for the subject
+        """
         if self.father == 0:
             if self.mother != 0:
                 self.data_errors[ "father_check" ] = f"Subject's father_id is { self.father }, but mother_id is non-zero"
@@ -119,13 +123,41 @@ class Family_Subject( Non_PSP_Subject ):
             if self.mother not in self.all_data.keys():
                 self.data_errors[ "mother_check" ] = f"There is no subject entry for { self.mother }, given as mother of { self.subject_id }"
 
+    def offspring_same_family_id_check( self, df ):
+        """
+        for an id identified as a mother/father, check that it's family_id is the same 
+        between parents and offspring.  
+        """
+        try:
+            mother_fam_id = df.loc[ self.mother ][ "famid" ]
+
+            if mother_fam_id != self.famid:
+                self.data_errors[ "mother_famid_check" ] = f"Subject's mother ( { self.mother } ) has different family_id ( { mother_fam_id } ) than subject."
+
+        except:
+            print( f"No record found for mother: { self.mother }. Skipping..." )
+        
+        try:
+            father_fam_id = df.loc[ self.father ][ "famid" ]
+
+            if father_fam_id != self.famid:
+                self.data_errors[ "father_famid_check" ] = f"Subject's father ( { self.father } ) has different family_id ( { father_fam_id } ) than subject."
+        except:
+            print( f"No record found for father: { self.father }. Skipping..." )
+        
+
+            
     def run_checks( self ):
         self.age_check()
         self.ad_status_switch_check()
         self.age_under_50_check()
         self.check_father_exists()
         self.check_mother_exists()
-        ##// add the id checks when written
+
+        if self.mother or self.father != 0:
+            df = pd.read_json( json.dumps( self.all_data ) ).transpose()
+            self.offspring_same_family_id_check( df )
+
         return self.data_errors
 
 class Case_Control_Subject( Non_PSP_Subject ):
