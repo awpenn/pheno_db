@@ -144,9 +144,7 @@ class Family_Subject( Non_PSP_Subject ):
                 self.data_errors[ "father_famid_check" ] = f"Subject's father ( { self.father } ) has different family_id ( { father_fam_id } ) than subject."
         except:
             print( f"No record found for father: { self.father }. Skipping..." )
-        
-
-            
+              
     def run_checks( self ):
         self.age_check()
         self.ad_status_switch_check()
@@ -213,6 +211,43 @@ class ADNI_Subject( Non_PSP_Subject ):
 
         self.mci_last_visit = subject_data[ "mci_last_visit" ]
         self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
+    
+    def age_check( self ):
+        if not self.age_current >= self.previous_age_current:
+            self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+
+    def age_under_50_check( self ):
+        if self.age_current < 50:
+            self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
+    def ad_check( self ):
+        if self.ad_last_visit == 1:
+            if not ( self.incad == 1 or self.prevad == 1 ):
+                self.data_errors[ "ad_last_visit_check" ] = "AD has value of 1 but 0 values for incad and prevad. "
+            else:
+                if self.incad == 1 and self.prevad == 1:
+                    self.data_errors[ "ad_last_visit_check" ] = "AD has value of 1 but both incad and prevad have 1 values"
+
+        else:
+            if not ( self.incad == 0 and self.prevad == 0 ):
+                self.data_errors[ "ad_last_visit_check" ] = "AD has value of 0 but 1 values in either incad or prevad"
+
+    def ad_status_switch_check( self ):
+        if self.ad_last_visit == 0 and self.previous_ad_last_visit == 1:
+            self.data_errors[ "ad_last_visit_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
+
+    def mci_status_switch_check( self ):
+        if self.mci_last_visit == 0 and self.previous_mci_last_visit == 1:
+            self.data_errors[ "mci_last_visit_case_to_control" ] = "Subject's MCI status changed from case to control in update.  Please confirm."
+
+    def run_checks( self ):
+        self.age_check()
+        self.age_under_50_check()
+        self.ad_check()
+        self.ad_status_switch_check()
+        self.mci_status_switch_check()
+        
+        return self.data_errors
 
 class PSP_Subject():
     def __init__( self, subject_data, all_data ):
@@ -237,3 +272,7 @@ class PSP_Subject():
         self.previous_agedeath = subject_data[ "prev_agedeath" ]
 
         self.all_data = all_data
+
+
+
+
