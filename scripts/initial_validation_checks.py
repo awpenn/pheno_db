@@ -85,7 +85,15 @@ def run_checks( data_dict, dictionary ):
 
             except:
                 if pheno_value != 'NA':
-                    return [ pheno_value, f"'{pheno_value}' is NOT valid for { phenotype }" ]
+                    ## make sure its not a case of a #+ (eg 90+) value given
+                    try:
+                        if int( pheno_value.replace("+", "") ) not in range( 121 ):
+                            return [ pheno_value, f"'{pheno_value}' is NOT valid for { phenotype }" ]
+                        else:
+                            return pheno_value
+
+                    except:
+                        return [ pheno_value, f"'{pheno_value}' is NOT valid for { phenotype }" ]
         
         else:
             if len( dict_values ) > 0:
@@ -131,7 +139,7 @@ def run_checks( data_dict, dictionary ):
         if len( error_list ) > 0:
             reviewed_subject_object[ 'data_errors' ] = '; '.join( error_list )
 
-        review_dict[ key.split('_') [ 0 ] ] = reviewed_subject_object
+        review_dict[ key ] = reviewed_subject_object
 
     return review_dict
 

@@ -194,8 +194,8 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.ad_last_visit = subject_data[ "ad_last_visit" ]
         self.previous_ad_last_visit = subject_data[ "prev_ad_last_visit" ]
 
-        self.age_current = subject_data[ "age_current" ]
-        self.previous_age_current = subject_data[ "prev_age_current" ]
+        self.age_current = subject_data[ "age_current" ].replace("+", "")
+        self.previous_age_current = subject_data[ "prev_age_current" ].replace("+", "")
 
         self.incad = subject_data[ "incad" ]
         self.previous_incad = subject_data[ "prev_incad" ]
@@ -203,11 +203,11 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.prevad = subject_data[ "prevad" ]
         self.previous_prevad = subject_data[ "prev_prevad" ]
 
-        self.age_ad_onset = subject_data[ "age_ad_onset" ]
-        self.previous_age_ad_onset = subject_data[ "prev_age_ad_onset" ]
+        self.age_ad_onset = subject_data[ "age_ad_onset" ].replace("+", "")
+        self.previous_age_ad_onset = subject_data[ "prev_age_ad_onset" ].replace("+", "")
 
-        self.age_mci_onset = subject_data[ "age_mci_onset" ]
-        self.previous_age_mci_onset = subject_data[ "prev_age_mci_onset" ]
+        self.age_mci_onset = subject_data[ "age_mci_onset" ].replace("+", "")
+        self.previous_age_mci_onset = subject_data[ "prev_age_mci_onset" ].replace("+", "")
 
         self.mci_last_visit = subject_data[ "mci_last_visit" ]
         self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
@@ -240,12 +240,50 @@ class ADNI_Subject( Non_PSP_Subject ):
         if self.mci_last_visit == 0 and self.previous_mci_last_visit == 1:
             self.data_errors[ "mci_last_visit_case_to_control" ] = "Subject's MCI status changed from case to control in update.  Please confirm."
 
+    def mci_no_inc_prev_ad_check( self ):
+        if self.mci_last_visit == 1:
+            if self.prevad == 1:
+                self.data_errors['mci_no_prevad_check'] = "Subject as mci value of 1 but also prev_ad value of 1."\
+
+            if self.incad == 1:
+                self.data_errors['mci_no_incad_check'] = "Subject as mci value of 1 but also inc_ad value of 1."\
+
+            if self.ad_last_visit == 1:
+                self.data_errors['mci_no_ad_check'] = "Subject as mci value of 1 but also AD value of 1."\
+                
+    def diagnosis_onset_age_check( self ):
+        """
+        checks that entry has age_onset value matching 
+        indication of AD/MCI AND doesn't have age_onset value for the other
+        """
+        if self.ad_last_visit == 1:
+            if self.ad_age_onset == 'NA':
+                self.data_errors[ 'ad_has_onset_age_check' ] = "Subject has AD value of 1 but no ad_age_onset value."
+
+            if self.mci_age_onset != 'NA':
+                self.data_errors[ 'ad_has_no_mci_onset_age_check' ] = "Subject ahs AD value of 1 but has value for mci_onset_age"
+
+        if self.mci_last_visit == 1:
+            if self.mci_age_onset == 'NA':
+                self.data_errors[ 'mci_has_onset_age_check' ] = "Subject has MCI value of 1 but no ad_mci_onset value."
+    
+            if self.ad_age_onset != 'NA':
+                self.data_errors[ 'mci_has_no_ad_onset_age_check' ] = "Subject ahs MCI value of 1 but has value for ad_onset_age"
+
+    def both_ad_and_mci_check( self ):
+        if self.ad_last_visit == 1:
+            if self.mci_last_visit == 1:
+                self.data_errors[ 'both_ad_and_mci_check' ] = "Subject has both AD and MCI values of 1."
+    
     def run_checks( self ):
         self.age_check()
         self.age_under_50_check()
         self.ad_check()
         self.ad_status_switch_check()
         self.mci_status_switch_check()
+        self.mci_no_inc_prev_ad_check()
+        self.diagnosis_onset_age_check()  ##checks both that AD/MCI indication and onset_age match, and that doesn't have age_onsent value for the other
+        self.both_ad_and_mci_check()
         
         return self.data_errors
 
