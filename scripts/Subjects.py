@@ -7,13 +7,30 @@ things like checking family data
 import pandas as pd
 import json
 
+
+#utils
+def handle_age_values( pheno_value ):
+    """takes the age-related pheno-value and handles for string values, ie. where an age like '90+' """
+    if isinstance( pheno_value, str ):
+        if pheno_value == 'NA':
+            processed_pheno_value = pheno_value
+        else:
+            processed_pheno_value = int( pheno_value.replace("+", "") )
+    else:
+        processed_pheno_value = pheno_value
+
+    return processed_pheno_value
+
 class Non_PSP_Subject():
     def __init__( self, subject_data, all_data ):
 
         self.subject_id = subject_data[ "subject_id" ]
 
-        self.age_baseline = subject_data[ "age_baseline" ]
-        self.previous_age_baseline = subject_data[ "prev_age_baseline" ]
+        #self.age_baseline = subject_data[ "age_baseline" ]
+        #self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
+        
+        self.age_baseline = handle_age_values( subject_data[ "age_baseline" ] )
+        self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
         
         self.apoe = subject_data[ "apoe" ]
         self.previous_apoe = subject_data[ "prev_apoe" ]
@@ -86,8 +103,11 @@ class Family_Subject( Non_PSP_Subject ):
         self.ad = subject_data[ "ad" ]
         self.previous_ad = subject_data[ "prev_ad" ]
 
-        self.age = subject_data[ "age" ]
-        self.previous_age = subject_data[ "prev_age" ]
+        # self.age = subject_data[ "age" ]
+        # self.previous_age = subject_data[ "prev_age" ]
+
+        self.age = handle_age_values( subject_data[ "age" ] )
+        self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
 
         self.famid = subject_data[ "famid" ]
         self.previous_famid = subject_data[ "prev_famid" ]
@@ -165,9 +185,12 @@ class Case_Control_Subject( Non_PSP_Subject ):
         self.ad = subject_data[ "ad" ]
         self.previous_ad = subject_data[ "prev_ad" ]
 
-        self.age = subject_data[ "age" ]
-        self.previous_age = subject_data[ "prev_age" ]
+        # self.age = subject_data[ "age" ]
+        # self.previous_age = subject_data[ "prev_age" ]
 
+        self.age = handle_age_values( subject_data[ "age" ] )
+        self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
+        
         self.incad = subject_data[ "incad" ]
         self.previous_incad = subject_data[ "prev_incad" ]
 
@@ -194,8 +217,11 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.ad_last_visit = subject_data[ "ad_last_visit" ]
         self.previous_ad_last_visit = subject_data[ "prev_ad_last_visit" ]
 
-        self.age_current = subject_data[ "age_current" ].replace("+", "")
-        self.previous_age_current = subject_data[ "prev_age_current" ].replace("+", "")
+        # self.age_current = subject_data[ "age_current" ].replace("+", "")
+        # self.previous_age_current = subject_data[ "prev_age_current" ].replace("+", "")
+
+        self.age_current = handle_age_values( subject_data[ "age_current" ] )
+        self.previous_age_current = handle_age_values( subject_data[ "prev_age_current" ] )
 
         self.incad = subject_data[ "incad" ]
         self.previous_incad = subject_data[ "prev_incad" ]
@@ -203,11 +229,17 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.prevad = subject_data[ "prevad" ]
         self.previous_prevad = subject_data[ "prev_prevad" ]
 
-        self.age_ad_onset = subject_data[ "age_ad_onset" ].replace("+", "")
-        self.previous_age_ad_onset = subject_data[ "prev_age_ad_onset" ].replace("+", "")
+        # self.age_ad_onset = subject_data[ "age_ad_onset" ]
+        # self.previous_age_ad_onset = subject_data[ "prev_age_ad_onset" ]
 
-        self.age_mci_onset = subject_data[ "age_mci_onset" ].replace("+", "")
-        self.previous_age_mci_onset = subject_data[ "prev_age_mci_onset" ].replace("+", "")
+        # self.age_mci_onset = subject_data[ "age_mci_onset" ]
+        # self.previous_age_mci_onset = subject_data[ "prev_age_mci_onset" ]
+
+        self.age_ad_onset = handle_age_values( subject_data[ "age_ad_onset" ] )
+        self.previous_age_ad_onset = handle_age_values( subject_data[ "prev_age_ad_onset" ] )
+
+        self.age_mci_onset = handle_age_values( subject_data[ "age_mci_onset" ] )
+        self.previous_age_mci_onset = handle_age_values( subject_data[ "prev_age_mci_onset" ] )
 
         self.mci_last_visit = subject_data[ "mci_last_visit" ]
         self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
@@ -257,17 +289,17 @@ class ADNI_Subject( Non_PSP_Subject ):
         indication of AD/MCI AND doesn't have age_onset value for the other
         """
         if self.ad_last_visit == 1:
-            if self.ad_age_onset == 'NA':
-                self.data_errors[ 'ad_has_onset_age_check' ] = "Subject has AD value of 1 but no ad_age_onset value."
+            if self.age_ad_onset == 'NA':
+                self.data_errors[ 'ad_has_onset_age_check' ] = "Subject has AD value of 1 but no age_ad_onset value."
 
-            if self.mci_age_onset != 'NA':
+            if self.age_mci_onset != 'NA':
                 self.data_errors[ 'ad_has_no_mci_onset_age_check' ] = "Subject ahs AD value of 1 but has value for mci_onset_age"
 
         if self.mci_last_visit == 1:
-            if self.mci_age_onset == 'NA':
+            if self.age_mci_onset == 'NA':
                 self.data_errors[ 'mci_has_onset_age_check' ] = "Subject has MCI value of 1 but no ad_mci_onset value."
     
-            if self.ad_age_onset != 'NA':
+            if self.age_ad_onset != 'NA':
                 self.data_errors[ 'mci_has_no_ad_onset_age_check' ] = "Subject ahs MCI value of 1 but has value for ad_onset_age"
 
     def both_ad_and_mci_check( self ):
@@ -303,14 +335,11 @@ class PSP_Subject():
         self.diagnosis  = subject_data[ "diagnosis" ]
         self.previous_diagnosis  = subject_data[ "prev_diagnosis" ]
 
-        self.ageonset = subject_data[ "ageonset" ]
-        self.previous_ageonset = subject_data[ "prev_ageonset" ]
+        self.ageonset = handle_age_values( subject_data[ "ageonset" ] )
+        self.previous_ageonset = handle_age_values( subject_data[ "prev_ageonset" ] )
 
-        self.agedeath = subject_data[ "agedeath" ]
-        self.previous_agedeath = subject_data[ "prev_agedeath" ]
+        self.agedeath = handle_age_values( subject_data[ "agedeath" ] )
+        self.previous_agedeath = handle_age_values( subject_data[ "prev_agedeath" ] )
 
         self.all_data = all_data
-
-
-
 
