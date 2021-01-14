@@ -3,3 +3,7 @@
 
 # everyday, delete files older than 30 days in pheno_bkps directory
 0 3 * * * find /var/lib/postgresql/11/bkps/pheno_bkps/ -type f -mtime +364 -delete
+
+
+# getting a snapshot of the database with test data loaded in ( 1/15/21 )
+sudo -u andy pg_dump -w pheno_db_v5 > /var/lib/postgresql/11/bkps/pheno_sbx/1-15-21-test.sql
