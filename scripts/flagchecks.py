@@ -130,7 +130,7 @@ def correction_check( data ):
     checks if comments field has word 'corrected' in it and returns appropriate boolean value"""
     for key, value in data.items():
         if key.lower() == "comments":
-            if 'corrected' in value.lower():
+            if 'corrected' in str( value ).lower():
                 return 1
             else:
                 return 0 

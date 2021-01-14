@@ -57,6 +57,16 @@ class Non_PSP_Subject():
         self.data_errors = {}
 
     def age_check( self ):
+        if self.age !='NA' and self.previous_age !='NA':
+            if not self.age >= self.previous_age:
+                self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+        else:
+            if self.age == 'NA' and self.previous_age == 'NA':
+                return
+            else:
+                if self.age != 'NA' and self.previous_age == 'NA':
+                    self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
+
         if not self.age >= self.previous_age:
             self.data_errors[ "age_check" ] = "Age decreased between last release and update."
     
@@ -81,9 +91,10 @@ class Non_PSP_Subject():
             if self.age_baseline != 'NA':
                 self.data_errors[ "prevad_age_baseline_check" ] = "Prevad value of 1 with non-NA age_baseline value."
 
-    def age_under_50_check( self ):
-        if self.age < 50:
-            self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+    def age_under_50_check( self ):        
+        if self.age !='NA' and self.previous_age !='NA':
+            if self.age < 50:
+                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
 
     def braak_inc_prev_check( self ):
         if isinstance( self.braak, int ):
@@ -245,12 +256,20 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
     
     def age_check( self ):
-        if not self.age_current >= self.previous_age_current:
-            self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+        if self.age_current !='NA' and self.previous_age_current !='NA':
+            if not self.age_current >= self.previous_age_current:
+                self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+        else:
+            if self.age_current == 'NA' and self.previous_age_current == 'NA':
+                return
+            else:
+                if self.age_current != 'NA' and self.previous_age_current == 'NA':
+                    self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
 
     def age_under_50_check( self ):
-        if self.age_current < 50:
-            self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+        if self.age_current !='NA' and self.previous_age_current !='NA':
+            if self.age_current < 50:
+                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
 
     def ad_check( self ):
         if self.ad_last_visit == 1:
