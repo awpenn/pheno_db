@@ -138,7 +138,8 @@ def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_ty
             return 0, f'the following dictionary variables are missing from { LOADFILE }: { var_diff }.  Please check loadfile for correctness.'
 
 def check_loadfile_correctness( LOADFILE, user_input_subject_type ):
-    """replace the check function in initial_validation_check so can be used at beginning of any script"""
+    """takes loadfile and subject type, returns boolean indicating loadfile matches appropriate dict, along with a message"""
+    """moved from initial_validation_check so can be used at beginning of any script"""
     data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
     dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
@@ -385,6 +386,7 @@ def build_release_dict():
 
 def create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name ):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
+    """used in the loading and management scripts""" ## nb. 1/14/21 - could consolidate with create_comparison_data_dict ?
     scripts_requiring_pub_and_unpub_check = ['load_unpublished_updates.py']
     release_dict = build_release_dict()
 

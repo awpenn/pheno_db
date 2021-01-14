@@ -31,8 +31,16 @@ def main():
 
     LOADFILE = get_filename()
 
-    data_dict = create_data_dict( LOADFILE, user_input_subject_type, 'PUBLISHED=FALSE', data_version, script_name )
-    write_to_db( data_dict )
+    variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
+    
+    if not variables_match_dictionary:
+        print( msg )
+        sys.exit()
+        
+    else:
+        print( msg )
+        data_dict = create_data_dict( LOADFILE, user_input_subject_type, 'PUBLISHED=FALSE', data_version, script_name )
+        write_to_db( data_dict )
 
 def write_to_db(data_dict):
     """takes data dict and writes to database"""

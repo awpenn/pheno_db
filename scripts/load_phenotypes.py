@@ -38,10 +38,17 @@ def main():
 
     print('start ', datetime.datetime.now())
 
-    ## 12/15 create_data_dict generalized and moved to utils
-    data_dict = create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name )
-
-    write_to_db( data_dict )
+    variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
+    
+    if not variables_match_dictionary:
+        print( msg )
+        sys.exit()
+        
+    else:
+        print( msg )
+        ## 12/15 create_data_dict generalized and moved to utils
+        data_dict = create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name )
+        write_to_db( data_dict )
 
 
 def write_to_db(data_dict):
