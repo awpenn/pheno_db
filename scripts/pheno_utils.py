@@ -136,7 +136,17 @@ def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_ty
         else:
             var_diff = set( modified_dictionary_varlist ).difference( set( data_dict_vars ) )
             return 0, f'the following dictionary variables are missing from { LOADFILE }: { var_diff }.  Please check loadfile for correctness.'
-            
+
+def check_loadfile_correctness( LOADFILE, user_input_subject_type ):
+    """replace the check function in initial_validation_check so can be used at beginning of any script"""
+    data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
+    dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
+    dictionary = get_dict_data( dict_name )
+
+    variables_match_dictionary, msg = check_loadfile_variables_match_dictionary( data_dict, dictionary, user_input_subject_type, LOADFILE )
+    
+    return variables_match_dictionary, msg
+
 # functions for handling user input
 def get_filename():
     while True:
@@ -425,7 +435,34 @@ def create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_ve
 
     return data_dict
 
+def create_comparison_data_dict( LOADFILE, subject_type ):
+    """takes loadfile, subject_type as args, returns dict of json data keyed by subject id of data to be valcheck"""
+    """originally from initial_valcheck script"""
+    release_dict = build_release_dict()
+    data_dict = {}
 
+    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+        """"get the relationship table names and indexes from the csv file headers"""
+        pheno_file = csv.reader(csv_file)
+        headers = next(pheno_file)
+        
+        for row in pheno_file:
+            if pheno_file.line_num > 1:
+                blob = {}
+                for index, value in enumerate(row):
+                    try:
+                        blob[headers[index].lower()] = int(value)
+                    except:
+                        blob[headers[index].lower()] = value
+                    
+                data_dict[ blob["subjid"] ] = blob
+
+
+    for key, record in data_dict.items():
+        """remove subject id from blob for each record in dict"""
+        record.pop('subjid')
+
+    return data_dict
 
 # for dev/debugging
 def write_json_to_file( json_data ):

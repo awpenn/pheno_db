@@ -16,17 +16,18 @@ def main():
     user_input_subject_type = get_subject_type()
     LOADFILE = get_filename()
 
-    data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
-    dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
-    dictionary = get_dict_data( dict_name )
-
-    variables_match_dictionary, msg = check_loadfile_variables_match_dictionary( data_dict, dictionary, user_input_subject_type, LOADFILE )
+    variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     if not variables_match_dictionary:
         print( msg )
         sys.exit()
+        
     else:
-        print( msg )
+        print( msg )   
+        
+        data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
+        dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
+        dictionary = get_dict_data( dict_name )
 
         reviewed_dict = run_checks( data_dict, dictionary )
         for key, value in reviewed_dict.items():
@@ -40,34 +41,6 @@ def main():
                 sys.exit()
 
         print(f"No data errors found in { LOADFILE }.")
-
-def create_comparison_data_dict( LOADFILE, subject_type ):
-    """takes loadfile, subject_type as args, returns dict of json data keyed by subject id of data to be valcheck"""
-    release_dict = build_release_dict()
-    data_dict = {}
-
-    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
-        """"get the relationship table names and indexes from the csv file headers"""
-        pheno_file = csv.reader(csv_file)
-        headers = next(pheno_file)
-        
-        for row in pheno_file:
-            if pheno_file.line_num > 1:
-                blob = {}
-                for index, value in enumerate(row):
-                    try:
-                        blob[headers[index].lower()] = int(value)
-                    except:
-                        blob[headers[index].lower()] = value
-                    
-                data_dict[ blob["subjid"] ] = blob
-
-
-    for key, record in data_dict.items():
-        """remove subject id from blob for each record in dict"""
-        record.pop('subjid')
-
-    return data_dict
 
 def run_checks( data_dict, dictionary ):
     """takes data_dict and dictionary as args, checks that all values in data are valid, returns ???"""
