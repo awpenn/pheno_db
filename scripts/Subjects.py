@@ -176,7 +176,7 @@ class Family_Subject( Non_PSP_Subject ):
         except:
             print( f"No record found for father: { self.father }. Skipping..." )
               
-    def run_checks( self ):
+    def run_update_validation_checks( self ):
         self.age_check()
         self.ad_status_switch_check()
         self.age_under_50_check()
@@ -211,7 +211,7 @@ class Case_Control_Subject( Non_PSP_Subject ):
         self.selection = subject_data[ "selection" ]
         self.previous_selection = subject_data[ "prev_selection" ]
     
-    def run_checks( self ):
+    def run_update_validation_checks( self ):
         self.age_check()
         self.ad_check()
         self.ad_status_switch_check()
@@ -326,7 +326,7 @@ class ADNI_Subject( Non_PSP_Subject ):
             if self.mci_last_visit == 1:
                 self.data_errors[ 'both_ad_and_mci_check' ] = "Subject has both AD and MCI values of 1."
     
-    def run_checks( self ):
+    def run_update_validation_checks( self ):
         self.age_check()
         self.age_under_50_check()
         self.ad_check()
@@ -362,3 +362,7 @@ class PSP_Subject():
 
         self.all_data = all_data
 
+
+    def run_update_validation_checks( self ):
+    
+        return self.data_errors

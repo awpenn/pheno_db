@@ -72,7 +72,7 @@ def run_update_checks( comparison_data, classname_dict, subject_type ):
         ## uses the etattr to get the reference to class based on classname from dict, then instantiates subject object with 'value' data
         subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value, comparison_data )
 
-        subject_data_errors = subject.run_checks()
+        subject_data_errors = subject.run_update_validation_checks()
 
         if subject_data_errors:
             ## if there are errors, create a 'data_errors' variable, convert errors into a string, and store with the rest of the comparison data
