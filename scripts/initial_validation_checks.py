@@ -48,41 +48,10 @@ def main():
         print(f"No data errors found in { LOADFILE }.")
 
 def run_checks( data_dict, classname_dict, subject_type ):
-    """takes data_dict and dictionary as args, checks that all values in data are valid, returns ???"""
-    ##utils
-    def check_data_value( subject_id, dict_values, phenotype, pheno_value ):
-        """takes subject_id, dict_values, phenotype, pheno_value as args, 
-        returns either the original value passed in as `pheno_value` or list with value and error message(?)
-        """
-        if 'age' in phenotype:
-            try:
-                if int( pheno_value ) not in range( 121 ):
-                    return [ pheno_value, f"'{pheno_value}' is NOT valid for { phenotype }" ]
-                else:
-                    return pheno_value
-
-            except:
-                if pheno_value != 'NA':
-                    ## make sure its not a case of a #+ (eg 90+) value given
-                    try:
-                        if int( pheno_value.replace("+", "") ) not in range( 121 ):
-                            return [ pheno_value, f"'{pheno_value}' is NOT valid for { phenotype }" ]
-                        else:
-                            return pheno_value
-
-                    except:
-                        return [ pheno_value, f"'{pheno_value}' is NOT valid for { phenotype }" ]
-        
-        else:
-            if len( dict_values ) > 0:
-
-                if str(pheno_value) in dict_values:
-                    return pheno_value
-                else:
-                    return [ pheno_value, f"'{ pheno_value }' is NOT valid for { phenotype }." ]
-            else:
-                return pheno_value
-
+    """
+    takes data_dict and dictionary as args, checks that all values in data are valid, 
+    returns data as dict with data_errors attribute if errors found
+    """
     ## this will hold the dict info plus any errors that are found
     review_dict = {}
 
