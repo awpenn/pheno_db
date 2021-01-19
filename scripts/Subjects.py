@@ -174,6 +174,21 @@ class PSP_Subject():
         
         self.all_data = all_data
 
+    def age_range_check( self, age_phenotype, value ):
+        try:
+            if int( value ) not in range( 121 ):
+                self.data_errors[ f"{ age_phenotype }_range_check" ] = f"'{ value }' is NOT valid for { age_phenotype }"
+        except:
+            if value != 'NA':
+                    ## make sure its not a case of a #+ (eg 90+) value given
+                try:
+                    if int( value.replace("+", "") ) not in range( 121 ):
+                        self.data_errors[ f"{ age_phenotype }_range_check" ] = f"'{ value }' is NOT valid for { age_phenotype }"
+
+                except:
+                    self.data_errors[ f"{ age_phenotype }_range_check" ] = f"'{ value }' is NOT valid for { age_phenotype }"
+
+    ## Initial validation checks ( no comparison data )
     def check_for_blank_values( self ):
         """enumerates over object properties, checks that all (excluding comments) have a given value"""  
         variables_to_skip = [ 'dictionary', 'all_data', 'data_errors' ] 
@@ -199,16 +214,20 @@ class PSP_Subject():
         if data_value_errors:
             self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 0 ] }: { x[ 1 ] }" for x in data_value_errors.items() ] )
 
-
-
     def run_initial_validation_checks( self ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
+        self.age_range_check( "ageonset", self.ageonset )
+        self.age_range_check( "agedeath", self.agedeath )
+
         return self.data_errors
 
     def run_update_validation_checks( self ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
+        self.age_range_check( "ageonset", self.ageonset )
+        self.age_range_check( "agedeath", self.agedeath )
+
         return self.data_errors
 
 ### Child classes of PSP and non-PSP Parent Classes
@@ -232,6 +251,7 @@ class Case_Control_Subject( Non_PSP_Subject ):
             self.previous_prevad = subject_data[ "prev_prevad" ]
             self.previous_selection = subject_data[ "prev_selection" ]
 
+    ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
@@ -316,7 +336,7 @@ class Family_Subject( Non_PSP_Subject ):
         except:
             print( f"No record found for father: { self.father }. Skipping..." )
 
-    
+    ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
@@ -405,7 +425,7 @@ class ADNI_Subject( Non_PSP_Subject ):
                 self.data_errors[ 'mci_has_onset_age_check' ] = "Subject has MCI value of 1 but no ad_mci_onset value."
     
             if self.age_ad_onset != 'NA':
-                self.data_errors[ 'mci_has_no_ad_onset_age_check' ] = "Subject ahs MCI value of 1 but has value for ad_onset_age"
+                self.data_errors[ 'mci_has_no_ad_onset_age_check' ] = "Subject has MCI value of 1 but has value for ad_onset_age"
 
     def both_ad_and_mci_check( self ):
         if self.ad_last_visit == 1:
@@ -437,6 +457,7 @@ class ADNI_Subject( Non_PSP_Subject ):
         if self.mci_last_visit == 0 and self.previous_mci_last_visit == 1:
             self.data_errors[ "mci_last_visit_case_to_control" ] = "Subject's MCI status changed from case to control in update.  Please confirm."
 
+    ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
