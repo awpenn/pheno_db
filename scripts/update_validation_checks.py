@@ -69,8 +69,8 @@ def run_update_checks( comparison_data, classname_dict, subject_type ):
     for key, value in comparison_data.items():
         reviewed_subject_object = value
         
-        ## uses the etattr to get the reference to class based on classname from dict, then instantiates subject object with 'value' data
-        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value, comparison_data )
+        ## uses the etattr to get the reference to class based on classname from dict, then instantiates subject object with 'value' data, last is checktype to indicate what checks and what data present in subject data object
+        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value, comparison_data, "update-validation" )
 
         subject_data_errors = subject.run_update_validation_checks()
 

@@ -11,10 +11,17 @@ import datetime
 import pandas as pd
 
 from pheno_utils import *
+from Subjects import *
 
 def main():
+    ## 1/15/21 testing
+    # user_input_subject_type = 'case/control'
+    # LOADFILE = 'cc-published.csv'
     user_input_subject_type = get_subject_type()
     LOADFILE = get_filename()
+    
+    ## dict gives the Class Object Names for each subject_type corresponding to user-input subject type selection
+    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
 
     variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
@@ -26,10 +33,8 @@ def main():
         print( msg )   
         
         data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
-        dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
-        dictionary = get_dict_data( dict_name )
 
-        reviewed_dict = run_checks( data_dict, dictionary )
+        reviewed_dict = run_checks( data_dict, classname_dict, user_input_subject_type )
         for key, value in reviewed_dict.items():
 
             if 'data_errors' in value.keys():
@@ -42,7 +47,7 @@ def main():
 
         print(f"No data errors found in { LOADFILE }.")
 
-def run_checks( data_dict, dictionary ):
+def run_checks( data_dict, classname_dict, subject_type ):
     """takes data_dict and dictionary as args, checks that all values in data are valid, returns ???"""
     ##utils
     def check_data_value( subject_id, dict_values, phenotype, pheno_value ):
@@ -82,40 +87,18 @@ def run_checks( data_dict, dictionary ):
     review_dict = {}
 
     for key, value in data_dict.items():
-        reviewed_subject_object = {}
-        error_list = []
-        for phenotype, pheno_value in value.items():
-            ## gets values_dict in dictionary by the current phenotype in current subject entry in data_dict.
-
-            if pheno_value == '' and phenotype.lower() != 'comments':
-                checked_phenotype_value = [ pheno_value, f"Blank value given for { phenotype }." ]
-
-            else:
-                try:
-                    dict_values = dictionary.data_values[ dictionary.variable == f'{ phenotype }' ].values[ 0 ]
-
-                except Exception as e:
-                    # print(f"{ phenotype } does not appear in the dictionary { key }.")
-                    reviewed_subject_object[ phenotype ] = pheno_value
-
-                checked_phenotype_value = check_data_value( key, dict_values, phenotype, pheno_value )
-
-            if isinstance( checked_phenotype_value, list ):
-                p_value, error_msg = checked_phenotype_value
-                reviewed_subject_object [ phenotype ] = p_value
-                error_list.append( error_msg )
-
-            else:
-                reviewed_subject_object[ phenotype ] = checked_phenotype_value
-
-        ## if errors, take the compiled errors list, add to subject's data object, concatenating list items, separated by semi-col
-        if len( error_list ) > 0:
-            reviewed_subject_object[ 'data_errors' ] = '; '.join( error_list )
+        reviewed_subject_object = value
+        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value, data_dict, "initial-validation" )
+        
+        subject_data_errors = subject.run_initial_validation_checks()
+        
+        if subject_data_errors:
+            ## if there are errors, create a 'data_errors' variable, convert errors into a string, and store with the rest of the comparison data
+            reviewed_subject_object[ 'data_errors' ] = '; '.join( [ f"{ x[ 0 ] }: { x[ 1 ] }" for x in subject_data_errors.items() ] )
 
         review_dict[ key ] = reviewed_subject_object
 
     return review_dict
-
 
 if __name__ == '__main__':
     print('start ', datetime.datetime.now().strftime("%H:%M:%S") )

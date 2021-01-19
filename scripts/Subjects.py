@@ -7,6 +7,8 @@ things like checking family data
 import pandas as pd
 import json
 
+from pheno_utils import *
+
 
 #utils
 def handle_age_values( pheno_value ):
@@ -21,55 +23,66 @@ def handle_age_values( pheno_value ):
 
     return processed_pheno_value
 
+### Parent Classes with variables/functions shared by child classes
 class Non_PSP_Subject():
-    def __init__( self, subject_data, all_data ):
+    def __init__( self, subject_data, all_data, checktype ):
 
-        self.subject_id = subject_data[ "subject_id" ]
-
-        #self.age_baseline = subject_data[ "age_baseline" ]
-        #self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
-        
         self.age_baseline = handle_age_values( subject_data[ "age_baseline" ] )
-        self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
-        
         self.apoe = subject_data[ "apoe" ]
-        self.previous_apoe = subject_data[ "prev_apoe" ]
-        
         self.autopsy = subject_data[ "autopsy" ]
-        self.previous_autopsy = subject_data[ "prev_autopsy" ]
-        
         self.braak = subject_data[ "braak" ]
-        self.previous_braak = subject_data[ "prev_braak" ]
-
-        self.previous_comments = subject_data["prev_comments"]
-        
         self.ethnicity = subject_data[ "ethnicity" ]
-        self.previous_ethnicity = subject_data[ "prev_ethnicity" ]
-        
         self.race = subject_data[ "race" ]
-        self.previous_race = subject_data[ "prev_race" ]
-        
         self.sex = subject_data[ "sex" ]
-        self.previous_sex = subject_data[ "prev_sex" ]
+
+        if checktype == 'initial-validation':
+            self.comments = subject_data[ "comments" ]
+
+        if checktype == "update-validation":
+            self.subject_id = subject_data[ "subject_id" ]
+            self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
+            self.previous_apoe = subject_data[ "prev_apoe" ]
+            self.previous_autopsy = subject_data[ "prev_autopsy" ]
+            self.previous_braak = subject_data[ "prev_braak" ]
+            self.previous_ethnicity = subject_data[ "prev_ethnicity" ]
+            self.previous_race = subject_data[ "prev_race" ]
+            self.previous_sex = subject_data[ "prev_sex" ]
+            self.previous_comments = subject_data["prev_comments"]
 
         self.all_data = all_data
 
         self.data_errors = {}
 
-    def age_check( self ):
-        if self.age !='NA' and self.previous_age !='NA':
-            if not self.age >= self.previous_age:
-                self.data_errors[ "age_check" ] = "Age decreased between last release and update."
-        else:
-            if self.age == 'NA' and self.previous_age == 'NA':
-                return
-            else:
-                if self.age != 'NA' and self.previous_age == 'NA':
-                    self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
+    ## checks run as part of initial and update validation ( ie. no comparison data required )
+    def check_for_blank_values( self ):
+        """enumerates over object properties, checks that all (excluding comments) have a given value"""  
+        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors' ] 
+        blank_variable_list = []
+        for variable, value in vars( self ).items():
+            if variable not in variables_to_skip:
+                if value == '' and variable.lower() != 'comments':
+                    blank_variable_list.append( variable )
+        
+        if blank_variable_list:
+            blank_var_string = ', '.join( blank_variable_list )
+            self.data_errors [ 'blank_value_check' ] = f"One or more variables found with blank values: { blank_var_string }"
 
-        if not self.age >= self.previous_age:
-            self.data_errors[ "age_check" ] = "Age decreased between last release and update."
-    
+    def check_data_values_against_dictionary( self ):
+        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors', 'subject_type', 'comments' ]
+        data_value_errors = {}
+        for variable, value in vars( self ).items():
+            if variable not in variables_to_skip:
+                if 'age' not in variable: #need to skip age-based variables because they can be a range+NA.  Age ranges are checked in different function
+                    accepted_values = self.dictionary.loc[ variable ].data_values
+                    if accepted_values: ##if a variable that has at least one given data value in dict
+                        if str( value ) not in accepted_values:
+                            data_value_errors[ variable ] = f"'{ value }' is NOT a valid value for { variable }"
+                
+        if data_value_errors:
+            # self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 0 ] }: { x[ 1 ] }" for x in data_value_errors.items() ] )
+            self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 1 ] }" for x in data_value_errors.items() ] )
+
+
     def ad_check( self ):
         if self.ad == 1:
             if not ( self.incad == 1 or self.prevad == 1 ):
@@ -91,11 +104,6 @@ class Non_PSP_Subject():
             if self.age_baseline != 'NA':
                 self.data_errors[ "prevad_age_baseline_check" ] = "Prevad value of 1 with non-NA age_baseline value."
 
-    def age_under_50_check( self ):        
-        if self.age !='NA' and self.previous_age !='NA':
-            if self.age < 50:
-                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
-
     def braak_inc_prev_check( self ):
         if isinstance( self.braak, int ):
             if self.braak < 4:
@@ -106,33 +114,165 @@ class Non_PSP_Subject():
                     self.data_errors[ "braak_inc_prev_check" ] = "Braak score greater than 3 but no inc/prev_ad indicated."       
         else:
             self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
+    
+    def age_range_check( self, age_phenotype, value ):
+        try:
+            if int( value ) not in range( 121 ):
+                self.data_errors[ f"{ age_phenotype }_range_check" ] = f"'{ value }' is NOT valid for { age_phenotype }"
+        except:
+            if value != 'NA':
+                    ## make sure its not a case of a #+ (eg 90+) value given
+                try:
+                    if int( value.replace("+", "") ) not in range( 121 ):
+                        self.data_errors[ f"{ age_phenotype }_range_check" ] = f"'{ value }' is NOT valid for { age_phenotype }"
 
-class Family_Subject( Non_PSP_Subject ):
-    def __init__( self, subject_data, all_data ):
-        super().__init__( subject_data, all_data )
+                except:
+                    self.data_errors[ f"{ age_phenotype }_range_check" ] = f"'{ value }' is NOT valid for { age_phenotype }"
+        
+    ## checks that only run on update-validation
+    def update_age_check( self ):
+        if self.age !='NA' and self.previous_age !='NA':
+            if not self.age >= self.previous_age:
+                self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+        else:
+            if self.age == 'NA' and self.previous_age == 'NA':
+                return
+            else:
+                if self.age != 'NA' and self.previous_age == 'NA':
+                    self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
 
+        if not self.age >= self.previous_age:
+            self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+
+    def update_age_under_50_check( self ):        
+        if self.age !='NA' and self.previous_age !='NA':
+            if self.age < 50:
+                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
+class PSP_Subject():
+    def __init__( self, subject_data, all_data, checktype ):
+        
+        self.subject_type = 'PSP/CDB'
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
+        self.race = subject_data[ "race" ]
+        self.sex = subject_data[ "sex" ]
+        self.diagnosis  = subject_data[ "diagnosis" ]
+        self.ageonset = handle_age_values( subject_data[ "ageonset" ] )
+        self.agedeath = handle_age_values( subject_data[ "agedeath" ] )
+
+        if checktype == 'initial-validation':
+            self.comments = subject_data[ "comments" ]
+    
+        if checktype == 'update-validation':
+            self.subject_id = subject_data[ "subject_id" ]
+            self.previous_comments = subject_data["prev_comments"]
+            self.previous_race = subject_data[ "prev_race" ]
+            self.previous_sex = subject_data[ "prev_sex" ]
+            self.previous_diagnosis  = subject_data[ "prev_diagnosis" ]
+            self.previous_ageonset = handle_age_values( subject_data[ "prev_ageonset" ] )
+            self.previous_agedeath = handle_age_values( subject_data[ "prev_agedeath" ] )
+        
+        self.all_data = all_data
+
+    def check_for_blank_values( self ):
+        """enumerates over object properties, checks that all (excluding comments) have a given value"""  
+        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors' ] 
+        blank_variable_list = []
+        for variable, value in vars( self ).items():
+            if variable not in variables_to_skip:
+                if value == '' and variable.lower() != 'comments':
+                    blank_variable_list.append( variable )
+        
+        if blank_variable_list:
+            blank_var_string = ', '.join( blank_variable_list )
+            self.data_errors [ 'blank_value_check' ] = f"One or more variables found with blank values: { blank_var_string }"
+
+    def check_data_values_against_dictionary( self ):
+        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors' ]
+        data_value_errors = {}
+        for variable, value in vars( self ).items():
+            if 'age' not in variable: #need to skip age-based variables because they can be a range+NA.  Age ranges are checked in different function
+                accepted_values = self.dictionary.loc[ variable ].data_values
+                if value not in accepted_values:
+                    data_value_errors[ variable ] = f"{ value } is NOT a valid value for { variable }"
+            
+        if data_value_errors:
+            self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 0 ] }: { x[ 1 ] }" for x in data_value_errors.items() ] )
+
+
+
+    def run_initial_validation_checks( self ):
+        self.check_for_blank_values()
+        self.check_data_values_against_dictionary()
+        return self.data_errors
+
+    def run_update_validation_checks( self ):
+        self.check_for_blank_values()
+        self.check_data_values_against_dictionary()
+        return self.data_errors
+
+### Child classes of PSP and non-PSP Parent Classes
+class Case_Control_Subject( Non_PSP_Subject ):
+    def __init__( self, subject_data, all_data, checktype ):
+        super().__init__( subject_data, all_data, checktype )
+        
+        self.subject_type = 'case/control'
+        ## get the dictionary of appropriate variables and var-values from database
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
         self.ad = subject_data[ "ad" ]
-        self.previous_ad = subject_data[ "prev_ad" ]
-
-        # self.age = subject_data[ "age" ]
-        # self.previous_age = subject_data[ "prev_age" ]
-
         self.age = handle_age_values( subject_data[ "age" ] )
-        self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
+        self.incad = subject_data[ "incad" ]
+        self.prevad = subject_data[ "prevad" ]
+        self.selection = subject_data[ "selection" ]
 
+        if checktype == 'update-validation':
+            self.previous_ad = subject_data[ "prev_ad" ]
+            self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
+            self.previous_incad = subject_data[ "prev_incad" ]
+            self.previous_prevad = subject_data[ "prev_prevad" ]
+            self.previous_selection = subject_data[ "prev_selection" ]
+
+    def run_initial_validation_checks( self ):
+        self.check_for_blank_values()
+        self.check_data_values_against_dictionary()
+        self.age_range_check( "age", self.age )
+        self.age_range_check( "age_baseline", self.age_baseline )
+
+        return self.data_errors
+        
+    def run_update_validation_checks( self ):
+        self.check_for_blank_values()
+        self.update_age_check()
+        self.ad_check()
+        self.ad_status_switch_check()
+        self.prevad_age_baseline_check()
+        self.update_age_under_50_check()
+        self.braak_inc_prev_check()
+
+        return self.data_errors
+        
+class Family_Subject( Non_PSP_Subject ):
+    def __init__( self, subject_data, all_data, checktype ):
+        super().__init__( subject_data, all_data, checktype )
+
+        self.subject_type = 'family'
+        ## get the dictionary of appropriate variables and var-values from database
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
+        self.ad = subject_data[ "ad" ]
+        self.age = handle_age_values( subject_data[ "age" ] )
         self.famid = subject_data[ "famid" ]
-        self.previous_famid = subject_data[ "prev_famid" ]
-
         self.father = subject_data[ "father" ]
-        self.previous_father = subject_data[ "prev_father" ]
-
         self.mother = subject_data[ "mother" ]
-        self.previous_mother = subject_data[ "prev_mother" ]
-
         self.famgrp = subject_data[ "famgrp" ]
-        self.previous_famgrp = subject_data[ "prev_famgrp" ]
 
-        ##// add famid, mother/father check functions (or could add to parent)?
+        if checktype == 'update-validation':
+            self.previous_ad = subject_data[ "prev_ad" ]
+            self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
+            self.previous_famid = subject_data[ "prev_famid" ]
+            self.previous_father = subject_data[ "prev_father" ]
+            self.previous_mother = subject_data[ "prev_mother" ]
+            self.previous_famgrp = subject_data[ "prev_famgrp" ]
+
 
     def check_father_exists( self ):
         """check if father is 0, mother must be 0
@@ -175,11 +315,24 @@ class Family_Subject( Non_PSP_Subject ):
                 self.data_errors[ "father_famid_check" ] = f"Subject's father ( { self.father } ) has different family_id ( { father_fam_id } ) than subject."
         except:
             print( f"No record found for father: { self.father }. Skipping..." )
-              
+
+    
+    def run_initial_validation_checks( self ):
+        self.check_for_blank_values()
+        self.check_data_values_against_dictionary()
+        self.age_range_check( "age", self.age )
+        self.age_range_check( "age_baseline", self.age_baseline )
+
+        self.check_father_exists()
+        self.check_mother_exists()
+        self.offspring_same_family_id_check
+
+        return self.data_errors
+
     def run_update_validation_checks( self ):
-        self.age_check()
+        self.update_age_check()
         self.ad_status_switch_check()
-        self.age_under_50_check()
+        self.update_age_under_50_check()
         self.check_father_exists()
         self.check_mother_exists()
 
@@ -189,87 +342,28 @@ class Family_Subject( Non_PSP_Subject ):
 
         return self.data_errors
 
-class Case_Control_Subject( Non_PSP_Subject ):
-    def __init__( self, subject_data, all_data ):
-        super().__init__( subject_data, all_data )
-        
-        self.ad = subject_data[ "ad" ]
-        self.previous_ad = subject_data[ "prev_ad" ]
-
-        # self.age = subject_data[ "age" ]
-        # self.previous_age = subject_data[ "prev_age" ]
-
-        self.age = handle_age_values( subject_data[ "age" ] )
-        self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
-        
-        self.incad = subject_data[ "incad" ]
-        self.previous_incad = subject_data[ "prev_incad" ]
-
-        self.prevad = subject_data[ "prevad" ]
-        self.previous_prevad = subject_data[ "prev_prevad" ]
-
-        self.selection = subject_data[ "selection" ]
-        self.previous_selection = subject_data[ "prev_selection" ]
-    
-    def run_update_validation_checks( self ):
-        self.age_check()
-        self.ad_check()
-        self.ad_status_switch_check()
-        self.prevad_age_baseline_check()
-        self.age_under_50_check()
-        self.braak_inc_prev_check()
-
-        return self.data_errors
-        
 class ADNI_Subject( Non_PSP_Subject ):
-    def __init__( self, subject_data, all_data ):
-        super().__init__( subject_data, all_data )
+    def __init__( self, subject_data, all_data, checktype ):
+        super().__init__( subject_data, all_data, checktype )
 
+        self.subject_type = 'ADNI'
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
         self.ad_last_visit = subject_data[ "ad_last_visit" ]
-        self.previous_ad_last_visit = subject_data[ "prev_ad_last_visit" ]
-
-        # self.age_current = subject_data[ "age_current" ].replace("+", "")
-        # self.previous_age_current = subject_data[ "prev_age_current" ].replace("+", "")
-
         self.age_current = handle_age_values( subject_data[ "age_current" ] )
-        self.previous_age_current = handle_age_values( subject_data[ "prev_age_current" ] )
-
         self.incad = subject_data[ "incad" ]
-        self.previous_incad = subject_data[ "prev_incad" ]
-
         self.prevad = subject_data[ "prevad" ]
-        self.previous_prevad = subject_data[ "prev_prevad" ]
-
-        # self.age_ad_onset = subject_data[ "age_ad_onset" ]
-        # self.previous_age_ad_onset = subject_data[ "prev_age_ad_onset" ]
-
-        # self.age_mci_onset = subject_data[ "age_mci_onset" ]
-        # self.previous_age_mci_onset = subject_data[ "prev_age_mci_onset" ]
-
         self.age_ad_onset = handle_age_values( subject_data[ "age_ad_onset" ] )
-        self.previous_age_ad_onset = handle_age_values( subject_data[ "prev_age_ad_onset" ] )
-
         self.age_mci_onset = handle_age_values( subject_data[ "age_mci_onset" ] )
-        self.previous_age_mci_onset = handle_age_values( subject_data[ "prev_age_mci_onset" ] )
-
         self.mci_last_visit = subject_data[ "mci_last_visit" ]
-        self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
-    
-    def age_check( self ):
-        if self.age_current !='NA' and self.previous_age_current !='NA':
-            if not self.age_current >= self.previous_age_current:
-                self.data_errors[ "age_check" ] = "Age decreased between last release and update."
-        else:
-            if self.age_current == 'NA' and self.previous_age_current == 'NA':
-                return
-            else:
-                if self.age_current != 'NA' and self.previous_age_current == 'NA':
-                    self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
 
-    def age_under_50_check( self ):
-        if self.age_current !='NA' and self.previous_age_current !='NA':
-            if self.age_current < 50:
-                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+        if checktype == 'update-validation':
+            self.previous_ad_last_visit = subject_data[ "prev_ad_last_visit" ]
+            self.previous_age_current = handle_age_values( subject_data[ "prev_age_current" ] )
+            self.previous_incad = subject_data[ "prev_incad" ]
+            self.previous_prevad = subject_data[ "prev_prevad" ]
+            self.previous_age_ad_onset = handle_age_values( subject_data[ "prev_age_ad_onset" ] )
+            self.previous_age_mci_onset = handle_age_values( subject_data[ "prev_age_mci_onset" ] )
+            self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
 
     def ad_check( self ):
         if self.ad_last_visit == 1:
@@ -282,14 +376,6 @@ class ADNI_Subject( Non_PSP_Subject ):
         else:
             if not ( self.incad == 0 and self.prevad == 0 ):
                 self.data_errors[ "ad_last_visit_check" ] = "AD has value of 0 but 1 values in either incad or prevad"
-
-    def ad_status_switch_check( self ):
-        if self.ad_last_visit == 0 and self.previous_ad_last_visit == 1:
-            self.data_errors[ "ad_last_visit_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
-
-    def mci_status_switch_check( self ):
-        if self.mci_last_visit == 0 and self.previous_mci_last_visit == 1:
-            self.data_errors[ "mci_last_visit_case_to_control" ] = "Subject's MCI status changed from case to control in update.  Please confirm."
 
     def mci_no_inc_prev_ad_check( self ):
         if self.mci_last_visit == 1:
@@ -326,43 +412,56 @@ class ADNI_Subject( Non_PSP_Subject ):
             if self.mci_last_visit == 1:
                 self.data_errors[ 'both_ad_and_mci_check' ] = "Subject has both AD and MCI values of 1."
     
-    def run_update_validation_checks( self ):
-        self.age_check()
-        self.age_under_50_check()
+    ## checks that only run for update validation ( ie. compare update and previous )
+    def update_age_check( self ):
+        if self.age_current !='NA' and self.previous_age_current !='NA':
+            if not self.age_current >= self.previous_age_current:
+                self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+        else:
+            if self.age_current == 'NA' and self.previous_age_current == 'NA':
+                return
+            else:
+                if self.age_current != 'NA' and self.previous_age_current == 'NA':
+                    self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
+
+    def update_age_under_50_check( self ):
+        if self.age_current !='NA' and self.previous_age_current !='NA':
+            if self.age_current < 50:
+                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
+    def ad_status_switch_check( self ):
+        if self.ad_last_visit == 0 and self.previous_ad_last_visit == 1:
+            self.data_errors[ "ad_last_visit_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
+
+    def mci_status_switch_check( self ):
+        if self.mci_last_visit == 0 and self.previous_mci_last_visit == 1:
+            self.data_errors[ "mci_last_visit_case_to_control" ] = "Subject's MCI status changed from case to control in update.  Please confirm."
+
+    def run_initial_validation_checks( self ):
+        self.check_for_blank_values()
+        self.check_data_values_against_dictionary()
+        self.age_range_check( "age_current", self.age_current )
+        self.age_range_check( "age_baseline", self.age_baseline )
+        self.age_range_check( "age_ad_onset", self.age_ad_onset )
+        self.age_range_check( "mci_ad_onset", self.mci_ad_onset )
+
         self.ad_check()
+        self.mci_no_inc_prev_ad_check()
+        self.diagnosis_onset_age_check()
+        self.both_ad_and_mci_check()
+
+        return self.data_errors
+
+    def run_update_validation_checks( self ):
+        self.update_age_check()
+        self.update_age_under_50_check()
         self.ad_status_switch_check()
         self.mci_status_switch_check()
+        
+        self.ad_check()
         self.mci_no_inc_prev_ad_check()
         self.diagnosis_onset_age_check()  ##checks both that AD/MCI indication and onset_age match, and that doesn't have age_onsent value for the other
         self.both_ad_and_mci_check()
         
         return self.data_errors
 
-class PSP_Subject():
-    def __init__( self, subject_data, all_data ):
-
-        self.subject_id = subject_data[ "subject_id" ]
-
-        self.previous_comments = subject_data["prev_comments"]
-
-        self.race = subject_data[ "race" ]
-        self.previous_race = subject_data[ "prev_race" ]
-
-        self.sex = subject_data[ "sex" ]
-        self.previous_sex = subject_data[ "prev_sex" ]
-
-        self.diagnosis  = subject_data[ "diagnosis" ]
-        self.previous_diagnosis  = subject_data[ "prev_diagnosis" ]
-
-        self.ageonset = handle_age_values( subject_data[ "ageonset" ] )
-        self.previous_ageonset = handle_age_values( subject_data[ "prev_ageonset" ] )
-
-        self.agedeath = handle_age_values( subject_data[ "agedeath" ] )
-        self.previous_agedeath = handle_age_values( subject_data[ "prev_agedeath" ] )
-
-        self.all_data = all_data
-
-
-    def run_update_validation_checks( self ):
-    
-        return self.data_errors
