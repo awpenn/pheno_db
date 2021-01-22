@@ -15,10 +15,10 @@ from Subjects import *
 
 def main():
     ## 1/15/21 testing
-    # user_input_subject_type = 'case/control'
-    # LOADFILE = 'cc-published.csv'
-    user_input_subject_type = get_subject_type()
-    LOADFILE = get_filename()
+    user_input_subject_type = 'family'
+    LOADFILE = 'fam-published.csv'
+    # user_input_subject_type = get_subject_type()
+    # LOADFILE = get_filename()
     
     ## dict gives the Class Object Names for each subject_type corresponding to user-input subject type selection
     classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }

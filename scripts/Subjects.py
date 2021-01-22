@@ -9,7 +9,6 @@ import json
 
 from pheno_utils import *
 
-
 #utils
 def handle_age_values( pheno_value ):
     """takes the age-related pheno-value and handles for string values, ie. where an age like '90+' """
@@ -314,13 +313,13 @@ class Family_Subject( Non_PSP_Subject ):
             if self.mother not in self.all_data.keys():
                 self.data_errors[ "mother_check" ] = f"There is no subject entry for { self.mother }, given as mother of { self.subject_id }"
 
-    def offspring_same_family_id_check( self, df ):
+    def offspring_same_family_id_check( self, all_data_as_df ):
         """
         for an id identified as a mother/father, check that it's family_id is the same 
         between parents and offspring.  
         """
         try:
-            mother_fam_id = df.loc[ self.mother ][ "famid" ]
+            mother_fam_id = all_data_as_df.loc[ self.mother ][ "famid" ]
 
             if mother_fam_id != self.famid:
                 self.data_errors[ "mother_famid_check" ] = f"Subject's mother ( { self.mother } ) has different family_id ( { mother_fam_id } ) than subject."
@@ -329,12 +328,23 @@ class Family_Subject( Non_PSP_Subject ):
             print( f"No record found for mother: { self.mother }. Skipping..." )
         
         try:
-            father_fam_id = df.loc[ self.father ][ "famid" ]
+            father_fam_id = all_data_as_df.loc[ self.father ][ "famid" ]
 
             if father_fam_id != self.famid:
                 self.data_errors[ "father_famid_check" ] = f"Subject's father ( { self.father } ) has different family_id ( { father_fam_id } ) than subject."
         except:
             print( f"No record found for father: { self.father }. Skipping..." )
+
+    def check_all_family_same_famgrp( self, all_data_as_df ):
+        """
+        all subjects with same family_id have to have same fmgrp as well
+        """
+        family = all_data_as_df[ all_data_as_df[ 'famid' ] == self.famid ]
+        famgrp_set = set( family[ 'famgrp' ] )
+
+        if len( famgrp_set ) > 1:
+            self.data_errors[ 'all_family_same_famgrp_check' ] = f"Members of subject's family ( { self.famid } ) have different famgrp values ( Values found: { ', '.join( f'{x}' for x in famgrp_set ) } )"
+        
 
     ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
@@ -345,7 +355,10 @@ class Family_Subject( Non_PSP_Subject ):
 
         self.check_father_exists()
         self.check_mother_exists()
-        self.offspring_same_family_id_check
+        if self.mother or self.father != 0:
+            df = pd.read_json( json.dumps( self.all_data ) ).transpose()
+            self.offspring_same_family_id_check( df )
+            self.check_all_family_same_famgrp( df )
 
         return self.data_errors
 
@@ -359,6 +372,7 @@ class Family_Subject( Non_PSP_Subject ):
         if self.mother or self.father != 0:
             df = pd.read_json( json.dumps( self.all_data ) ).transpose()
             self.offspring_same_family_id_check( df )
+            self.check_all_family_same_famgrp( df )
 
         return self.data_errors
 
@@ -485,4 +499,6 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.both_ad_and_mci_check()
         
         return self.data_errors
+
+
 
