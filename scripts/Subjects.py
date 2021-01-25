@@ -23,9 +23,10 @@ def handle_age_values( pheno_value ):
     return processed_pheno_value
 
 ### Parent Classes with variables/functions shared by child classes
-class Non_PSP_Subject():
-    def __init__( self, subject_data, all_data, checktype ):
+class Non_PSP_Subject:
+    def __init__( self, subject_id, subject_data, all_data, checktype ):
 
+        self.subject_id = subject_id
         self.age_baseline = handle_age_values( subject_data[ "age_baseline" ] )
         self.apoe = subject_data[ "apoe" ]
         self.autopsy = subject_data[ "autopsy" ]
@@ -67,7 +68,7 @@ class Non_PSP_Subject():
             self.data_errors [ 'blank_value_check' ] = f"One or more variables found with blank values: { blank_var_string }"
 
     def check_data_values_against_dictionary( self ):
-        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors', 'subject_type', 'comments' ]
+        variables_to_skip = [ 'subject_id', 'dictionary', 'all_data', 'data_errors', 'subject_type', 'comments' ]
         data_value_errors = {}
         for variable, value in vars( self ).items():
             if variable not in variables_to_skip:
@@ -148,9 +149,10 @@ class Non_PSP_Subject():
             if self.age < 50:
                 self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
 
-class PSP_Subject():
+class PSP_Subject:
     def __init__( self, subject_data, all_data, checktype ):
         
+        self.subject_id = subject_id
         self.subject_type = 'PSP/CDB'
         self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
         self.race = subject_data[ "race" ]
@@ -231,8 +233,8 @@ class PSP_Subject():
 
 ### Child classes of PSP and non-PSP Parent Classes
 class Case_Control_Subject( Non_PSP_Subject ):
-    def __init__( self, subject_data, all_data, checktype ):
-        super().__init__( subject_data, all_data, checktype )
+    def __init__( self, subject_id, subject_data, all_data, checktype ):
+        super().__init__( subject_id, subject_data, all_data, checktype )
         
         self.subject_type = 'case/control'
         ## get the dictionary of appropriate variables and var-values from database
@@ -271,8 +273,8 @@ class Case_Control_Subject( Non_PSP_Subject ):
         return self.data_errors
         
 class Family_Subject( Non_PSP_Subject ):
-    def __init__( self, subject_data, all_data, checktype ):
-        super().__init__( subject_data, all_data, checktype )
+    def __init__( self, subject_id, subject_data, all_data, checktype ):
+        super().__init__( subject_id, subject_data, all_data, checktype )
 
         self.subject_type = 'family'
         ## get the dictionary of appropriate variables and var-values from database
@@ -345,9 +347,24 @@ class Family_Subject( Non_PSP_Subject ):
         if len( famgrp_set ) > 1:
             self.data_errors[ 'all_family_same_famgrp_check' ] = f"Members of subject's family ( { self.famid } ) have different famgrp values ( Values found: { ', '.join( f'{x}' for x in famgrp_set ) } )"
         
+    def match_parent_sex( self, all_data_as_df ):
+        """Check that record for given mother/father has correct sex given"""
+        if self.mother != 0:
+            """mother's sex must be '1' """
+            if all_data_as_df.loc[self.mother]["sex"] != 1:
+                self.data_errors[ 'mother_sex_match_check' ] = f"Subjects mother ( {self.mother} ) has mismatched sex designation."
+
+        if self.father != 0:
+            """father's sex must be '0' """
+            if all_data_as_df.loc[self.father]["sex"] != 0:
+                self.data_errors[ 'father_sex_match_check' ] = f"Subjects father ( {self.father} ) has mismatched sex designation."
+
 
     ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
+        ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
+        df = pd.read_json( json.dumps( self.all_data ) ).transpose()
+
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
         self.age_range_check( "age", self.age )
@@ -355,14 +372,18 @@ class Family_Subject( Non_PSP_Subject ):
 
         self.check_father_exists()
         self.check_mother_exists()
+
         if self.mother or self.father != 0:
-            df = pd.read_json( json.dumps( self.all_data ) ).transpose()
             self.offspring_same_family_id_check( df )
             self.check_all_family_same_famgrp( df )
+            self.match_parent_sex( df )
 
         return self.data_errors
 
     def run_update_validation_checks( self ):
+        ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
+        df = pd.read_json( json.dumps( self.all_data ) ).transpose()
+
         self.update_age_check()
         self.ad_status_switch_check()
         self.update_age_under_50_check()
@@ -370,15 +391,15 @@ class Family_Subject( Non_PSP_Subject ):
         self.check_mother_exists()
 
         if self.mother or self.father != 0:
-            df = pd.read_json( json.dumps( self.all_data ) ).transpose()
             self.offspring_same_family_id_check( df )
             self.check_all_family_same_famgrp( df )
+            self.match_parent_sex( df )
 
         return self.data_errors
 
 class ADNI_Subject( Non_PSP_Subject ):
-    def __init__( self, subject_data, all_data, checktype ):
-        super().__init__( subject_data, all_data, checktype )
+    def __init__( self, subject_id, subject_data, all_data, checktype ):
+        super().__init__( subject_id, subject_data, all_data, checktype )
 
         self.subject_type = 'ADNI'
         self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )

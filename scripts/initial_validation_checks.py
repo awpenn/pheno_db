@@ -57,7 +57,7 @@ def run_checks( data_dict, classname_dict, subject_type ):
 
     for key, value in data_dict.items():
         reviewed_subject_object = value
-        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value, data_dict, "initial-validation" )
+        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( key, value, data_dict, "initial-validation" )
         
         subject_data_errors = subject.run_initial_validation_checks()
         

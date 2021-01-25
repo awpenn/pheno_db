@@ -17,13 +17,13 @@ def main():
     ## dict of class names for different subject_types to pass into update_checks function
     classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
 
-    # user_input_subject_type = get_subject_type()
+    user_input_subject_type = get_subject_type()
 
-    # LOADFILE = get_filename()
+    LOADFILE = get_filename()
 
     ## testing vars
-    user_input_subject_type = 'ADNI'
-    LOADFILE = 'adni-test.csv'
+    # user_input_subject_type = 'ADNI'
+    # LOADFILE = 'adni-test.csv'
 
     ## data from comparison csv now in subjid-keyed json
     comparison_data = create_data_dict( LOADFILE, user_input_subject_type )
@@ -70,7 +70,7 @@ def run_update_checks( comparison_data, classname_dict, subject_type ):
         reviewed_subject_object = value
         
         ## uses the etattr to get the reference to class based on classname from dict, then instantiates subject object with 'value' data, last is checktype to indicate what checks and what data present in subject data object
-        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( value, comparison_data, "update-validation" )
+        subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( key, value, comparison_data, "update-validation" )
 
         subject_data_errors = subject.run_update_validation_checks()
 
