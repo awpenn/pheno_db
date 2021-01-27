@@ -82,7 +82,6 @@ class Non_PSP_Subject:
             # self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 0 ] }: { x[ 1 ] }" for x in data_value_errors.items() ] )
             self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 1 ] }" for x in data_value_errors.items() ] )
 
-
     def ad_check( self ):
         if self.ad == 1:
             if not ( self.incad == 1 or self.prevad == 1 ):
@@ -129,6 +128,11 @@ class Non_PSP_Subject:
                 except:
                     self.data_errors[ f"{ age_phenotype }_range_check" ] = f"'{ value }' is NOT valid for { age_phenotype }"
         
+    def age_under_50_check( self ):
+        if self.age !='NA':
+            if self.age < 50:
+                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
     ## checks that only run on update-validation
     def update_age_check( self ):
         if self.age !='NA' and self.previous_age !='NA':
@@ -225,9 +229,6 @@ class PSP_Subject:
 
     def run_update_validation_checks( self ):
         self.check_for_blank_values()
-        self.check_data_values_against_dictionary()
-        self.age_range_check( "ageonset", self.ageonset )
-        self.age_range_check( "agedeath", self.agedeath )
 
         return self.data_errors
 
@@ -256,19 +257,20 @@ class Case_Control_Subject( Non_PSP_Subject ):
     def run_initial_validation_checks( self ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
+        self.age_under_50_check()
         self.age_range_check( "age", self.age )
         self.age_range_check( "age_baseline", self.age_baseline )
+
+        self.ad_check()
+        self.prevad_age_baseline_check()
+        self.braak_inc_prev_check()
 
         return self.data_errors
         
     def run_update_validation_checks( self ):
         self.check_for_blank_values()
         self.update_age_check()
-        self.ad_check()
         self.ad_status_switch_check()
-        self.prevad_age_baseline_check()
-        self.update_age_under_50_check()
-        self.braak_inc_prev_check()
 
         return self.data_errors
         
@@ -294,9 +296,8 @@ class Family_Subject( Non_PSP_Subject ):
             self.previous_mother = subject_data[ "prev_mother" ]
             self.previous_famgrp = subject_data[ "prev_famgrp" ]
 
-
-    def check_father_exists( self ):
-        """check if father is 0, mother must be 0
+    def check_parents_exist( self ):
+        """check if father/mother is 0, mother/father must be 0
             - if != 0, then mother cant be zero (and vice versa)
             - if is an id, check that theres an entry for the subject
         """
@@ -307,7 +308,6 @@ class Family_Subject( Non_PSP_Subject ):
             if self.father not in self.all_data.keys():
                 self.data_errors[ "father_check" ] = f"There is no subject entry for { self.father }, given as father of { self.subject_id }"
     
-    def check_mother_exists( self ):
         if self.mother == 0:
             if self.father != 0:
                 self.data_errors[ "mother_check" ] = f"Subject's mother_id is { self.mother }, but father_id is non-zero"
@@ -359,7 +359,6 @@ class Family_Subject( Non_PSP_Subject ):
             if all_data_as_df.loc[self.father]["sex"] != 0:
                 self.data_errors[ 'father_sex_match_check' ] = f"Subjects father ( {self.father} ) has mismatched sex designation."
 
-
     ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
         ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
@@ -367,11 +366,10 @@ class Family_Subject( Non_PSP_Subject ):
 
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
+        self.age_under_50_check()
         self.age_range_check( "age", self.age )
         self.age_range_check( "age_baseline", self.age_baseline )
-
-        self.check_father_exists()
-        self.check_mother_exists()
+        self.check_parents_exist()
 
         if self.mother or self.father != 0:
             self.offspring_same_family_id_check( df )
@@ -384,16 +382,9 @@ class Family_Subject( Non_PSP_Subject ):
         ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
         df = pd.read_json( json.dumps( self.all_data ) ).transpose()
 
+        self.check_for_blank_values()
         self.update_age_check()
         self.ad_status_switch_check()
-        self.update_age_under_50_check()
-        self.check_father_exists()
-        self.check_mother_exists()
-
-        if self.mother or self.father != 0:
-            self.offspring_same_family_id_check( df )
-            self.check_all_family_same_famgrp( df )
-            self.match_parent_sex( df )
 
         return self.data_errors
 
@@ -435,13 +426,13 @@ class ADNI_Subject( Non_PSP_Subject ):
     def mci_no_inc_prev_ad_check( self ):
         if self.mci_last_visit == 1:
             if self.prevad == 1:
-                self.data_errors['mci_no_prevad_check'] = "Subject as mci value of 1 but also prev_ad value of 1."\
+                self.data_errors['mci_no_prevad_check'] = "Subject as mci value of 1 but also prev_ad value of 1."
 
             if self.incad == 1:
-                self.data_errors['mci_no_incad_check'] = "Subject as mci value of 1 but also inc_ad value of 1."\
+                self.data_errors['mci_no_incad_check'] = "Subject as mci value of 1 but also inc_ad value of 1."
 
             if self.ad_last_visit == 1:
-                self.data_errors['mci_no_ad_check'] = "Subject as mci value of 1 but also AD value of 1."\
+                self.data_errors['mci_no_ad_check'] = "Subject as mci value of 1 but also AD value of 1."
                 
     def diagnosis_onset_age_check( self ):
         """
@@ -453,7 +444,7 @@ class ADNI_Subject( Non_PSP_Subject ):
                 self.data_errors[ 'ad_has_onset_age_check' ] = "Subject has AD value of 1 but no age_ad_onset value."
 
             if self.age_mci_onset != 'NA':
-                self.data_errors[ 'ad_has_no_mci_onset_age_check' ] = "Subject ahs AD value of 1 but has value for mci_onset_age"
+                self.data_errors[ 'ad_has_no_mci_onset_age_check' ] = "Subject has AD value of 1 but has value for mci_onset_age"
 
         if self.mci_last_visit == 1:
             if self.age_mci_onset == 'NA':
@@ -467,6 +458,11 @@ class ADNI_Subject( Non_PSP_Subject ):
             if self.mci_last_visit == 1:
                 self.data_errors[ 'both_ad_and_mci_check' ] = "Subject has both AD and MCI values of 1."
     
+    def age_under_50_check( self ):
+        if self.age_current !='NA':
+            if self.age_current < 50:
+                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
     ## checks that only run for update validation ( ie. compare update and previous )
     def update_age_check( self ):
         if self.age_current !='NA' and self.previous_age_current !='NA':
@@ -478,11 +474,6 @@ class ADNI_Subject( Non_PSP_Subject ):
             else:
                 if self.age_current != 'NA' and self.previous_age_current == 'NA':
                     self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
-
-    def update_age_under_50_check( self ):
-        if self.age_current !='NA' and self.previous_age_current !='NA':
-            if self.age_current < 50:
-                self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
 
     def ad_status_switch_check( self ):
         if self.ad_last_visit == 0 and self.previous_ad_last_visit == 1:
@@ -499,7 +490,8 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.age_range_check( "age_current", self.age_current )
         self.age_range_check( "age_baseline", self.age_baseline )
         self.age_range_check( "age_ad_onset", self.age_ad_onset )
-        self.age_range_check( "mci_ad_onset", self.mci_ad_onset )
+        self.age_range_check( "age_mci_onset", self.age_mci_onset )
+        self.age_under_50_check()
 
         self.ad_check()
         self.mci_no_inc_prev_ad_check()
@@ -509,15 +501,10 @@ class ADNI_Subject( Non_PSP_Subject ):
         return self.data_errors
 
     def run_update_validation_checks( self ):
+        self.check_for_blank_values()
         self.update_age_check()
-        self.update_age_under_50_check()
         self.ad_status_switch_check()
         self.mci_status_switch_check()
-        
-        self.ad_check()
-        self.mci_no_inc_prev_ad_check()
-        self.diagnosis_onset_age_check()  ##checks both that AD/MCI indication and onset_age match, and that doesn't have age_onsent value for the other
-        self.both_ad_and_mci_check()
         
         return self.data_errors
 

@@ -15,15 +15,16 @@ from Subjects import *
 
 def main():
     ## 1/15/21 testing
-    user_input_subject_type = 'family'
-    LOADFILE = 'fam-published.csv'
-    # user_input_subject_type = get_subject_type()
-    # LOADFILE = get_filename()
+    # user_input_subject_type = 'family'
+    # LOADFILE = 'fam-published.csv'
+    user_input_subject_type = get_subject_type()
+    LOADFILE = get_filename()
+    
+    variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     ## dict gives the Class Object Names for each subject_type corresponding to user-input subject type selection
     classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
 
-    variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     if not variables_match_dictionary:
         print( msg )
@@ -33,7 +34,7 @@ def main():
         print( msg )   
         
         data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
-
+        print('start checks ', datetime.datetime.now().strftime("%H:%M:%S") )  ##for testing, remove when done
         reviewed_dict = run_checks( data_dict, classname_dict, user_input_subject_type )
         for key, value in reviewed_dict.items():
 

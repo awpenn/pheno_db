@@ -5,7 +5,7 @@
         AS
         SELECT 
             subject_id,
-            CAST(_data::json->>'sex' as INT) as sex,
+            _data::json->>'sex' as sex,
             _data::json->>'prevad' as prevad,
             _data::json->>'incad' as incad,
             _data::json->>'age' as age,
@@ -13,9 +13,9 @@
             _data::json->>'apoe' as apoe,
             _data::json->>'autopsy' as autopsy,
             _data::json->>'braak' as braak,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'ethnicity' as ethnicity,
-            CAST(_data::json->>'selection' as INT) as selection,
+            _data::json->>'selection' as selection,
             _data::json->>'ad' as ad,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -37,7 +37,7 @@
         AS
         SELECT 
         subject_id, 
-            CAST(_data::json->>'sex' as INT) as sex,
+            _data::json->>'sex' as sex,
             _data::json->>'prevad' as prevad,
             _data::json->>'incad' as incad,
             _data::json->>'age' as age,
@@ -45,9 +45,9 @@
             _data::json->>'apoe' as apoe,
             _data::json->>'autopsy' as autopsy,
             _data::json->>'braak' as braak,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'ethnicity' as ethnicity,
-            CAST(_data::json->>'selection' as INT) as selection,
+            _data::json->>'selection' as selection,
             _data::json->>'ad' as ad,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -70,7 +70,7 @@
         AS
         SELECT 
             subject_id, 
-            CAST(_data::json->>'sex' as INT) as sex,
+            _data::json->>'sex' as sex,
             _data::json->>'prevad' as prevad,
             _data::json->>'incad' as incad,
             _data::json->>'age' as age,
@@ -78,9 +78,9 @@
             _data::json->>'apoe' as apoe,
             _data::json->>'autopsy' as autopsy,
             _data::json->>'braak' as braak,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'ethnicity' as ethnicity,
-            CAST(_data::json->>'selection' as INT) as selection,
+            _data::json->>'selection' as selection,
             _data::json->>'ad' as ad,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -103,7 +103,7 @@
         AS
         SELECT 
             subject_id, 
-            CAST(_data::json->>'sex' as INT) as sex,
+            _data::json->>'sex' as sex,
             _data::json->>'prevad' as prevad,
             _data::json->>'incad' as incad,
             _data::json->>'age' as age,
@@ -111,9 +111,9 @@
             _data::json->>'apoe' as apoe,
             _data::json->>'autopsy' as autopsy,
             _data::json->>'braak' as braak,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'ethnicity' as ethnicity,
-            CAST(_data::json->>'selection' as INT) as selection,
+            _data::json->>'selection' as selection,
             _data::json->>'ad' as ad,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -135,18 +135,18 @@
         AS
         SELECT
             subject_id,
-            CAST(_baseline_data->>'ad' as INT) as baseline_ad,
+            _baseline_data->>'ad' as baseline_ad,
             _baseline_data->>'age' as baseline_age,
-            CAST(_baseline_data->>'sex' as INT) as baseline_sex,
+            _baseline_data->>'sex' as baseline_sex,
             _baseline_data->>'apoe' as baseline_apoe,
-            CAST(_baseline_data->>'race' as INT) as baseline_race,
+            _baseline_data->>'race' as baseline_race,
             _baseline_data->>'braak' as baseline_braak,
             _baseline_data->>'incad' as baseline_incad,
             _baseline_data->>'prevad' as baseline_prevad,
             _baseline_data->>'autopsy' as baseline_autopsy,
             _baseline_data->>'comment' as baseline_comments,
             _baseline_data->>'ethnicity' as baseline_ethnicity,
-            CAST(_baseline_data->>'selection' as INT) as baseline_selection,
+            _baseline_data->>'selection' as baseline_selection,
             _baseline_data->>'age_baseline' as baseline_age_baseline,
             CAST(_baseline_data->>'data_version' as INT) as baseline_data_version,
             data_versions.release_version as baseline_release_version
@@ -299,14 +299,14 @@
         _baseline_data::json->>'famid' as baseline_famid,
         _baseline_data::json->>'mother' as baseline_mother,
         _baseline_data::json->>'father' as baseline_father,
-        CAST(_baseline_data::json->>'sex' as INT) as baseline_sex,
+        _baseline_data::json->>'sex' as baseline_sex,
         _baseline_data::json->>'age' as baseline_age,
         _baseline_data::json->>'apoe' as baseline_apoe,
-        CAST(_baseline_data::json->>'race' as INT) as baseline_race,
+        _baseline_data::json->>'race' as baseline_race,
         _baseline_data::json->>'braak' as baseline_braak,
         _baseline_data::json->>'autopsy' as baseline_autopsy,
-        CAST(_baseline_data::json->>'ad' as INT) as baseline_ad,
-        CAST(_baseline_data::json->>'famgrp' as INT) as baseline_famgrp,
+        _baseline_data::json->>'ad' as baseline_ad,
+        _baseline_data::json->>'famgrp' as baseline_famgrp,
         _baseline_data::json->>'comment' as baseline_comments,
         _baseline_data::json->>'ethnicity' as baseline_ethnicity,
         _baseline_data::json->>'age_baseline' as baseline_age_baseline,
@@ -463,9 +463,9 @@
         AS
         SELECT
             subject_id,
-            CAST(_baseline_data::json->>'sex' as INT) as baseline_sex,
+            _baseline_data::json->>'sex' as baseline_sex,
             _baseline_data::json->>'apoe' as baseline_apoe,
-            CAST(_baseline_data::json->>'race' as INT) as baseline_race,
+            _baseline_data::json->>'race' as baseline_race,
             _baseline_data::json->>'braak' as baseline_braak,
             _baseline_data::json->>'incad' as baseline_incad,
             _baseline_data::json->>'prevad' as baseline_prevad,
@@ -487,33 +487,24 @@
         WHERE ds_subjects_phenotypes_baseline.subject_type = 'ADNI'
         ORDER BY subject_id;
 
-
-
-
-
-
-
-
-
-
 /**these are probably going to be dropped**/
     /*Return current fam for a subject id with its baseline from the baseline table*/
     CREATE OR REPLACE VIEW get_current_and_baseline_cc
         AS 
         SELECT  
             get_current_cc.*, 
-        CAST(_baseline_data->>'ad' as INT) as baseline_ad,
+        _baseline_data->>'ad' as baseline_ad,
         _baseline_data->>'age' as baseline_age,
         _baseline_data->>'sex' as baseline_sex,
         _baseline_data->>'apoe' as baseline_apoe,
-        CAST(_baseline_data->>'race' as INT) as baseline_race,
+        _baseline_data->>'race' as baseline_race,
         _baseline_data->>'braak' as baseline_braak,
         _baseline_data->>'incad' as baseline_incad,
         _baseline_data->>'prevad' as baseline_prevad,
         _baseline_data->>'autopsy' as baseline_autopsy,
         _baseline_data->>'comment' as baseline_comments,
         _baseline_data->>'ethnicity' as baseline_ethnicity,
-        CAST(_baseline_data->>'selection' as INT) as baseline_selection,
+        _baseline_data->>'selection' as baseline_selection,
         _baseline_data->>'age_baseline' as baseline_age_baseline,
         CAST(_baseline_data->>'data_version' as INT) as baseline_data_version,
         data_versions.release_version as baseline_release_version
@@ -536,11 +527,11 @@
         _baseline_data::json->>'sex' as baseline_sex,
         _baseline_data::json->>'age' as baseline_age,
         _baseline_data::json->>'apoe' as baseline_apoe,
-        CAST(_baseline_data::json->>'race' as INT) as baseline_race,
+        _baseline_data::json->>'race' as baseline_race,
         _baseline_data::json->>'braak' as baseline_braak,
         _baseline_data::json->>'autopsy' as baseline_autopsy,
-        CAST(_baseline_data::json->>'ad' as INT) as baseline_ad,
-        CAST(_baseline_data::json->>'famgrp' as INT) as baseline_famgrp,
+        _baseline_data::json->>'ad' as baseline_ad,
+        _baseline_data::json->>'famgrp' as baseline_famgrp,
         _baseline_data::json->>'comment' as baseline_comments,
         _baseline_data::json->>'ethnicity' as baseline_ethnicity,
         _baseline_data::json->>'age_baseline' as baseline_age_baseline,
@@ -560,11 +551,11 @@
         AS
         SELECT 
             subject_id,
-            CAST(_data::json->>'sex' as INT) as sex,
-            CAST(_data::json->>'diagnosis' as INT) as diagnosis,
+            _data::json->>'sex' as sex,
+            _data::json->>'diagnosis' as diagnosis,
             _data::json->>'ageonset' as age_onset,
             _data::json->>'agedeath' as age_death,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'duplicate_subjid' as duplicate_subjid,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -587,11 +578,11 @@
         AS
         SELECT 
             subject_id,
-            CAST(_data::json->>'sex' as INT) as sex,
-            CAST(_data::json->>'diagnosis' as INT) as diagnosis,
+            _data::json->>'sex' as sex,
+            _data::json->>'diagnosis' as diagnosis,
             _data::json->>'ageonset' as age_onset,
             _data::json->>'agedeath' as age_death,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'duplicate_subjid' as duplicate_subjid,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -615,11 +606,11 @@
         AS
         SELECT 
             subject_id,
-            CAST(_data::json->>'sex' as INT) as sex,
-            CAST(_data::json->>'diagnosis' as INT) as diagnosis,
+            _data::json->>'sex' as sex,
+            _data::json->>'diagnosis' as diagnosis,
             _data::json->>'ageonset' as age_onset,
             _data::json->>'agedeath' as age_death,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'duplicate_subjid' as duplicate_subjid,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -642,11 +633,11 @@
         AS
         SELECT 
             subject_id,
-            CAST(_data::json->>'sex' as INT) as sex,
-            CAST(_data::json->>'diagnosis' as INT) as diagnosis,
+            _data::json->>'sex' as sex,
+            _data::json->>'diagnosis' as diagnosis,
             _data::json->>'ageonset' as age_onset,
             _data::json->>'agedeath' as age_death,
-            CAST(_data::json->>'race' as INT) as race,
+            _data::json->>'race' as race,
             _data::json->>'duplicate_subjid' as duplicate_subjid,
             _data::json->>'comments' as comments,
             CAST(_data::json->>'data_version' as INT) as data_version,
@@ -669,11 +660,11 @@
         AS
         SELECT
             subject_id,
-            CAST(_baseline_data::json->>'sex' as INT) as sex,
-            CAST(_baseline_data::json->>'diagnosis' as INT) as diagnosis,
+            _baseline_data::json->>'sex' as sex,
+            _baseline_data::json->>'diagnosis' as diagnosis,
             _baseline_data::json->>'ageonset' as age_onset,
             _baseline_data::json->>'agedeath' as age_death,
-            CAST(_baseline_data::json->>'race' as INT) as race,
+            _baseline_data::json->>'race' as race,
             _baseline_data::json->>'duplicate_subjid' as duplicate_subjid,
             _baseline_data::json->>'comments' as comments,
             CAST(_baseline_data::json->>'data_version' as INT) as data_version,
