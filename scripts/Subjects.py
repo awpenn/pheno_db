@@ -38,8 +38,12 @@ class Non_PSP_Subject:
         if checktype == 'initial-validation':
             self.comments = subject_data[ "comments" ]
 
-        if checktype == "update-validation":
-            self.subject_id = subject_data[ "subject_id" ]
+        if checktype == 'update-validation':
+            try: ## have to do this because sometimes it subject_id, sometimes it subjid
+                self.subject_id = subject_data[ "subject_id" ]
+            except KeyError:
+                self.subject_id = subject_data[ "subjid" ]
+
             self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
             self.previous_apoe = subject_data[ "prev_apoe" ]
             self.previous_autopsy = subject_data[ "prev_autopsy" ]
@@ -169,7 +173,11 @@ class PSP_Subject:
             self.comments = subject_data[ "comments" ]
     
         if checktype == 'update-validation':
-            self.subject_id = subject_data[ "subject_id" ]
+            try: ## have to do this because sometimes it subject_id, sometimes it subjid
+                self.subject_id = subject_data[ "subject_id" ]
+            except KeyError:
+                self.subject_id = subject_data[ "subjid" ]
+                
             self.previous_comments = subject_data["prev_comments"]
             self.previous_race = subject_data[ "prev_race" ]
             self.previous_sex = subject_data[ "prev_sex" ]

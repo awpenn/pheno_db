@@ -59,7 +59,12 @@ def create_data_dict( LOADFILE, subject_type ):
                     except:
                         blob[headers[index].lower()] = value
 
-                data_dict[ blob["subject_id"] ] = blob
+                ## generated comparison file and database want 'subject_id', 
+                ## legacy data has 'subjid' so this just prevents key error if it's the wrong one in the file being processed
+                try:
+                    data_dict[ blob["subject_id"] ] = blob
+                except KeyError:
+                    data_dict[ blob["subjid"] ] = blob
 
     return data_dict
 
