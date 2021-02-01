@@ -14,9 +14,7 @@ from pheno_utils import *
 from Subjects import *
 
 def main():
-    ## 1/15/21 testing
-    # user_input_subject_type = 'case/control'
-    # LOADFILE = '129-test-update.csv'
+
     user_input_subject_type = get_subject_type()
     LOADFILE = get_filename()
     

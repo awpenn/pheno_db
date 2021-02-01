@@ -124,7 +124,7 @@ def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_ty
             if var in modified_dictionary_varlist:
                 continue
             else:
-                return 0, f'{ var } is not in the { subject_type } dictionary.  Please check the correctness of your loadfile.'
+                return 0, f'"{ var }" is not in the { subject_type } dictionary.  Please check the correctness of your loadfile.'
         
         return 1, f'Variables in { LOADFILE } match those in dictionary for { subject_type }'
 
