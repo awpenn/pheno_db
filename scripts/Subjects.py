@@ -42,7 +42,7 @@ class Non_PSP_Subject:
             try: ## have to do this because sometimes it subject_id, sometimes it subjid
                 self.subject_id = subject_data[ "subject_id" ]
             except KeyError:
-                self.subject_id = subject_data[ "subjid" ]
+                self.subject_id = subject_data[ "SUBJID" ]
 
             self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
             self.previous_apoe = subject_data[ "prev_apoe" ]
@@ -60,11 +60,12 @@ class Non_PSP_Subject:
     ## checks run as part of initial and update validation ( ie. no comparison data required )
     def check_for_blank_values( self ):
         """enumerates over object properties, checks that all (excluding comments) have a given value"""  
-        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors' ] 
+        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors', 'comments', 'previous_comments' ] ## these are vars in class object, NOT directly from data
         blank_variable_list = []
         for variable, value in vars( self ).items():
             if variable not in variables_to_skip:
                 if value == '' and variable.lower() != 'comments':
+                    breakpoint()
                     blank_variable_list.append( variable )
         
         if blank_variable_list:
@@ -176,7 +177,7 @@ class PSP_Subject:
             try: ## have to do this because sometimes it subject_id, sometimes it subjid
                 self.subject_id = subject_data[ "subject_id" ]
             except KeyError:
-                self.subject_id = subject_data[ "subjid" ]
+                self.subject_id = subject_data[ "SUBJID" ]
                 
             self.previous_comments = subject_data["prev_comments"]
             self.previous_race = subject_data[ "prev_race" ]
@@ -204,11 +205,12 @@ class PSP_Subject:
     ## Initial validation checks ( no comparison data )
     def check_for_blank_values( self ):
         """enumerates over object properties, checks that all (excluding comments) have a given value"""  
-        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors' ] 
+        variables_to_skip = [ 'dictionary', 'all_data', 'data_errors', 'comments', 'prev_comments' ] 
         blank_variable_list = []
         for variable, value in vars( self ).items():
             if variable not in variables_to_skip:
                 if value == '' and variable.lower() != 'comments':
+                    breakpoint()
                     blank_variable_list.append( variable )
         
         if blank_variable_list:

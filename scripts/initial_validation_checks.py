@@ -15,8 +15,8 @@ from Subjects import *
 
 def main():
     ## 1/15/21 testing
-    # user_input_subject_type = 'family'
-    # LOADFILE = 'fam-published.csv'
+    # user_input_subject_type = 'case/control'
+    # LOADFILE = '129-test-update.csv'
     user_input_subject_type = get_subject_type()
     LOADFILE = get_filename()
     
@@ -41,6 +41,7 @@ def main():
             if 'data_errors' in value.keys():
                 ## have to flip the dataframe columns/rows with .transpose()
                 df = pd.read_json( json.dumps( reviewed_dict ) ).transpose()
+                df.index.name = 'SUBJID'
                 create_tsv( df, user_input_subject_type )
                 print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
                 ## Found an error, generated the tsv and now will exit. 

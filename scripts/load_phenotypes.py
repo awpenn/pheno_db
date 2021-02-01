@@ -73,7 +73,10 @@ def write_to_db(data_dict):
         diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
 
     for key, value in data_dict.items():
-        subject_id = value.pop('subjid')
+        try: ## have to deal with subjid vs subject_id
+            subject_id = value.pop( 'subjid' )
+        except KeyError:
+            subject_id = value.pop( 'subject_id' )
 
         #have to add these to data here because otherwise will always show as "new not in database"
         value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )

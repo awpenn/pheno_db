@@ -66,8 +66,10 @@ def write_to_db(data_dict):
         diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
 
     for key, value in data_dict.items():
-        # subject_id = value["subject_id"]
-        subject_id = value.pop("subjid")
+        if 'subjid' in value.keys(): ## handling for subjid/subject_id inconsistency
+            subject_id = value.pop( "subjid" )
+        else:
+            subject_id = value.pop( "subject_id" )
         version = value["data_version"]
 
         #have to add these to data here because otherwise will always show as "new not in database"

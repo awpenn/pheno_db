@@ -422,18 +422,22 @@ def create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_ve
 
                     blob[ "data_version" ] = release_dict[ data_version ]
 
+                if 'subjid' in [ x.lower() for x in blob.keys() ]: ## handling for subjid/subject_id inconsistency
+                    subject_id_varname = 'subjid'
+                else:
+                    subject_id_varname = 'subject_id'
                 ## if need to check for published AND unpublished records for subject, use the two checklists created, 
                 # otherwise, just the one with pubstat dependant on user input
                 if script_name in scripts_requiring_pub_and_unpub_check:
-                    if check_not_duplicate( blob[ "subjid" ], published_dupecheck_list ) and check_not_duplicate( blob[ "subjid" ], unpublished_dupecheck_list ):
-                        data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
+                    if check_not_duplicate( blob[ subject_id_varname ], published_dupecheck_list ) and check_not_duplicate( blob[ subject_id_varname ], unpublished_dupecheck_list ):
+                        data_dict[f'{ blob[subject_id_varname] }_{ data_version }'] = blob
                     else:
-                        print( f'{ blob[ "subjid" ] } already has record in { data_version }')
+                        print( f'{ blob[ subject_id_varname ] } already has record in { data_version }')
                 else:
-                    if check_not_duplicate( blob[ "subjid" ], dupecheck_list ):
-                        data_dict[f'{ blob["subjid"] }_{ data_version }'] = blob
+                    if check_not_duplicate( blob[ subject_id_varname ], dupecheck_list ):
+                        data_dict[f'{ blob[ subject_id_varname ] }_{ data_version }'] = blob
                     else:
-                        print(f'{ blob[ "subjid" ] } already has record in { data_version }')
+                        print(f'{ blob[ subject_id_varname ] } already has record in { data_version }')
 
     return data_dict
 
@@ -447,7 +451,7 @@ def create_comparison_data_dict( LOADFILE, subject_type ):
         """"get the relationship table names and indexes from the csv file headers"""
         pheno_file = csv.reader(csv_file)
         headers = next(pheno_file)
-        
+
         for row in pheno_file:
             if pheno_file.line_num > 1:
                 blob = {}
@@ -457,12 +461,17 @@ def create_comparison_data_dict( LOADFILE, subject_type ):
                     except:
                         blob[headers[index].lower()] = value
                     
-                data_dict[ blob["subjid"] ] = blob
-
+                try: ## resolve subjid vs. subject_id errors between generated files, legacy data, database, etc. 
+                    data_dict[ blob[ "subjid" ] ] = blob
+                except:
+                    data_dict[ blob[ "subject_id" ] ] = blob
 
     for key, record in data_dict.items():
         """remove subject id from blob for each record in dict"""
-        record.pop('subjid')
+        try: #deal with subjid vs subject_id
+            record.pop( 'subjid' )
+        except KeyError:
+            record.pop( 'subject_id' )
 
     return data_dict
 
