@@ -65,7 +65,6 @@ class Non_PSP_Subject:
         for variable, value in vars( self ).items():
             if variable not in variables_to_skip:
                 if value == '' and variable.lower() != 'comments':
-                    breakpoint()
                     blank_variable_list.append( variable )
         
         if blank_variable_list:
@@ -210,7 +209,6 @@ class PSP_Subject:
         for variable, value in vars( self ).items():
             if variable not in variables_to_skip:
                 if value == '' and variable.lower() != 'comments':
-                    breakpoint()
                     blank_variable_list.append( variable )
         
         if blank_variable_list:
