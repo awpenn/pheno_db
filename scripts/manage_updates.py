@@ -42,17 +42,21 @@ def main():
         
     else:
         print( msg )
-        data_dict = create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name )
-        write_to_db( data_dict )
+        data_dict = create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
+        write_to_db( data_dict, data_version )
 
-def write_to_db(data_dict):
-    """takes data dict and publish boolean and writes to database"""
+def write_to_db( data_dict, data_version_string ):
+    """takes data dict and string version of data version and writes to database"""
     requires_ad_status_check = ['case/control', 'family']
     requires_diagnosis_update_check = ['ADNI', 'PSP/CDB']
 
     global user_input_subject_type
     global publish_status
-        ## gets list of subjects in baseline table of type matching the user_input_subject_type, so can see if have to add to baseline table
+
+    data_version = None ## saving data version id from dict so can set publish status in data_version table after upload
+    write_counter = 0
+    
+    ## gets list of subjects in baseline table of type matching the user_input_subject_type, so can see if have to add to baseline table
     baseline_dupecheck_list = build_baseline_dupcheck_list( user_input_subject_type )
 
     ## dicts for dbcall-less flag updates
@@ -66,6 +70,8 @@ def write_to_db(data_dict):
         diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
 
     for key, value in data_dict.items():
+        data_version = value[ "data_version" ] ## saving data version id from dict so can set publish status in data_version table after upload
+
         if 'subjid' in value.keys(): ## handling for subjid/subject_id inconsistency
             subject_id = value.pop( "subjid" )
         else:
@@ -87,9 +93,19 @@ def write_to_db(data_dict):
 
         if publish_status:
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{ subject_id }', '{ _data }', TRUE) WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
+            write_counter += 1
         else:
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{ subject_id }', '{ _data }') WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
 
+    if write_counter > 0:
+        if user_input_publish_dataset( data_version_string, write_counter ):
+            change_data_version_published_status( "TRUE", data_version )
+        else:
+            print( f"Phenotype records published for { data_version_string } and cannot be changed, but version not published." )
+            change_data_version_published_status( "FALSE", data_version )
+    else:
+        print( "No added records were published." )
+        
 if __name__ == '__main__':
     main()
     # generate_errorlog()

@@ -20,19 +20,24 @@ success_id_log = []
 error_log = {}
 
 user_input_subject_type = ''
-publish_status = False
 script_name = 'load_phenotypes.py'
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global user_input_subject_type
-    global publish_status
+
+    print(
+        "This script is intended for loading legacy (already published) phenotype data.\n \
+If you are loading phenotype updates not currently in the database, please use the `load_unpublished_updates` script. \n \
+If you are uploading changes to updates already in the database, but which are not yet ready to publish, please use the `manage_phenotypes` script. " 
+    )
+    
+    time.sleep(5)
 
     user_input_subject_type = get_subject_type()
-    
+
     data_version = user_input_data_version()
 
-    publish_status = get_publish_action()
     
     LOADFILE = get_filename()
 
@@ -47,18 +52,21 @@ def main():
     else:
         print( msg )
         ## 12/15 create_data_dict generalized and moved to utils
-        data_dict = create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name )
-        write_to_db( data_dict )
+        data_dict = create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
+        write_to_db( data_dict, data_version )
 
+    print('end ', datetime.datetime.now())
 
-def write_to_db(data_dict):
+def write_to_db( data_dict, data_version_string ):
     """takes data dict and writes to database"""
 
     requires_ad_status_check = [ 'case/control', 'family' ]
     requires_diagnosis_update_check = [ 'ADNI', 'PSP/CDB' ]
 
     global user_input_subject_type
-    global publish_status
+    data_version = None ## saving data version id from dict so can set publish status in data_version table after upload
+    write_counter = 0
+
     ## gets list of subjects in baseline table of type matching the user_input_subject_type, so can see if have to add to baseline table
     baseline_dupecheck_list = build_baseline_dupcheck_list( user_input_subject_type )
 
@@ -73,6 +81,8 @@ def write_to_db(data_dict):
         diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
 
     for key, value in data_dict.items():
+        data_version = value[ "data_version" ] ## saving data version id from dict so can set publish status in data_version table after upload
+
         try: ## have to deal with subjid vs subject_id
             subject_id = value.pop( 'subjid' )
         except KeyError:
@@ -91,8 +101,23 @@ def write_to_db(data_dict):
 
         _data = json.dumps( value )
 
-        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', { publish_status })")
-        save_baseline( baseline_dupecheck_list, subject_id, value )
+        try:
+            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', TRUE)")
+            save_baseline( baseline_dupecheck_list, subject_id, value )
+            write_counter += 1
+
+        except:
+            print(f"Error making entry for { subject_id } in { data_version_string }")
+
+    ## ask user if ready to publish dataset, if yes, will flip publish boolean in data versions table
+    if write_counter > 0:
+        if user_input_publish_dataset( data_version_string, write_counter ):
+            change_data_version_published_status( "TRUE", data_version )
+        else:
+            print( f"Phenotype records published for { data_version_string } and cannot be changed, but version not published." )
+            change_data_version_published_status( "FALSE", data_version )
+    else:
+        print( "No records entered in database." )
 
 def create_baseline_json( data ):
     """takes dict entry for subject being added to database and creates the copy of data for baseline table, returning json string"""
@@ -118,6 +143,5 @@ def save_baseline( baseline_dupecheck_list, subject_id, data ):
 
 if __name__ == '__main__':
     main()
-    print('end ', datetime.datetime.now())
     # generate_errorlog()
     # generate_success_list()

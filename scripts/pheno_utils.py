@@ -50,6 +50,10 @@ def database_connection(query):
             connection.close()
             # print('database connection closed')
 
+def change_data_version_published_status( data_version_published_status, data_version ):
+    """takes user-input publish status for data version and data_version id, returns nothing"""
+    database_connection(f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = { data_version }")
+
 #check-functions for data correctness
 def build_dupecheck_list( data_version_id, pub_check, subject_type ):
     """takes version, publication status and subject type as args,
@@ -300,12 +304,13 @@ def get_subject_to_drop(view_based_on_subject_type):
     return single_dict
 
 def user_input_data_version():
-    """takes nothing, returns subject_type for data being handled"""
-    data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection("SELECT DISTINCT release_version FROM data_versions") ]
+    """takes no arg, returns subject_type for data being handled"""
+    ## only returns versions not published, so once published, data cant be overwritten accidently 
+    data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection("SELECT DISTINCT release_version FROM data_versions WHERE published = FALSE") ]
 
     while True:
         try:
-            version_input = input(f"Which release_version does your data belong to (select from list) Please only load data from one release at a time? {data_versions}")
+            version_input = input(f"Which release_version does your data belong to (select from list)? Please only load data from one release at a time. {data_versions}")
         except ValueError:
             continue
         if version_input in data_versions:
@@ -314,6 +319,27 @@ def user_input_data_version():
         else:
             print("Please input a valid entry. ")
             continue 
+
+def user_input_publish_dataset( data_version_string, write_counter ):
+    qstring = f"SELECT COUNT(*) FROM ds_subjects_phenotypes \
+                JOIN data_versions \
+                    ON CAST(ds_subjects_phenotypes._data::json->>'data_version' AS INT) = data_versions.id \
+                        WHERE data_versions.release_version = '{ data_version_string }'"
+    subjects_by_version_in_db = database_connection( qstring )
+
+    while True:
+        try:
+            publish_input = input(f"{ write_counter } Phenotypes loaded for { data_version_string }. { subjects_by_version_in_db[ 0 ][ 0 ] } total phenotype records for { data_version_string }  Are you ready to publish dataset?(y/n) ")
+        except ValueError:
+            continue
+        if publish_input not in [ 'y', 'n' ]:
+            print('Invalid input.')
+            continue
+        else:
+            if publish_input == 'y':
+                return True
+            else:
+                return False
 
 # log generators
 def generate_errorlog():
@@ -384,7 +410,7 @@ def build_release_dict():
 
     return release_dict
 
-def create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_version, script_name ):
+def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name ):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     """used in the loading and management scripts""" ## nb. 1/14/21 - could consolidate with create_comparison_data_dict ?
     scripts_requiring_pub_and_unpub_check = ['load_unpublished_updates.py']
@@ -399,7 +425,7 @@ def create_data_dict( LOADFILE, user_input_subject_type, publish_status, data_ve
     ## 12/15 have to think about this more, right now 'else' runs if load_pheno or manage_updates, don't think in either of those cases want
     ## to worry about duplicate unpublished records.  
     else:
-        dupecheck_list = build_dupecheck_list( release_dict[ data_version ], f'PUBLISHED = TRUE', user_input_subject_type )
+        dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = TRUE', user_input_subject_type )
     
     data_dict = {}
 

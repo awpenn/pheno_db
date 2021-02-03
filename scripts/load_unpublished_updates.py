@@ -22,7 +22,7 @@ user_input_subject_type = ''
 script_name = 'load_unpublished_updates.py'
 
 def main():
-    """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
+    """main conductor function for the script.  Gets some user input about the type of data being uploaded and runs the process from there."""
     global user_input_subject_type
 
     user_input_subject_type = get_subject_type()
@@ -39,17 +39,17 @@ def main():
         
     else:
         print( msg )
-        data_dict = create_data_dict( LOADFILE, user_input_subject_type, 'PUBLISHED=FALSE', data_version, script_name )
+        data_dict = create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
         write_to_db( data_dict )
 
-def write_to_db(data_dict):
+def write_to_db( data_dict ):
     """takes data dict and writes to database"""
 
     requires_ad_status_check = ['case/control', 'family']
     requires_diagnosis_update_check = ['ADNI', 'PSP/CDB']
     
     global user_input_subject_type    
-    global publish_status
+
     ## gets list of subjects in baseline table of type matching the user_input_subject_type, so can see if have to add to baseline table
     baseline_dupecheck_list = build_baseline_dupcheck_list( user_input_subject_type )
 
