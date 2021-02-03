@@ -40,7 +40,11 @@ def main():
     else:
         print( msg )
         data_dict = create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
-        write_to_db( data_dict )
+
+        if data_dict: ## ie. if any records were found that can be added to the database
+            write_to_db( data_dict )
+        else:
+            print( "No records will be added to the database." )
 
 def write_to_db( data_dict ):
     """takes data dict and writes to database"""
