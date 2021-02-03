@@ -5,7 +5,14 @@
 		declare
 			i RECORD;
 		BEGIN
-			for i in (select distinct ds_subjects_phenotypes.subject_id, max(ds_subjects_phenotypes._data->>'data_version') as dv from ds_subjects_phenotypes WHERE ds_subjects_phenotypes.published = TRUE GROUP BY ds_subjects_phenotypes.subject_id)
+			for i in (SELECT DISTINCT ds_subjects_phenotypes.subject_id, max(ds_subjects_phenotypes._data->>'data_version') 
+						AS dv FROM ds_subjects_phenotypes 
+						JOIN data_versions
+						ON CAST(ds_subjects_phenotypes._data->>'data_version' AS INT) = data_versions.id
+						WHERE ds_subjects_phenotypes.published = TRUE
+						AND data_versions.published = TRUE 
+						GROUP BY ds_subjects_phenotypes.subject_id
+					)
 				loop
 					return query select ds_subjects_phenotypes.id, ds_subjects_phenotypes.subject_id, ds_subjects_phenotypes._data, ds_subjects_phenotypes.subject_type, ds_subjects_phenotypes.published FROM ds_subjects_phenotypes WHERE ds_subjects_phenotypes.subject_id = i.subject_id AND ds_subjects_phenotypes.subject_type = 'case/control' AND ds_subjects_phenotypes._data->>'data_version' = i.dv;
 				end loop;
