@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/id_db/.venv/lib/python3.6/site-packages')
+sys.path.append('/pheno_db/.venv/lib/python3.7/site-packages/')
 
 import psycopg2
 import csv
