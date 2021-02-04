@@ -148,6 +148,7 @@ class Non_PSP_Subject:
             else:
                 if self.age != 'NA' and self.previous_age == 'NA':
                     self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
+                    return
 
         if not self.age >= self.previous_age:
             self.data_errors[ "age_check" ] = "Age decreased between last release and update."
@@ -271,7 +272,7 @@ class Case_Control_Subject( Non_PSP_Subject ):
 
         self.ad_check()
         self.prevad_age_baseline_check()
-        self.braak_inc_prev_check()
+        # self.braak_inc_prev_check() # disabled for test 2/4
 
         return self.data_errors
         
