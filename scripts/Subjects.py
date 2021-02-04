@@ -272,7 +272,7 @@ class Case_Control_Subject( Non_PSP_Subject ):
 
         self.ad_check()
         self.prevad_age_baseline_check()
-        # self.braak_inc_prev_check() # disabled for test 2/4
+        self.braak_inc_prev_check()
 
         return self.data_errors
         
