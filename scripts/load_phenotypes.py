@@ -41,7 +41,8 @@ If you are uploading changes to updates already in the database, but which are n
     
     LOADFILE = get_filename()
 
-    print('start ', datetime.datetime.now())
+    start_time = datetime.datetime.now()
+    print('start ', start_time)
 
     variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
@@ -56,7 +57,8 @@ If you are uploading changes to updates already in the database, but which are n
         write_to_db( data_dict, data_version )
 
     print('end ', datetime.datetime.now())
-
+    print(f"( Program started { start_time } )")
+    
 def write_to_db( data_dict, data_version_string ):
     """takes data dict and writes to database"""
 
