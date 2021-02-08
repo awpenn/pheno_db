@@ -42,7 +42,8 @@ def main():
                 df.index.name = 'SUBJID'
                 create_tsv( df, user_input_subject_type )
                 print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
-                ## Found an error, generated the tsv and now will exit. 
+                ## Found an error, generated the tsv and now will exit.\
+                print('end checks ', datetime.datetime.now().strftime("%H:%M:%S") )
                 sys.exit()
 
         print(f"No data errors found in { LOADFILE }.")
@@ -70,6 +71,6 @@ def run_checks( data_dict, classname_dict, subject_type ):
     return review_dict
 
 if __name__ == '__main__':
-    print('start ', datetime.datetime.now().strftime("%H:%M:%S") )
+    # print('start ', datetime.datetime.now().strftime("%H:%M:%S") )
     main()  
-    print('end ', datetime.datetime.now().strftime("%H:%M:%S") )
+    # print('end ', datetime.datetime.now().strftime("%H:%M:%S") )

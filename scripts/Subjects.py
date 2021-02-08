@@ -150,8 +150,8 @@ class Non_PSP_Subject:
                     self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
                     return
 
-        if not self.age >= self.previous_age:
-            self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+        # if not self.age >= self.previous_age:
+        #     self.data_errors[ "age_check" ] = "Age decreased between last release and update."
 
     def update_age_under_50_check( self ):        
         if self.age !='NA' and self.previous_age !='NA':
