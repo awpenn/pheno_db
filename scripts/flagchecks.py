@@ -57,7 +57,7 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
 
 ## update_latest
 def build_update_latest_dict( subject_type ):
-    """takes subject_type, gets all subject data from get_current_[type] view for particular subject type, keyed by subject_id"""
+    """takes subject_type, gets all subject data from [type]_current view for particular subject type, keyed by subject_id"""
 
     current_view = database_connection(f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }' ")[ 0 ][ 0 ]    
     try:

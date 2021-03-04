@@ -1,3 +1,20 @@
+-- DROPS 
+    DROP VIEW _get_current_data CASCADE;
+    DROP VIEW _get_unpublished_updates_data CASCADE;
+    DROP VIEW _get_newest_data CASCADE;
+
+    DROP VIEW cc_all CASCADE;
+    DROP VIEW fam_all CASCADE;
+    DROP VIEW adni_all CASCADE;
+    DROP VIEW psp_cdb_all CASCADE;
+
+    DROP VIEW cc_baseline CASCADE;
+    DROP VIEW fam_baseline CASCADE;
+    DROP VIEW adni_baseline CASCADE;
+    DROP VIEW psp_cdb_baseline CASCADE;
+--
+--
+--
 -- JSON sorting views
 ---Get all current json
     CREATE OR REPLACE VIEW _get_current_data AS
@@ -62,12 +79,13 @@
             ) as subq
         JOIN ds_subjects_phenotypes
         ON subq.subject_id = ds_subjects_phenotypes.subject_id AND subq.dv = ds_subjects_phenotypes._data->>'data_version';
+
 --
 --
 --
 -- Case/control
 ---get all case/control
-    CREATE OR REPLACE VIEW get_all_cc
+    CREATE OR REPLACE VIEW cc_all
         AS
         SELECT 
             subject_id,
@@ -98,7 +116,7 @@
         WHERE subject_type = 'case/control'
         ORDER BY subject_id ASC, data_version DESC;
 ---get current case/control
-    CREATE OR REPLACE VIEW get_current_cc
+    CREATE OR REPLACE VIEW cc_current
         AS
         SELECT 
             subject_id, 
@@ -131,7 +149,7 @@
         ORDER BY subject_id ASC, data_version DESC;
 
 ---get unpublished updates case/control
-    CREATE OR REPLACE VIEW get_unpublished_updates_cc
+    CREATE OR REPLACE VIEW cc_unpublished_updates
         AS
         SELECT 
             subject_id, 
@@ -165,7 +183,7 @@
 
 
 ---get newest case/control
-    CREATE OR REPLACE VIEW get_newest_cc
+    CREATE OR REPLACE VIEW cc_newest
         AS
         SELECT 
             subject_id, 
@@ -196,12 +214,37 @@
             ON d1.id = CAST(_data::json->>'data_version' as INT)
         WHERE subject_type = 'case/control'
         ORDER BY subject_id ASC, data_version DESC;
+---get baseline case/control
+    CREATE OR REPLACE VIEW cc_baseline
+        AS
+        SELECT
+            subject_id,
+            _baseline_data->>'ad' as baseline_ad,
+            _baseline_data->>'age' as baseline_age,
+            _baseline_data->>'sex' as baseline_sex,
+            _baseline_data->>'apoe' as baseline_apoe,
+            _baseline_data->>'race' as baseline_race,
+            _baseline_data->>'braak' as baseline_braak,
+            _baseline_data->>'incad' as baseline_incad,
+            _baseline_data->>'prevad' as baseline_prevad,
+            _baseline_data->>'autopsy' as baseline_autopsy,
+            _baseline_data->>'comment' as baseline_comments,
+            _baseline_data->>'ethnicity' as baseline_ethnicity,
+            _baseline_data->>'selection' as baseline_selection,
+            _baseline_data->>'age_baseline' as baseline_age_baseline,
+            CAST(_baseline_data->>'data_version' as INT) as baseline_data_version,
+            data_versions.release_version as baseline_release_version
+        FROM ds_subjects_phenotypes_baseline
+        JOIN data_versions
+            ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'data_version' AS INT)
+        WHERE ds_subjects_phenotypes_baseline.subject_type = 'case/control'
+        ORDER BY subject_id;
 --
 --
 --
 -- family
 ---get all family
-    CREATE OR REPLACE VIEW get_all_fam
+    CREATE OR REPLACE VIEW fam_all
         AS
         SELECT 
             subject_id,
@@ -233,7 +276,7 @@
         WHERE subject_type = 'family'
         ORDER BY subject_id ASC, data_version DESC;
 ---get current family
-    CREATE OR REPLACE VIEW get_current_fam
+    CREATE OR REPLACE VIEW fam_current
         AS
         SELECT 
             subject_id,
@@ -266,7 +309,7 @@
         WHERE subject_type = 'family'
         ORDER BY subject_id ASC, data_version DESC;
 ---get unpublished updates family
-    CREATE OR REPLACE VIEW get_unpublished_updates_fam
+    CREATE OR REPLACE VIEW fam_unpublished_updates
         AS
         SELECT 
             subject_id,
@@ -299,7 +342,7 @@
         WHERE subject_type = 'family'
         ORDER BY subject_id ASC, data_version DESC;
 ---get newest family
-    CREATE OR REPLACE VIEW get_unpublished_updates_fam
+    CREATE OR REPLACE VIEW fam_newest
         AS
         SELECT 
             subject_id,
@@ -331,12 +374,38 @@
             ON d1.id = CAST(_data::json->>'data_version' as INT)
         WHERE subject_type = 'family'
         ORDER BY subject_id ASC, data_version DESC;
+---get baseline family
+    CREATE OR REPLACE VIEW fam_baseline
+        AS
+        SELECT 
+            subject_id,
+        _baseline_data::json->>'famid' as baseline_famid,
+        _baseline_data::json->>'mother' as baseline_mother,
+        _baseline_data::json->>'father' as baseline_father,
+        _baseline_data::json->>'sex' as baseline_sex,
+        _baseline_data::json->>'age' as baseline_age,
+        _baseline_data::json->>'apoe' as baseline_apoe,
+        _baseline_data::json->>'race' as baseline_race,
+        _baseline_data::json->>'braak' as baseline_braak,
+        _baseline_data::json->>'autopsy' as baseline_autopsy,
+        _baseline_data::json->>'ad' as baseline_ad,
+        _baseline_data::json->>'famgrp' as baseline_famgrp,
+        _baseline_data::json->>'comment' as baseline_comments,
+        _baseline_data::json->>'ethnicity' as baseline_ethnicity,
+        _baseline_data::json->>'age_baseline' as baseline_age_baseline,
+        CAST(_baseline_data::json->>'data_version' as INT) as baseline_data_version,
+        data_versions.release_version as baseline_release_version       
+        FROM ds_subjects_phenotypes_baseline 
+        JOIN data_versions
+            ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'data_version' AS INT)
+        WHERE ds_subjects_phenotypes_baseline.subject_type = 'family'
+        ORDER BY subject_id;
 --
 --
 --
 -- ADNI
 ---get all ADNI
-    CREATE OR REPLACE VIEW get_all_adni
+    CREATE OR REPLACE VIEW adni_all
         AS
         SELECT 
             subject_id,
@@ -370,7 +439,7 @@
         WHERE subject_type = 'ADNI'
         ORDER BY subject_id ASC, data_version DESC;
 ---get current ADNI
-    CREATE OR REPLACE VIEW get_current_adni
+    CREATE OR REPLACE VIEW adni_current
         AS
         SELECT 
             subject_id,
@@ -404,7 +473,7 @@
         WHERE subject_type = 'ADNI'
         ORDER BY subject_id ASC, data_version DESC;
 ---get unpublished updates ADNI
-    CREATE OR REPLACE VIEW get_unpublished_updates_adni
+    CREATE OR REPLACE VIEW adni_unpublished_updates
         AS
         SELECT 
             subject_id,
@@ -438,7 +507,7 @@
         WHERE subject_type = 'ADNI'
         ORDER BY subject_id ASC, data_version DESC;
 ---get newest ADNI
-    CREATE OR REPLACE VIEW get_newest_adni
+    CREATE OR REPLACE VIEW adni_newest
         AS
         SELECT 
             subject_id,
@@ -471,12 +540,41 @@
             ON d1.id = CAST(_data::json->>'data_version' as INT)
         WHERE subject_type = 'ADNI'
         ORDER BY subject_id ASC, data_version DESC;
+---get baseline ADNI
+    CREATE OR REPLACE VIEW adni_baseline
+        AS
+        SELECT
+            subject_id,
+            _baseline_data::json->>'sex' as baseline_sex,
+            _baseline_data::json->>'apoe' as baseline_apoe,
+            _baseline_data::json->>'race' as baseline_race,
+            _baseline_data::json->>'braak' as baseline_braak,
+            _baseline_data::json->>'incad' as baseline_incad,
+            _baseline_data::json->>'prevad' as baseline_prevad,
+            _baseline_data::json->>'autopsy' as baseline_autopsy,
+            _baseline_data::json->>'comments' as baseline_comments,
+            _baseline_data::json->>'ethnicity' as baseline_ethnicity,
+            _baseline_data::json->>'age_current' as baseline_age_current,
+            _baseline_data::json->>'age_mci_onset' as baseline_age_mci_onset,
+            _baseline_data::json->>'age_ad_onset' as baseline_age_ad_onset,
+            _baseline_data::json->>'age_baseline' as baseline_age_baseline,
+            CAST(_baseline_data::json->>'ad_last_visit' as INT) as baseline_ad_last_visit,
+            CAST(_baseline_data::json->>'mci_last_visit' as INT) as baseline_mci_last_visit,
+            CAST(_baseline_data::json->>'data_version' as INT) as baseline_data_version,
+            data_versions.release_version as baseline_release_version     
+
+        FROM ds_subjects_phenotypes_baseline 
+        JOIN data_versions
+            ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'data_version' AS INT)
+        WHERE ds_subjects_phenotypes_baseline.subject_type = 'ADNI'
+        ORDER BY subject_id;
+
 --
 --
 --
 -- PSP/CDB
 ---get all PSP/CDB
-    CREATE OR REPLACE VIEW get_all_psp_cdb
+    CREATE OR REPLACE VIEW psp_cdb_all
         AS
         SELECT 
             subject_id,
@@ -502,7 +600,7 @@
         WHERE subject_type = 'PSP/CDB'
         ORDER BY subject_id ASC, data_version DESC;
 ---get current PSP/CDB
-    CREATE OR REPLACE VIEW get_current_psp_cdb
+    CREATE OR REPLACE VIEW psp_cdb_current
         AS
         SELECT 
             subject_id,
@@ -528,7 +626,7 @@
         WHERE subject_type = 'PSP/CDB'
         ORDER BY subject_id ASC, data_version DESC;
 ---get unpublished updates PSP/CDB
-    CREATE OR REPLACE VIEW get_unpublished_updates_cdb
+    CREATE OR REPLACE VIEW psp_cdb_unpublished_updates
         AS
         SELECT 
             subject_id,
@@ -554,7 +652,7 @@
         WHERE subject_type = 'PSP/CDB'
         ORDER BY subject_id ASC, data_version DESC;
 ---get newest PSP/CDB
-    CREATE OR REPLACE VIEW get_newest_cdb
+    CREATE OR REPLACE VIEW psp_cdb_newest
         AS
         SELECT 
             subject_id,
@@ -579,3 +677,26 @@
             ON d1.id = CAST(_data::json->>'data_version' as INT)
         WHERE subject_type = 'PSP/CDB'
         ORDER BY subject_id ASC, data_version DESC;
+---get baseline PSP/CDB
+    CREATE OR REPLACE VIEW psp_cdb_baseline
+        AS
+        SELECT
+            subject_id,
+            _baseline_data::json->>'sex' as sex,
+            _baseline_data::json->>'diagnosis' as diagnosis,
+            _baseline_data::json->>'ageonset' as age_onset,
+            _baseline_data::json->>'agedeath' as age_death,
+            _baseline_data::json->>'race' as race,
+            _baseline_data::json->>'duplicate_subjid' as duplicate_subjid,
+            _baseline_data::json->>'comments' as comments,
+            CAST(_baseline_data::json->>'data_version' as INT) as data_version,
+            CAST(_baseline_data->>'data_version' as INT) as baseline_data_version,
+            data_versions.release_version as baseline_release_version
+        FROM ds_subjects_phenotypes_baseline
+        JOIN data_versions
+            ON data_versions.id = CAST(ds_subjects_phenotypes_baseline._baseline_data->>'data_version' AS INT)
+        WHERE ds_subjects_phenotypes_baseline.subject_type = 'PSP/CDB'
+        ORDER BY subject_id;
+--
+--
+--
