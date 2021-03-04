@@ -31,9 +31,8 @@ def main():
     data_version = user_input_data_version()
 
     
-    # LOADFILE = get_filename()
+    LOADFILE = get_filename()
 
-    LOADFILE = 'dictionary-and-load-files/testing-data/cc/cc-legacy.csv'
     variables_match_dictionary, msg = check_legacy_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     if not variables_match_dictionary:
