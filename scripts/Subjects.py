@@ -102,11 +102,6 @@ class Non_PSP_Subject:
         if self.ad == 0 and self.previous_ad == 1:
             self.data_errors[ "ad_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
 
-    def prevad_age_baseline_check( self ):
-        if self.prevad == 1:
-            if self.age_baseline != 'NA':
-                self.data_errors[ "prevad_age_baseline_check" ] = "Prevad value of 1 with non-NA age_baseline value."
-
     def braak_inc_prev_check( self ):
         if isinstance( self.braak, int ):
             if self.braak < 4:
@@ -271,7 +266,6 @@ class Case_Control_Subject( Non_PSP_Subject ):
         self.age_range_check( "age_baseline", self.age_baseline )
 
         self.ad_check()
-        self.prevad_age_baseline_check()
         self.braak_inc_prev_check()
 
         return self.data_errors
