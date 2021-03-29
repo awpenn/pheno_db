@@ -8,8 +8,6 @@ import load_phenotypes
 import load_unpublished_updates
 
 def main():
-    ##must be called with modname.main() eg get_dict.main()
-
     function_dict = {
         "1": compare.main,
         "2": get_dict.main,
