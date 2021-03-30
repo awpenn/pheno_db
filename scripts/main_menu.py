@@ -9,25 +9,21 @@ import load_unpublished_updates
 
 def main():
     function_dict = {
-        "1": compare.main,
-        "2": get_dict.main,
-        "3": load_dicts.main,
+        "1": load_unpublished_updates.main,
+        "2": manage_updates.main,
+        "3": compare.main,
         "4": drop_subjects.main,
-        "5": legacy_loader.main,
-        "6": manage_updates.main,
-        "7": load_phenotypes.main,
-        "8": load_unpublished_updates.main,
+        "5": load_dicts.main,
+        "6": get_dict.main,
     }
 
     funcname_dict = {
-        "1": "compare",
-        "2": "get_dict",
-        "3": "load_dicts",
-        "4": "drop_subjects",
-        "5": "legacy_loader",
-        "6": "manage_updates",
-        "7": "load_phenotypes",
-        "8": "load_unpublished_updates",
+        "1": "Load unpublished phenotypes",
+        "2": "Manage updates",
+        "3": "Generate comparison file",
+        "4": "Drop subjects",
+        "5": "Load Dictionaries",
+        "6": "Get Dictionaries",
     }
     
     function_input = input( f'\nWhat action would you like to take?(Select numerical value) { ", ".join( [ f"{ key }: { value }" for key, value in funcname_dict.items() ] ) } ' )
