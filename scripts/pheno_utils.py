@@ -255,7 +255,7 @@ def user_input_batch_loading():
             print("Please input a valid entry. ")
             continue
         
-def get_subject_to_drop(view_based_on_subject_type):
+def get_subject_to_drop( view_based_on_subject_type ):
     """takes subject_type, returns dict with single entry, subject_id key with data_version table pkey as value"""
     single_dict = {}
 

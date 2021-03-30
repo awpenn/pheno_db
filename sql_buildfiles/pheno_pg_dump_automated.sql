@@ -7,3 +7,4 @@
 
 # getting a snapshot of the database with test data loaded in ( 1/15/21 )
 sudo -u andy pg_dump -w pheno_db_v5 > /var/lib/postgresql/11/bkps/pheno_sbx/1-15-21-test.sql
+sudo -u andy pg_dump -w pheno_db_v5 > /var/lib/postgresql/11/bkps/pheno_sbx/JM-test.sql
