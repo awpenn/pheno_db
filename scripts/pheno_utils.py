@@ -500,7 +500,26 @@ def create_comparison_data_dict( LOADFILE, subject_type ):
             record.pop( 'subject_id' )
 
     return data_dict
+#
+def create_baseline_json( data ):
+    """takes dict entry for subject being added to database and creates the copy of data for baseline table, returning json string"""
+    baseline_data = {}
+    for key, value in data.items():
+        if "update" not in key and "correction" not in key:
+            baseline_data[key] = value
+ 
+    return json.dumps( baseline_data )
 
+def save_baseline( baseline_dupecheck_list, subject_id, data, user_input_subject_type ):
+    """takes data dict and writes to database"""
+
+    _baseline_data = create_baseline_json( data )
+
+    if check_not_dupe_baseline( subject_id , baseline_dupecheck_list ):
+        database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
+    else:
+        print(f'There is already a {user_input_subject_type} baseline record for {subject_id}.')
+#
 # for dev/debugging
 def write_json_to_file( json_data ):
     """for checking data and ect, takes json and writes as json file"""

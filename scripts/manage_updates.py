@@ -93,10 +93,17 @@ def write_to_db( data_dict, data_version_string ):
 
         if publish_status:
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{ subject_id }', '{ _data }', TRUE) WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
-            write_counter += 1
+            write_counter += 1          
+            try:
+                save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
+            except:
+                print(f"Error making baseline entry for { subject_id } in { data_version_string }")
+
         else:
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{ subject_id }', '{ _data }') WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
 
+        
+        
     if write_counter > 0:
         if user_input_publish_dataset( data_version_string, write_counter ):
             change_data_version_published_status( "TRUE", data_version )

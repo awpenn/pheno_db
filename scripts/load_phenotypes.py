@@ -105,8 +105,14 @@ def write_to_db( data_dict, data_version_string ):
 
         try:
             database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', TRUE)")
-            save_baseline( baseline_dupecheck_list, subject_id, value )
             write_counter += 1
+            
+            try:
+                save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
+            except:
+                print(f"Error making baseline entry for { subject_id } in { data_version_string }")
+
+            
 
         except:
             print(f"Error making entry for { subject_id } in { data_version_string }")
@@ -121,25 +127,7 @@ def write_to_db( data_dict, data_version_string ):
     else:
         print( "No records entered in database." )
 
-def create_baseline_json( data ):
-    """takes dict entry for subject being added to database and creates the copy of data for baseline table, returning json string"""
-    baseline_data = {}
-    for key, value in data.items():
-        if "update" not in key and "correction" not in key:
-            baseline_data[key] = value
- 
-    return json.dumps( baseline_data )
 
-def save_baseline( baseline_dupecheck_list, subject_id, data ):
-    """takes data dict and writes to database"""
-    global user_input_subject_type
-
-    _baseline_data = create_baseline_json( data )
-
-    if check_not_dupe_baseline( subject_id , baseline_dupecheck_list ):
-        database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
-    else:
-        print(f'There is already a {user_input_subject_type} baseline record for {subject_id}.')
 
 
 

@@ -43,7 +43,7 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
                 modified_baseline_dict[ key ] = value
                 
     except:
-        print('This appears to be data for a subject not yet in the database.  No update from baseline to current will be indicated')
+        print('This appears to be data for a subject not yet published in the database.  No update from baseline to current will be indicated')
         return 0
 
     for key, value in modified_update_dict.items():
