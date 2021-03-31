@@ -92,6 +92,7 @@ def write_to_db( data_dict, data_version_string ):
         _data = json.dumps( value )
 
         if publish_status:
+            ## update an existing unpublished record (WHERE published = FALSE), setting it to truek
             database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{ subject_id }', '{ _data }', TRUE) WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
             write_counter += 1          
             try:

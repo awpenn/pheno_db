@@ -370,7 +370,7 @@ def create_tsv( dataframe, subject_type ):
     datestamp = datetime.date.today()
     corrected_subject_type = subject_type.replace( "/", "+" )
 
-    dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt",sep="\t",index=True)
+    dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt", sep="\t", index=False )
 
 # fetching data
 def get_dict_data( dict_name ):

@@ -33,6 +33,8 @@ def main():
         if 'data_errors' in value.keys():
             ## have to flip the dataframe columns/rows with .transpose()
             df = pd.read_json( json.dumps( checked_data ) ).transpose()
+            df = df.reindex( columns = list( value.keys( ) ) )
+            breakpoint()
             create_tsv( df, user_input_subject_type )
             print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
             ## Found an error, generated the tsv and now will exit. 
