@@ -365,12 +365,15 @@ def generate_success_list():
 
         f.close()
 
-def create_tsv( dataframe, subject_type ):
+def create_tsv( dataframe, subject_type, requires_index = False ):
     """takes the compiled dataframe and subject-type (to formulate filename) and creates a TSV."""
     datestamp = datetime.date.today()
     corrected_subject_type = subject_type.replace( "/", "+" )
 
-    dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt", sep="\t", index=False )
+    if requires_index:
+        dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt", sep="\t" )
+    else:
+        dataframe.to_csv(f"./comparison_files/{ corrected_subject_type }-validation_errors-{ datestamp }.txt", sep="\t", index=False )
 
 # fetching data
 def get_dict_data( dict_name ):
