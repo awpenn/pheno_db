@@ -5,6 +5,8 @@ import drop_subjects
 import legacy_loader
 import manage_updates
 import load_phenotypes
+import initial_validation_checks
+import update_validation_checks
 import load_unpublished_updates
 
 def main():
