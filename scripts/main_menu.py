@@ -23,7 +23,7 @@ def main():
         "1": "Run intial validation checks",
         "2": "Load unpublished phenotypes",
         "3": "Generate comparison file",
-        "4": "Validate phenotype update data"
+        "4": "Validate phenotype update data",
         "5": "Manage updates",
         "6": "Drop subjects",
         "7": "Load dictionaries",
