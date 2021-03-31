@@ -5,3 +5,12 @@
     - remove data_version col (you'll enter this in the script)
     - *for now* need to add back in the duplicate_subjid column
     - remove all the `change` and `data errors` columns
+
+# The pheno_db worfklow
+## Preparing Data
+- Templates for phenotype uploads are in the `READMEs and templates` folder
+    - Use the template corresponding to the type of data being uploaded ( ie. case/control, ADNI, family, etc.)
+    - The `duplicate_subjid` is not found in existing data, but will be(?) going forward, and is included in the current data dictionaries. As such, it must be in the upload sheets, but won't appear in the generated data views. *for now*, just include a `0` value for each subject in the upload sheet
+    - do not remove the column headers
+    - make sure the loadfile doesn't have any trailing empty rows, and save as a .csv ( not CSV UTF-8 )
+    - upload your completed upload sheet to the `source_files` folder in the hub
