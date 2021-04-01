@@ -68,8 +68,11 @@ def write_to_db( data_dict ):
         diagnosis_update_check_dict = build_update_diagnosis_check_dict( user_input_subject_type )
     
     for key, value in data_dict.items():
-        subject_id = value.pop("subjid")
-    
+        if 'subjid' in value.keys( ):
+            subject_id = value.pop( "subjid" )
+        elif 'subject_id' in value.keys( ):
+            subject_id = value.pop( "subject_id" )
+
         value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )
         value[ "update_latest" ] = update_latest_check( subject_id, value, update_latest_dict )
         value[ "correction" ] = correction_check( value )

@@ -74,8 +74,9 @@ def write_to_db( data_dict, data_version_string ):
 
         if 'subjid' in value.keys(): ## handling for subjid/subject_id inconsistency
             subject_id = value.pop( "subjid" )
-        else:
+        elif 'subject_id' in value.keys():
             subject_id = value.pop( "subject_id" )
+            
         version = value["data_version"]
 
         #have to add these to data here because otherwise will always show as "new not in database"
