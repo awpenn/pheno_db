@@ -22,17 +22,17 @@ def main():
     }
 
     funcname_dict = {
-        "1": "Run intial validation checks",
-        "2": "Load unpublished phenotypes",
-        "3": "Generate comparison file",
-        "4": "Validate phenotype update data",
-        "5": "Manage updates",
-        "6": "Drop subjects",
-        "7": "Load dictionaries",
-        "8": "Get dictionaries",
+        "1": "Run intial validation checks\n",
+        "2": "Load unpublished phenotypes\n",
+        "3": "Generate comparison file\n",
+        "4": "Validate phenotype update data\n",
+        "5": "Manage updates\n",
+        "6": "Drop subjects\n",
+        "7": "Load dictionaries\n",
+        "8": "Get dictionaries\n",
     }
     
-    function_input = input( f'\nWhat action would you like to take?(Select numerical value) { ", ".join( [ f"{ key }: { value }" for key, value in funcname_dict.items() ] ) } ' )
+    function_input = input( f'\nWhat action would you like to take?(Select numerical value) \n{ "".join( [ f"{ key }: { value }" for key, value in funcname_dict.items() ] ) } ' )
 
     if function_input in function_dict.keys():
         call_function( function_dict, function_input )
