@@ -8,7 +8,8 @@ GRANT INSERT, SELECT, UPDATE ON TABLE data_versions TO manager;
 GRANT INSERT, SELECT, UPDATE ON TABLE ds_subjects_phenotypes TO manager;
 GRANT INSERT, SELECT, UPDATE ON TABLE ds_subjects_phenotypes_baseline TO manager;
 GRANT INSERT, SELECT, UPDATE ON TABLE data_dictionaries TO manager;
-GRANT INSERT, SELECT, UPDATE ON TABLE env_var_by_subject_type TO manager;
+-- GRANT INSERT, SELECT, UPDATE ON TABLE env_var_by_subject_type TO manager;
+--above should be just for the admin right?
 
 -- GRANT SELECT ON public.[view] to manager;
 GRANT SELECT ON public._get_current_data TO manager;
@@ -41,7 +42,7 @@ GRANT USAGE ON SEQUENCE public.data_versions_id_seq TO manager;
 GRANT USAGE ON SEQUENCE public.ds_subjects_phenotypes_id_seq TO manager;
 GRANT USAGE ON SEQUENCE public.ds_subjects_phenotypes_baseline_id_seq TO manager;
 GRANT USAGE ON SEQUENCE public.data_dictionaries_id_seq TO manager;
-GRANT USAGE ON SEQUENCE public.env_var_by_subject_type_id_seq TO manager;
+-- GRANT USAGE ON SEQUENCE public.env_var_by_subject_type_id_seq TO manager;
 
 
 
@@ -50,11 +51,7 @@ GRANT SELECT ON TABLE data_versions TO viewer;
 GRANT SELECT ON TABLE ds_subjects_phenotypes TO viewer;
 GRANT SELECT ON TABLE ds_subjects_phenotypes_baseline TO viewer;
 GRANT SELECT ON TABLE data_dictionaries TO viewer;
-GRANT SELECT ON TABLE env_var_by_subject_type TO viewer;
-
-GRANT SELECT ON public._get_current_data TO viewer;
-GRANT SELECT ON public._get_unpublished_updates_data TO viewer;
-GRANT SELECT ON public._get_newest_data TO viewer;
+ 
 GRANT SELECT ON public.cc_all TO viewer;
 GRANT SELECT ON public.cc_current TO viewer;
 GRANT SELECT ON public.cc_unpublished_updates TO viewer;
