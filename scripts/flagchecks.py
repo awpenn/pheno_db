@@ -28,16 +28,17 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
     removes keys that aren't in both, compares stringified JSON to see if changed,
     the 0 or 1 needed to fill in value
     """
+    subject_id = str( subject_id )
     keys_to_remove = ['update', 'correction', 'data_version', 'release_version']
     modified_update_dict = {}
     modified_baseline_dict = {}
 
-    try:
-        for key, value in data.items():
-            ##if current key in iter over data dict is NOT in the keys_to_remove list, add to mod dict
-            if not any( keys in key for keys in keys_to_remove ):
-                modified_update_dict[ key ] = value
+    for key, value in data.items():
+        ##if current key in iter over data dict is NOT in the keys_to_remove list, add to mod dict
+        if not any( keys in key for keys in keys_to_remove ):
+            modified_update_dict[ key ] = value
 
+    try:
         for key, value in update_baseline_dict[ subject_id ].items():
             if not any( keys in key for keys in keys_to_remove ):
                 modified_baseline_dict[ key ] = value
@@ -77,6 +78,7 @@ def update_latest_check( subject_id, data, update_latest_dict ):
     """takes subject_id, data being loaded, and compiled update_latest_dict, 
     checks incoming against data in update_latest_dict, returns 0 or 1 for flag value in data object being written to db"""
     
+    subject_id = str( subject_id )
     keys_to_remove = ['update', 'correction', 'data_version', 'release_version']
     modified_update_dict = {}
     modified_previous_version_dict = {}
@@ -114,6 +116,7 @@ def build_adstatus_check_dict( subject_type ):
 def update_adstatus_check( subject_id, ad_status, adstatus_check_dict ):
     """takes subject_id, subject_type, and data to be written to database, 
     checks ad value for baseline version, returns appropriate value for new data for adstatus flag"""
+    subject_id = str( subject_id )
 
     if subject_id in adstatus_check_dict:
         if str( ad_status ) == adstatus_check_dict[ subject_id ]:
@@ -164,6 +167,8 @@ def build_update_diagnosis_check_dict( subject_type ):
 def update_diagnosis_check( subject_id, subject_type, data, diagnosis_update_check_dict ):
     """takes subject_id, subject_type, data to be written to database, and diagnosis_check_dict (generated based on subject_type),
     checks diagnosis value (eg. for adni data) for baseline version, returns appropriate value for new data for diagnosis_update flag"""
+    
+    subject_id = str( subject_id )
     try:
         subject_diagnosis_dict = diagnosis_update_check_dict[ subject_id ]
     except KeyError:
