@@ -28,7 +28,7 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
     removes keys that aren't in both, compares stringified JSON to see if changed,
     the 0 or 1 needed to fill in value
     """
-    subject_id = str( subject_id )
+    
     keys_to_remove = ['update', 'correction', 'data_version', 'release_version']
     modified_update_dict = {}
     modified_baseline_dict = {}
@@ -48,7 +48,7 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
         return 0
 
     for key, value in modified_update_dict.items():
-        if value == modified_baseline_dict[key]:
+        if str( value ) == str( modified_baseline_dict[key] ):
             continue
         else:
             print(f'{ subject_id }: different between new record and baseline version found for { key }')
@@ -62,11 +62,10 @@ def build_update_latest_dict( subject_type ):
 
     current_view = database_connection(f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }' ")[ 0 ][ 0 ]    
     try:
-        most_recent_published_data_version = database_connection(f"SELECT DISTINCT data_version FROM { current_view }")[ 0 ][ 0 ]
+        most_recent_published_data_version = database_connection(f"SELECT DISTINCT data_version FROM { current_view } ORDER BY data_version DESC")[ 0 ][ 0 ]
     except:
         print(f'No published data from { subject_type } subjects.')
         return {}
-
     _latest_data = database_connection(f"SELECT subject_id, _data FROM ds_subjects_phenotypes \
         WHERE subject_type = '{ subject_type }' AND published = 'TRUE' AND _data->>'data_version' = '{ most_recent_published_data_version }'")
 
@@ -78,7 +77,7 @@ def update_latest_check( subject_id, data, update_latest_dict ):
     """takes subject_id, data being loaded, and compiled update_latest_dict, 
     checks incoming against data in update_latest_dict, returns 0 or 1 for flag value in data object being written to db"""
     
-    subject_id = str( subject_id )
+    
     keys_to_remove = ['update', 'correction', 'data_version', 'release_version']
     modified_update_dict = {}
     modified_previous_version_dict = {}
@@ -92,11 +91,11 @@ def update_latest_check( subject_id, data, update_latest_dict ):
                 modified_previous_version_dict[key] = value
 
     except:
-        print("There are no previous versions of this subject's phenotypes.  Update_latest flag set to 1")
+        print("This subject is not in the current published release.  Update_latest flag set to 1")
         return 1
 
     for key, value in modified_update_dict.items():
-        if value == modified_previous_version_dict[ key ]:
+        if str( value ) == str( modified_previous_version_dict[ key ] ):
             continue
         else:
             print(f' { subject_id }: different between new record and previous version found for {key}')
@@ -116,7 +115,7 @@ def build_adstatus_check_dict( subject_type ):
 def update_adstatus_check( subject_id, ad_status, adstatus_check_dict ):
     """takes subject_id, subject_type, and data to be written to database, 
     checks ad value for baseline version, returns appropriate value for new data for adstatus flag"""
-    subject_id = str( subject_id )
+    
 
     if subject_id in adstatus_check_dict:
         if str( ad_status ) == adstatus_check_dict[ subject_id ]:
@@ -168,7 +167,7 @@ def update_diagnosis_check( subject_id, subject_type, data, diagnosis_update_che
     """takes subject_id, subject_type, data to be written to database, and diagnosis_check_dict (generated based on subject_type),
     checks diagnosis value (eg. for adni data) for baseline version, returns appropriate value for new data for diagnosis_update flag"""
     
-    subject_id = str( subject_id )
+    
     try:
         subject_diagnosis_dict = diagnosis_update_check_dict[ subject_id ]
     except KeyError:
