@@ -87,7 +87,10 @@ class Non_PSP_Subject:
             self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 1 ] }" for x in data_value_errors.items() ] )
 
     def ad_check( self ):
-        if self.ad == 1:
+        if self.ad == 'NA':
+            return
+
+        elif self.ad == 1:
             if not ( self.incad == 1 or self.prevad == 1 ):
                 self.data_errors[ "ad_check" ] = "AD has value of 1 but 0 values for incad and prevad. "
             else:
@@ -104,12 +107,13 @@ class Non_PSP_Subject:
 
     def braak_inc_prev_check( self ):
         if isinstance( self.braak, int ):
-            if self.braak < 4:
-                if not (self.incad == 0 and self.prevad == 0):
-                    self.data_errors[ "braak_inc_prev_check" ] = "Braak score less than 4 but inc/prev_ad indicated."
-            else:
-                if not (self.incad == 1 or self.prevad == 1):
-                    self.data_errors[ "braak_inc_prev_check" ] = "Braak score greater than 3 but no inc/prev_ad indicated."       
+            if not ( self.incad == 'NA' and self.prevad == 'NA'):
+                if self.braak < 4:
+                    if not (self.incad == 0 and self.prevad == 0):
+                        self.data_errors[ "braak_inc_prev_check" ] = "Braak score less than 4 but inc/prev_ad indicated."
+                else:
+                    if not (self.incad == 1 or self.prevad == 1):
+                        self.data_errors[ "braak_inc_prev_check" ] = "Braak score greater than 3 but no inc/prev_ad indicated."       
         else:
             self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
     
