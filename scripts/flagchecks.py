@@ -51,7 +51,7 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
         if str( value ) == str( modified_baseline_dict[key] ):
             continue
         else:
-            print(f'{ subject_id }: different between new record and baseline version found for { key }')
+            print(f'{ subject_id }: difference between new record and baseline version found for { key }')
             return 1
     
     return 0
@@ -98,7 +98,7 @@ def update_latest_check( subject_id, data, update_latest_dict ):
         if str( value ) == str( modified_previous_version_dict[ key ] ):
             continue
         else:
-            print(f' { subject_id }: different between new record and previous version found for {key}')
+            print(f' { subject_id }: difference between new record and previous version found for {key}')
             return 1
     
     return 0
