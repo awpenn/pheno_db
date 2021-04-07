@@ -73,9 +73,9 @@ def write_to_db( data_dict, data_version_string ):
         data_version = value[ "data_version" ] ## saving data version id from dict so can set publish status in data_version table after upload
 
         if 'subjid' in value.keys(): ## handling for subjid/subject_id inconsistency
-            subject_id = value.pop( "subjid" )
+            subject_id = str( value.pop( "subjid" ) )
         elif 'subject_id' in value.keys():
-            subject_id = value.pop( "subject_id" )
+            subject_id = str( value.pop( "subject_id" ) )
             
         version = value["data_version"]
 
