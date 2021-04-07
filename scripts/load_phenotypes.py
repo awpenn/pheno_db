@@ -85,10 +85,11 @@ def write_to_db( data_dict, data_version_string ):
     for key, value in data_dict.items():
         data_version = value[ "data_version" ] ## saving data version id from dict so can set publish status in data_version table after upload
 
-        try: ## have to deal with subjid vs subject_id
-            subject_id = str( value.pop( 'subjid' ) )
-        except KeyError:
-            subject_id = str( value.pop( 'subject_id' ) )
+    for key, value in data_dict.items():
+        if 'subjid' in value.keys( ):
+             subject_id = str( value.pop( 'subjid' ) )
+        elif 'subject_id' in value.keys( ):
+             subject_id = str( value.pop( 'subject_id' ) )
 
         #have to add these to data here because otherwise will always show as "new not in database"
         value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )

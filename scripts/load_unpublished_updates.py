@@ -69,9 +69,9 @@ def write_to_db( data_dict ):
     
     for key, value in data_dict.items():
         if 'subjid' in value.keys( ):
-            subject_id = value.pop( "subjid" )
+             subject_id = str( value.pop( 'subjid' ) )
         elif 'subject_id' in value.keys( ):
-            subject_id = value.pop( "subject_id" )
+             subject_id = str( value.pop( 'subject_id' ) )
 
         value[ "update_baseline" ] = update_baseline_check( subject_id , value, update_baseline_dict )
         value[ "update_latest" ] = update_latest_check( subject_id, value, update_latest_dict )
