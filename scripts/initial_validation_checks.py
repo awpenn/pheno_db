@@ -14,11 +14,8 @@ from pheno_utils import *
 from Subjects import *
 
 def main():
-
     user_input_subject_type = get_subject_type()
-    # user_input_subject_type = 'case/control'
     LOADFILE = get_filename()
-    # LOADFILE = 'testing/comp-test/cc-update.csv'
     
     variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
     

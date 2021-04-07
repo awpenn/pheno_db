@@ -17,15 +17,8 @@ def main():
     ## dict of class names for different subject_types to pass into update_checks function
     classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
 
-    # user_input_subject_type = get_subject_type()
-    user_input_subject_type = 'case/control'
-
-    # LOADFILE = get_filename()
-    LOADFILE = 'testing/comp-test/cc-compare.csv'
-
-    ## testing vars
-    # user_input_subject_type = 'ADNI'
-    # LOADFILE = 'adni-test.csv'
+    user_input_subject_type = get_subject_type()
+    LOADFILE = get_filename()
 
     ## data from comparison csv now in subjid-keyed json
     comparison_data = create_data_dict( LOADFILE, user_input_subject_type )
