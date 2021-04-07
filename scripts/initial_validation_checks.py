@@ -41,7 +41,7 @@ def main():
                 df = pd.read_json( json.dumps( reviewed_dict ) ).transpose()
                 df.index.name = 'SUBJID'
                 df = df.reindex( columns = list( value.keys( ) ) )
-                create_tsv( df, user_input_subject_type, requires_index = True )
+                create_tsv( df, user_input_subject_type, validation_type = 'initial_validation',  requires_index = True )
                 print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
                 ## Found an error, generated the tsv and now will exit.\
                 print('end checks ', datetime.datetime.now().strftime("%H:%M:%S") )

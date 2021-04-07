@@ -35,7 +35,7 @@ def main():
             df = pd.read_json( json.dumps( checked_data ) ).transpose()
             df = df.reindex( columns = list( value.keys( ) ) )
 
-            create_tsv( df, user_input_subject_type )
+            create_tsv( df, user_input_subject_type, validation_type = 'update_validation' )
             print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
             ## Found an error, generated the tsv and now will exit. 
             sys.exit()
