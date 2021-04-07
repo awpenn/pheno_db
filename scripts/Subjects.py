@@ -88,7 +88,8 @@ class Non_PSP_Subject:
 
     def ad_check( self ):
         if self.ad == 'NA':
-            return
+            if not ( self.incad == 'NA' and self.prevad == 'NA' ):
+                self.data_errors[ "ad_check" ] = 'AD has NA value, but non-NA values for incad and/or prevad.'
 
         elif self.ad == 1:
             if not ( self.incad == 1 or self.prevad == 1 ):
@@ -114,8 +115,8 @@ class Non_PSP_Subject:
                 else:
                     if not (self.incad == 1 or self.prevad == 1):
                         self.data_errors[ "braak_inc_prev_check" ] = "Braak score greater than 3 but no inc/prev_ad indicated."       
-        else:
-            self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
+        # else: ## 4/7/21 disable for now
+        #     self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
     
     def age_range_check( self, age_phenotype, value ):
         try:
@@ -133,8 +134,15 @@ class Non_PSP_Subject:
         
     def age_under_50_check( self ):
         if self.age !='NA':
-            if self.age < 50:
+            if handle_age_values( self.age ) < 50:
                 self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
+    def age_90_plus_check( self ):
+        """no age values greater than or equal to 90, should rather be '90+'"""
+        if self.age !='NA':
+            if self.age != '90+':
+                if self.age >= 90:
+                    self.data_errors[ "age_over_90_check" ] = "Subject's age is greater than or equal to 90. Ages greater than 89 should be given as '90+'."
 
     ## checks that only run on update-validation
     def update_age_check( self ):
@@ -249,7 +257,8 @@ class Case_Control_Subject( Non_PSP_Subject ):
         ## get the dictionary of appropriate variables and var-values from database
         self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
         self.ad = subject_data[ "ad" ]
-        self.age = handle_age_values( subject_data[ "age" ] )
+        # self.age = handle_age_values( subject_data[ "age" ] )
+        self.age = subject_data[ "age" ]
         self.incad = subject_data[ "incad" ]
         self.prevad = subject_data[ "prevad" ]
         self.selection = subject_data[ "selection" ]
@@ -265,9 +274,10 @@ class Case_Control_Subject( Non_PSP_Subject ):
     def run_initial_validation_checks( self ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
+        self.age_90_plus_check()
         self.age_under_50_check()
-        self.age_range_check( "age", self.age )
-        self.age_range_check( "age_baseline", self.age_baseline )
+        self.age_range_check( "age", handle_age_values( self.age ) )
+        self.age_range_check( "age_baseline", handle_age_values( self.age_baseline ) )
 
         self.ad_check()
         self.braak_inc_prev_check()
