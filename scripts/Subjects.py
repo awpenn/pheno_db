@@ -85,7 +85,7 @@ class Non_PSP_Subject:
         if data_value_errors:
             # self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 0 ] }: { x[ 1 ] }" for x in data_value_errors.items() ] )
             self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 1 ] }" for x in data_value_errors.items() ] )
-
+    
     def ad_check( self ):
         if self.ad == 'NA':
             if not ( self.incad == 'NA' and self.prevad == 'NA' ):
@@ -101,10 +101,6 @@ class Non_PSP_Subject:
         else:
             if not ( self.incad == 0 and self.prevad == 0 ):
                 self.data_errors[ "ad_check" ] = "AD has value of 0 but 1 values in either incad or prevad"
-
-    def ad_status_switch_check( self ):
-        if self.ad == 0 and self.previous_ad == 1:
-            self.data_errors[ "ad_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
 
     def braak_inc_prev_check( self ):
         if isinstance( self.braak, int ):
@@ -145,25 +141,58 @@ class Non_PSP_Subject:
                     self.data_errors[ "age_over_90_check" ] = "Subject's age is greater than or equal to 90. Ages greater than 89 should be given as '90+'."
 
     ## checks that only run on update-validation
-    def update_age_check( self ):
-        if self.age !='NA' and self.previous_age !='NA':
-            if not self.age >= self.previous_age:
-                self.data_errors[ "age_check" ] = "Age decreased between last release and update."
-        else:
-            if self.age == 'NA' and self.previous_age == 'NA':
-                return
-            else:
-                if self.age != 'NA' and self.previous_age == 'NA':
-                    self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
-                    return
+    def ad_to_NA_check( self ):
+        if self.ad == 'NA' and self.previous_ad != 'NA':
+            self.data_errors[ "ad_to_NA_flag" ] = 'AD status has changed to NA in last update. Confirm that expanatory comment is present.'
 
-        # if not self.age >= self.previous_age:
-        #     self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+    def ad_status_switch_check( self ):
+        if self.ad == 0 and self.previous_ad == 1:
+            self.data_errors[ "ad_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
+
+    def update_age_check( self ):
+        if self.ad == 1: 
+            if self.previous_ad == 1: ##if AD, age is age_at_onset and shouldnt change unless this is the first update where subject is AD positive
+                if self.age != self.previous_age:
+                    self.data_errors[ "age_onset_check" ] = "Subject's age at onset has changed."
+
+            if self.previous_ad == 0: ##if AD, but only in latest update, then the age is becoming age_at_onset, so ok if changes or decreases
+                return
+        else:
+            if self.age !='NA' and self.previous_age !='NA':
+                if not handle_age_values( self.age ) >= handle_age_values( self.previous_age ):
+                    self.data_errors[ "age_check" ] = "Age decreased between last release and update."
+            else:
+                if self.age == 'NA' and self.previous_age == 'NA':
+                    return
+                else:
+                    if self.age != 'NA' and self.previous_age == 'NA':
+                        self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
+                        return
 
     def update_age_under_50_check( self ):        
         if self.age !='NA' and self.previous_age !='NA':
             if self.age < 50:
                 self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
+
+    def illegal_data_changes_check_for( self ):
+        """Confirms that only data values allowed to change between updates have changed"""
+        values_that_cant_change = [
+            ( self.apoe, self.previous_apoe, 'apoe', 'apoe_change_check' ),
+            ( self.prevad, self.previous_prevad, 'prevad', 'prevad_change_check' ),
+            ( self.age_baseline, self.previous_age_baseline, 'age_baseline', 'age_baseline_change_check' ),
+            ( self.ethnicity, self.previous_ethnicity, 'ethnicity', 'ethnicity_change_check' ),
+            ( self.sex, self.previous_sex, 'sex', 'sex_change_check' ),
+            ( self.race, self.previous_race, 'race', 'race_change_check' ),
+            ( self.selection, self.previous_selection, 'selection', 'selection_change_check' ),
+            ( self.braak, self.previous_braak, 'braak', 'braak_change_check' ),
+        ]
+        for value_tup in values_that_cant_change:
+            if value_tup[ 0 ] != value_tup[ 1 ]:
+                if value_tup[ 2 ] == 'prevad':
+                    if self.ad != 'NA':
+                        self.data_errors[ value_tup[ 3 ] ] = f"Subject's { value_tup[ 2 ] } has changed. Should this be an incad change?"
+                else:
+                    self.data_errors[ value_tup[ 3 ] ] = f"Subject's { value_tup[ 2 ] } has changed."
 
 class PSP_Subject:
     def __init__( self, subject_data, all_data, checktype ):
@@ -286,6 +315,8 @@ class Case_Control_Subject( Non_PSP_Subject ):
         
     def run_update_validation_checks( self ):
         self.check_for_blank_values()
+        self.illegal_data_changes_check_for()
+        self.ad_to_NA_check()
         self.update_age_check()
         self.ad_status_switch_check()
 
@@ -524,6 +555,4 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.mci_status_switch_check()
         
         return self.data_errors
-
-
 
