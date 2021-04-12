@@ -133,12 +133,24 @@ class Non_PSP_Subject:
             if handle_age_values( self.age ) < 50:
                 self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
 
+    def age_baseline_under_50_check( self ):
+        if self.age_baseline !='NA':
+            if handle_age_values( self.age_baseline ) < 50:
+                self.data_errors[ "age_baseline_under_50_check" ] = "Subject's age_baseline is less than 50.  Please confirm samples."
+
     def age_90_plus_check( self ):
         """no age values greater than or equal to 90, should rather be '90+'"""
         if self.age !='NA':
             if self.age != '90+':
                 if self.age >= 90:
                     self.data_errors[ "age_over_90_check" ] = "Subject's age is greater than or equal to 90. Ages greater than 89 should be given as '90+'."
+
+    def age_baseline_90_plus_check( self ):
+        """no age values greater than or equal to 90, should rather be '90+'"""
+        if self.age_baseline !='NA':
+            if self.age_baseline != '90+':
+                if self.age_baseline >= 90:
+                    self.data_errors[ "age_baseline_over_90_check" ] = "Subject's age_baseline is greater than or equal to 90. Ages greater than 89 should be given as '90+'."
 
     ## checks that only run on update-validation
     def ad_to_NA_check( self ):
@@ -410,17 +422,25 @@ class Family_Subject( Non_PSP_Subject ):
                 if all_data_as_df.loc[self.father]["sex"] != 0:
                     self.data_errors[ 'father_sex_match_check' ] = f"Subjects father ( {self.father} ) has mismatched sex designation."
 
-    ### functions that call the appropriate checks for initil validation and updates
+    def unknown_ad_requires_na_age( self ):
+        if str( self.ad ) == '9' and self.age != 'NA':
+            self.data_errors[ 'unknown_ad_age_match_check' ] = "Subject has AD value of '9', but age is given."
+       
+    ### functions that call the appropriate checks for initial validation and updates
     def run_initial_validation_checks( self ):
         ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
         df = pd.read_json( json.dumps( self.all_data ) ).transpose()
 
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
+        self.age_90_plus_check()
+        self.age_baseline_90_plus_check()
         self.age_under_50_check()
+        self.age_baseline_under_50_check()
         self.age_range_check( "age", self.age )
         self.age_range_check( "age_baseline", self.age_baseline )
-        self.check_parents_exist( )
+        self.unknown_ad_requires_na_age()
+        self.check_parents_exist()
 
         if self.mother or self.father != 0:
             self.offspring_same_family_id_check( df )
