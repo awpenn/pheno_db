@@ -349,6 +349,7 @@ class Family_Subject( Non_PSP_Subject ):
             - if != 0, then mother cant be zero (and vice versa)
             - if is an id, check that theres an entry for the subject
         """
+
         if self.father == 0:
             if self.mother != 0:
                 self.data_errors[ "father_check" ] = f"Subject's father_id is { self.father }, but mother_id is non-zero"
@@ -397,15 +398,17 @@ class Family_Subject( Non_PSP_Subject ):
         
     def match_parent_sex( self, all_data_as_df ):
         """Check that record for given mother/father has correct sex given"""
-        if self.mother != 0:
-            """mother's sex must be '1' """
-            if all_data_as_df.loc[self.mother]["sex"] != 1:
-                self.data_errors[ 'mother_sex_match_check' ] = f"Subjects mother ( {self.mother} ) has mismatched sex designation."
+        if self.mother in all_data_as_df.index:
+            if self.mother != 0:
+                """mother's sex must be '1' """
+                if all_data_as_df.loc[self.mother]["sex"] != 1:
+                    self.data_errors[ 'mother_sex_match_check' ] = f"Subjects mother ( {self.mother} ) has mismatched sex designation."
 
-        if self.father != 0:
-            """father's sex must be '0' """
-            if all_data_as_df.loc[self.father]["sex"] != 0:
-                self.data_errors[ 'father_sex_match_check' ] = f"Subjects father ( {self.father} ) has mismatched sex designation."
+        if self.father in all_data_as_df.index:
+            if self.father != 0:
+                """father's sex must be '0' """
+                if all_data_as_df.loc[self.father]["sex"] != 0:
+                    self.data_errors[ 'father_sex_match_check' ] = f"Subjects father ( {self.father} ) has mismatched sex designation."
 
     ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
@@ -417,7 +420,7 @@ class Family_Subject( Non_PSP_Subject ):
         self.age_under_50_check()
         self.age_range_check( "age", self.age )
         self.age_range_check( "age_baseline", self.age_baseline )
-        self.check_parents_exist()
+        self.check_parents_exist( )
 
         if self.mother or self.father != 0:
             self.offspring_same_family_id_check( df )

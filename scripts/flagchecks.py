@@ -95,6 +95,7 @@ def update_latest_check( subject_id, data, update_latest_dict ):
         return 1
 
     for key, value in modified_update_dict.items():
+
         if str( value ) == str( modified_previous_version_dict[ key ] ):
             continue
         else:
