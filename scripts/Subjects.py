@@ -52,6 +52,7 @@ class Non_PSP_Subject:
             self.previous_race = subject_data[ "prev_race" ]
             self.previous_sex = subject_data[ "prev_sex" ]
             self.previous_comments = subject_data["prev_comments"]
+            self.previous_release_version = subject_data["prev_release_version"]
 
         self.all_data = all_data
 
@@ -158,7 +159,7 @@ class Non_PSP_Subject:
             self.data_errors[ "ad_to_NA_flag" ] = 'AD status has changed to NA in last update. Confirm that expanatory comment is present.'
 
     def ad_status_switch_check( self ):
-        if self.ad == 0 and self.previous_ad == 1:
+        if self.ad == 0 and self.previous_ad in [ 1, 2, 3, 4, 5 ]:##Using in so function works for family data as well
             self.data_errors[ "ad_case_to_control" ] = "Subject's AD status changed from case to control in update.  Please confirm."
 
     def update_age_check( self ):
@@ -186,18 +187,9 @@ class Non_PSP_Subject:
             if self.age < 50:
                 self.data_errors[ "age_under_50_check" ] = "Subject's age is less than 50.  Please confirm samples."
 
-    def illegal_data_changes_check_for( self ):
-        """Confirms that only data values allowed to change between updates have changed"""
-        values_that_cant_change = [
-            ( self.apoe, self.previous_apoe, 'apoe', 'apoe_change_check' ),
-            ( self.prevad, self.previous_prevad, 'prevad', 'prevad_change_check' ),
-            ( self.age_baseline, self.previous_age_baseline, 'age_baseline', 'age_baseline_change_check' ),
-            ( self.ethnicity, self.previous_ethnicity, 'ethnicity', 'ethnicity_change_check' ),
-            ( self.sex, self.previous_sex, 'sex', 'sex_change_check' ),
-            ( self.race, self.previous_race, 'race', 'race_change_check' ),
-            ( self.selection, self.previous_selection, 'selection', 'selection_change_check' ),
-            ( self.braak, self.previous_braak, 'braak', 'braak_change_check' ),
-        ]
+    def illegal_data_changes_check( self, values_that_cant_change ):
+        """takes list of tuples for values that cant change, confirms that only data values allowed to change between updates have changed"""
+
         for value_tup in values_that_cant_change:
             if value_tup[ 0 ] != value_tup[ 1 ]:
                 if value_tup[ 2 ] == 'prevad':
@@ -310,6 +302,17 @@ class Case_Control_Subject( Non_PSP_Subject ):
             self.previous_incad = subject_data[ "prev_incad" ]
             self.previous_prevad = subject_data[ "prev_prevad" ]
             self.previous_selection = subject_data[ "prev_selection" ]
+            
+            self.values_that_cant_change = [
+                ( self.apoe, self.previous_apoe, 'apoe', 'apoe_change_check' ),
+                ( self.prevad, self.previous_prevad, 'prevad', 'prevad_change_check' ),
+                ( self.age_baseline, self.previous_age_baseline, 'age_baseline', 'age_baseline_change_check' ),
+                ( self.ethnicity, self.previous_ethnicity, 'ethnicity', 'ethnicity_change_check' ),
+                ( self.sex, self.previous_sex, 'sex', 'sex_change_check' ),
+                ( self.race, self.previous_race, 'race', 'race_change_check' ),
+                ( self.selection, self.previous_selection, 'selection', 'selection_change_check' ),
+                ( self.braak, self.previous_braak, 'braak', 'braak_change_check' ),
+            ]
 
     ### functions that call the appropriate checks for initil validation and updates
     def run_initial_validation_checks( self ):
@@ -327,7 +330,7 @@ class Case_Control_Subject( Non_PSP_Subject ):
         
     def run_update_validation_checks( self ):
         self.check_for_blank_values()
-        self.illegal_data_changes_check_for()
+        self.illegal_data_changes_check( self.values_that_cant_change )
         self.ad_to_NA_check()
         self.update_age_check()
         self.ad_status_switch_check()
@@ -355,6 +358,19 @@ class Family_Subject( Non_PSP_Subject ):
             self.previous_father = subject_data[ "prev_father" ]
             self.previous_mother = subject_data[ "prev_mother" ]
             self.previous_famgrp = subject_data[ "prev_famgrp" ]
+            
+            self.values_that_cant_change = [
+                ( self.father, self.previous_father, 'father', 'father_change_check' ),
+                ( self.mother, self.previous_mother, 'mother', 'mother_change_check' ),
+                ( self.famid, self.previous_famid, 'famid', 'famid_change_check' ),
+                ( self.apoe, self.previous_apoe, 'apoe', 'apoe_change_check' ),
+                ( self.age_baseline, self.previous_age_baseline, 'age_baseline', 'age_baseline_change_check' ),
+                ( self.ethnicity, self.previous_ethnicity, 'ethnicity', 'ethnicity_change_check' ),
+                ( self.sex, self.previous_sex, 'sex', 'sex_change_check' ),
+                ( self.race, self.previous_race, 'race', 'race_change_check' ),
+                ( self.famgrp, self.previous_famgrp, 'famgrp', 'famgrp_change_check' ),
+                ( self.braak, self.previous_braak, 'braak', 'braak_change_check' ),
+            ]
 
     def check_parents_exist( self ):
         """check if father/mother is 0, mother/father must be 0
@@ -425,7 +441,15 @@ class Family_Subject( Non_PSP_Subject ):
     def unknown_ad_requires_na_age( self ):
         if str( self.ad ) == '9' and self.age != 'NA':
             self.data_errors[ 'unknown_ad_age_match_check' ] = "Subject has AD value of '9', but age is given."
-       
+    
+    def change_in_ad_certainty_check( self ):
+        if self.previous_release_version != 'NA':
+            if self.ad != self.previous_ad:
+                if self.ad != 0 and self.ad != 'NA':
+                    if self.ad > self.previous_ad:
+                        self.data_errors[ 'ad_certainty_change_check' ] = f'ad status changed from { self.previous_ad } to { self.ad }. Please confirm that there is an explanatory comment.'
+
+
     ### functions that call the appropriate checks for initial validation and updates
     def run_initial_validation_checks( self ):
         ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
@@ -454,8 +478,10 @@ class Family_Subject( Non_PSP_Subject ):
         df = pd.read_json( json.dumps( self.all_data ) ).transpose()
 
         self.check_for_blank_values()
+        self.illegal_data_changes_check( self.values_that_cant_change )
         self.update_age_check()
         self.ad_status_switch_check()
+        self.change_in_ad_certainty_check()
 
         return self.data_errors
 
