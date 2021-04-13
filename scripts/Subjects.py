@@ -42,7 +42,7 @@ class Non_PSP_Subject:
             try: ## have to do this because sometimes it subject_id, sometimes it subjid
                 self.subject_id = subject_data[ "subject_id" ]
             except KeyError:
-                self.subject_id = subject_data[ "SUBJID" ]
+                self.subject_id = subject_data[ "subjid" ]
 
             self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
             self.previous_apoe = subject_data[ "prev_apoe" ]
