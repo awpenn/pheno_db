@@ -16,7 +16,10 @@ def handle_age_values( pheno_value ):
         if pheno_value == 'NA':
             processed_pheno_value = pheno_value
         else:
-            processed_pheno_value = int( pheno_value.replace("+", "") )
+            if '+' in pheno_value:
+                processed_pheno_value = int( pheno_value.replace("+", "") )
+            elif '>' in pheno_value:
+                processed_pheno_value = int( pheno_value.replace(">", "") )
     else:
         processed_pheno_value = pheno_value
 

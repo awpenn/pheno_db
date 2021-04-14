@@ -121,7 +121,6 @@ def build_dataframe( query_type, views_based_on_subject_type, header_and_data_db
         if "prev_" not in column and "LATEST_PUB" not in column and any( k in column for k in skip_column_keywords ):
                 del sorted_df[ column ]
 
-
     return sorted_df
 
 def highlight_change( query_type, sorted_dataframe ):
@@ -153,7 +152,7 @@ def build_comparison_table( subject_type, query_type, comparison_dataframe ):
     """takes query_type for filename and finished dataframe and creates csv"""
     ## need to remove any `/` in subject_type for placement in filename
     subject_type_corrected = subject_type.replace( "/", "-" )
-    comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison.csv",index=False,na_rep="NA")
+    comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison.csv",index=False,na_rep="No Baseline Value")
 
 def get_latest_published_tracking_varnames( current_view ):
     """takes current_view and returns latest published tracking variables list to be added to query"""
