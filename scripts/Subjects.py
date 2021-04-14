@@ -604,4 +604,3 @@ class ADNI_Subject( Non_PSP_Subject ):
         self.mci_status_switch_check()
         
         return self.data_errors
-

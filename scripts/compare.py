@@ -69,7 +69,6 @@ def build_dataframe( query_type, views_based_on_subject_type, header_and_data_db
     headers_cleaned = []
     headers_sorted = []
 
-
     if query_type == 'update_to_latest':
         """for update to latest, need to have _baseline added to differentiate between the current and update cols"""
         for index, header in enumerate( headers_unpacked ):
