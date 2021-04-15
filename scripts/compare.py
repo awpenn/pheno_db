@@ -131,11 +131,11 @@ def highlight_change( query_type, sorted_dataframe ):
         compare_prefix = 'prev'
     if query_type == 'update_to_baseline':
         compare_prefix = 'baseline'
-
+    breakpoint()
     def add_update(var_update,var_y,var_x):
-        comp_update = sorted_dataframe[var_y].apply(str) + " to " + sorted_dataframe[var_x].apply(str)
-        comp_update[sorted_dataframe[var_y] == sorted_dataframe[var_x]] = ""
-        comp_update[sorted_dataframe[var_y].isnull()] = ""
+        comp_update = sorted_dataframe[var_y].apply( str ) + " to " + sorted_dataframe[ var_x ].apply( str )
+        comp_update[ sorted_dataframe[ var_y ] == sorted_dataframe[ var_x ] ] = ""
+        comp_update[ sorted_dataframe[ var_y ].isnull() ] = ""
 
         sorted_dataframe[var_update] = comp_update
     ## access columns eg. sorted_dataframe[['sex', 'prev_sex']] //note twin brackets
