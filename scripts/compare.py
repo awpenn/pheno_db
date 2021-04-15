@@ -131,7 +131,7 @@ def highlight_change( query_type, sorted_dataframe ):
         compare_prefix = 'prev'
     if query_type == 'update_to_baseline':
         compare_prefix = 'baseline'
-    breakpoint()
+
     def add_update(var_update,var_y,var_x):
         comp_update = sorted_dataframe[var_y].apply( str ) + " to " + sorted_dataframe[ var_x ].apply( str )
         comp_update[ sorted_dataframe[ var_y ] == sorted_dataframe[ var_x ] ] = ""
