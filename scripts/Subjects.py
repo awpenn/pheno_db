@@ -9,11 +9,14 @@ import json
 
 from pheno_utils import *
 
+## for all the checks that can get thrown off by string values, either NA or NBV, global variable here to check against
+strings_dont_process = [ 'NA', 'No Baseline Value' ]
+
 #utils
 def handle_age_values( pheno_value ):
     """takes the age-related pheno-value and handles for string values, ie. where an age like '90+' """
     if isinstance( pheno_value, str ):
-        if pheno_value == 'NA':
+        if "+" not in pheno_value and ">" not in pheno_value:
             processed_pheno_value = pheno_value
         else:
             if '+' in pheno_value:
@@ -25,37 +28,44 @@ def handle_age_values( pheno_value ):
 
     return processed_pheno_value
 
+def remove_whitespace( pheno_value ):
+    """processes phenotypes, if str, removes whitespace"""
+    if isinstance( pheno_value, str ):
+        return pheno_value.strip()
+    else:
+        return pheno_value
+
 ### Parent Classes with variables/functions shared by child classes
 class Non_PSP_Subject:
     def __init__( self, subject_id, subject_data, all_data, checktype ):
 
-        self.subject_id = subject_id
-        self.age_baseline = handle_age_values( subject_data[ "age_baseline" ] )
-        self.apoe = subject_data[ "apoe" ]
-        self.autopsy = subject_data[ "autopsy" ]
-        self.braak = subject_data[ "braak" ]
-        self.ethnicity = subject_data[ "ethnicity" ]
-        self.race = subject_data[ "race" ]
-        self.sex = subject_data[ "sex" ]
+        self.subject_id = remove_whitespace( subject_id )
+        self.age_baseline = remove_whitespace( handle_age_values( subject_data[ "age_baseline" ] ) )
+        self.apoe = remove_whitespace( subject_data[ "apoe" ] )
+        self.autopsy = remove_whitespace( subject_data[ "autopsy" ] )
+        self.braak = remove_whitespace( subject_data[ "braak" ] )
+        self.ethnicity = remove_whitespace( subject_data[ "ethnicity" ] )
+        self.race = remove_whitespace( subject_data[ "race" ] )
+        self.sex = remove_whitespace( subject_data[ "sex" ] )
 
         if checktype == 'initial-validation':
-            self.comments = subject_data[ "comments" ]
+            self.comments = remove_whitespace( ubject_data[ "comments" ] )
 
         if checktype == 'update-validation':
             try: ## have to do this because sometimes it subject_id, sometimes it subjid
-                self.subject_id = subject_data[ "subject_id" ]
+                self.subject_id = remove_whitespace( subject_data[ "subject_id" ] )
             except KeyError:
-                self.subject_id = subject_data[ "subjid" ]
+                self.subject_id = remove_whitespace( subject_data[ "subjid" ] )
 
-            self.previous_age_baseline = handle_age_values( subject_data[ "prev_age_baseline" ] )
-            self.previous_apoe = subject_data[ "prev_apoe" ]
-            self.previous_autopsy = subject_data[ "prev_autopsy" ]
-            self.previous_braak = subject_data[ "prev_braak" ]
-            self.previous_ethnicity = subject_data[ "prev_ethnicity" ]
-            self.previous_race = subject_data[ "prev_race" ]
-            self.previous_sex = subject_data[ "prev_sex" ]
-            self.previous_comments = subject_data["prev_comments"]
-            self.previous_release_version = subject_data["prev_release_version"]
+            self.previous_age_baseline = remove_whitespace(handle_age_values( subject_data[  "prev_age_baseline" ] ) )
+            self.previous_apoe = remove_whitespace( subject_data[ "prev_apoe" ] )
+            self.previous_autopsy = remove_whitespace( subject_data[ "prev_autopsy" ] )
+            self.previous_braak = remove_whitespace( subject_data[ "prev_braak" ] )
+            self.previous_ethnicity = remove_whitespace( subject_data[ "prev_ethnicity" ] )
+            self.previous_race = remove_whitespace( subject_data[ "prev_race" ] )
+            self.previous_sex = remove_whitespace( subject_data[ "prev_sex" ] )
+            self.previous_comments = remove_whitespace( subject_data["prev_comments"] )
+            self.previous_release_version = remove_whitespace( subject_data["prev_release_version"] )
 
         self.all_data = all_data
 
@@ -92,7 +102,7 @@ class Non_PSP_Subject:
     
     def ad_check( self ):
         if self.ad == 'NA':
-            if not ( self.incad == 'NA' and self.prevad == 'NA' ):
+            if not ( self.incad == 'NA' and self.prevad == 'NA' ): 
                 self.data_errors[ "ad_check" ] = 'AD has NA value, but non-NA values for incad and/or prevad.'
 
         elif self.ad == 1:
@@ -174,14 +184,14 @@ class Non_PSP_Subject:
             if self.previous_ad == 0: ##if AD, but only in latest update, then the age is becoming age_at_onset, so ok if changes or decreases
                 return
         else:
-            if self.age !='NA' and self.previous_age !='NA':
+            if self.age not in strings_dont_process and self.previous_age not in strings_dont_process:
                 if not handle_age_values( self.age ) >= handle_age_values( self.previous_age ):
                     self.data_errors[ "age_check" ] = "Age decreased between last release and update."
             else:
-                if self.age == 'NA' and self.previous_age == 'NA':
+                if self.age == 'NA' and self.previous_age in strings_dont_process:
                     return
                 else:
-                    if self.age != 'NA' and self.previous_age == 'NA':
+                    if self.age not in strings_dont_process and self.previous_age == 'NA':
                         self.data_errors[ "age_check" ] = "Previous age given as NA but update gives numerical value."
                         return
 
@@ -204,30 +214,30 @@ class Non_PSP_Subject:
 class PSP_Subject:
     def __init__( self, subject_data, all_data, checktype ):
         
-        self.subject_id = subject_id
+        self.subject_id = remove_whitespace( subject_id )
         self.subject_type = 'PSP/CDB'
         self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
-        self.race = subject_data[ "race" ]
-        self.sex = subject_data[ "sex" ]
-        self.diagnosis  = subject_data[ "diagnosis" ]
-        self.ageonset = handle_age_values( subject_data[ "ageonset" ] )
-        self.agedeath = handle_age_values( subject_data[ "agedeath" ] )
+        self.race = remove_whitespace( subject_data[ "race" ] )
+        self.sex = remove_whitespace( subject_data[ "sex" ] )
+        self.diagnosis = remove_whitespace( subject_data[ "diagnosis" ] )
+        self.ageonset = remove_whitespace( handle_age_values( subject_data[ "ageonset" ] ) )
+        self.agedeath = remove_whitespace( handle_age_values( subject_data[ "agedeath" ] ) )
 
         if checktype == 'initial-validation':
-            self.comments = subject_data[ "comments" ]
+            self.comments = remove_whitespace( subject_data[ "comments" ] )
     
         if checktype == 'update-validation':
             try: ## have to do this because sometimes it subject_id, sometimes it subjid
-                self.subject_id = subject_data[ "subject_id" ]
+                self.subject_id = remove_whitespace( subject_data[ "subject_id" ] )
             except KeyError:
-                self.subject_id = subject_data[ "SUBJID" ]
+                self.subject_id = remove_whitespace( subject_data[ "SUBJID" ] )
                 
-            self.previous_comments = subject_data["prev_comments"]
-            self.previous_race = subject_data[ "prev_race" ]
-            self.previous_sex = subject_data[ "prev_sex" ]
-            self.previous_diagnosis  = subject_data[ "prev_diagnosis" ]
-            self.previous_ageonset = handle_age_values( subject_data[ "prev_ageonset" ] )
-            self.previous_agedeath = handle_age_values( subject_data[ "prev_agedeath" ] )
+            self.previous_comments = remove_whitespace( subject_data["prev_comments"] )
+            self.previous_race = remove_whitespace( subject_data[ "prev_race" ] )
+            self.previous_sex = remove_whitespace( subject_data[ "prev_sex" ] )
+            self.previous_diagnosis = remove_whitespace( subject_data[ "prev_diagnosis" ] )
+            self.previous_ageonset = remove_whitespace( handle_age_values( subject_data[ "prev_ageonset" ] ) )
+            self.previous_agedeath = remove_whitespace( handle_age_values( subject_data[ "prev_agedeath" ] ) )
         
         self.all_data = all_data
 
@@ -292,19 +302,18 @@ class Case_Control_Subject( Non_PSP_Subject ):
         self.subject_type = 'case/control'
         ## get the dictionary of appropriate variables and var-values from database
         self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
-        self.ad = subject_data[ "ad" ]
-        # self.age = handle_age_values( subject_data[ "age" ] )
-        self.age = subject_data[ "age" ]
-        self.incad = subject_data[ "incad" ]
-        self.prevad = subject_data[ "prevad" ]
-        self.selection = subject_data[ "selection" ]
+        self.ad = remove_whitespace( subject_data[ "ad" ] )
+        self.age = remove_whitespace( subject_data[ "age" ] )
+        self.incad = remove_whitespace( subject_data[ "incad" ] )
+        self.prevad = remove_whitespace( subject_data[ "prevad" ] )
+        self.selection = remove_whitespace( subject_data[ "selection" ] )
 
         if checktype == 'update-validation':
-            self.previous_ad = subject_data[ "prev_ad" ]
-            self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
-            self.previous_incad = subject_data[ "prev_incad" ]
-            self.previous_prevad = subject_data[ "prev_prevad" ]
-            self.previous_selection = subject_data[ "prev_selection" ]
+            self.previous_ad = remove_whitespace( subject_data[ "prev_ad" ] )
+            self.previous_age = remove_whitespace( handle_age_values( subject_data[ "prev_age" ] ) )
+            self.previous_incad = remove_whitespace( subject_data[ "prev_incad" ] )
+            self.previous_prevad = remove_whitespace( subject_data[ "prev_prevad" ] )
+            self.previous_selection = remove_whitespace( subject_data[ "prev_selection" ] )
             
             self.values_that_cant_change = [
                 ( self.apoe, self.previous_apoe, 'apoe', 'apoe_change_check' ),
@@ -347,20 +356,20 @@ class Family_Subject( Non_PSP_Subject ):
         self.subject_type = 'family'
         ## get the dictionary of appropriate variables and var-values from database
         self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
-        self.ad = subject_data[ "ad" ]
-        self.age = handle_age_values( subject_data[ "age" ] )
-        self.famid = subject_data[ "famid" ]
-        self.father = subject_data[ "father" ]
-        self.mother = subject_data[ "mother" ]
-        self.famgrp = subject_data[ "famgrp" ]
+        self.ad = remove_whitespace( subject_data[ "ad" ] )
+        self.age = remove_whitespace( handle_age_values( subject_data[ "age" ] ) )
+        self.famid = remove_whitespace( subject_data[ "famid" ] )
+        self.father = remove_whitespace( subject_data[ "father" ] )
+        self.mother = remove_whitespace( subject_data[ "mother" ] )
+        self.famgrp = remove_whitespace( subject_data[ "famgrp" ] )
 
         if checktype == 'update-validation':
-            self.previous_ad = subject_data[ "prev_ad" ]
-            self.previous_age = handle_age_values( subject_data[ "prev_age" ] )
-            self.previous_famid = subject_data[ "prev_famid" ]
-            self.previous_father = subject_data[ "prev_father" ]
-            self.previous_mother = subject_data[ "prev_mother" ]
-            self.previous_famgrp = subject_data[ "prev_famgrp" ]
+            self.previous_ad = remove_whitespace( subject_data[ "prev_ad" ] )
+            self.previous_age = remove_whitespace( handle_age_values( subject_data[ "prev_age" ] ) )
+            self.previous_famid = remove_whitespace( subject_data[ "prev_famid" ] )
+            self.previous_father = remove_whitespace( subject_data[ "prev_father" ] )
+            self.previous_mother = remove_whitespace( subject_data[ "prev_mother" ] )
+            self.previous_famgrp = remove_whitespace( subject_data[ "prev_famgrp" ] )
             
             self.values_that_cant_change = [
                 ( self.father, self.previous_father, 'father', 'father_change_check' ),
@@ -446,7 +455,7 @@ class Family_Subject( Non_PSP_Subject ):
             self.data_errors[ 'unknown_ad_age_match_check' ] = "Subject has AD value of '9', but age is given."
     
     def change_in_ad_certainty_check( self ):
-        if self.previous_release_version != 'NA':
+        if self.previous_release_version != 'No Baseline Value':
             if self.ad != self.previous_ad:
                 if self.ad != 0 and self.ad != 'NA':
                     if self.ad > self.previous_ad:
@@ -494,22 +503,22 @@ class ADNI_Subject( Non_PSP_Subject ):
 
         self.subject_type = 'ADNI'
         self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
-        self.ad_last_visit = subject_data[ "ad_last_visit" ]
-        self.age_current = handle_age_values( subject_data[ "age_current" ] )
-        self.incad = subject_data[ "incad" ]
-        self.prevad = subject_data[ "prevad" ]
-        self.age_ad_onset = handle_age_values( subject_data[ "age_ad_onset" ] )
-        self.age_mci_onset = handle_age_values( subject_data[ "age_mci_onset" ] )
-        self.mci_last_visit = subject_data[ "mci_last_visit" ]
+        self.ad_last_visit = remove_whitespace( subject_data[ "ad_last_visit" ] )
+        self.age_current = remove_whitespace( handle_age_values( subject_data[ "age_current" ] ) )
+        self.incad = remove_whitespace( subject_data[ "incad" ] )
+        self.prevad = remove_whitespace( subject_data[ "prevad" ] )
+        self.age_ad_onset = remove_whitespace( handle_age_values( subject_data[ "age_ad_onset" ] ) )
+        self.age_mci_onset = remove_whitespace( handle_age_values( subject_data[ "age_mci_onset" ] ) )
+        self.mci_last_visit = remove_whitespace( subject_data[ "mci_last_visit" ] )
 
         if checktype == 'update-validation':
-            self.previous_ad_last_visit = subject_data[ "prev_ad_last_visit" ]
-            self.previous_age_current = handle_age_values( subject_data[ "prev_age_current" ] )
-            self.previous_incad = subject_data[ "prev_incad" ]
-            self.previous_prevad = subject_data[ "prev_prevad" ]
-            self.previous_age_ad_onset = handle_age_values( subject_data[ "prev_age_ad_onset" ] )
-            self.previous_age_mci_onset = handle_age_values( subject_data[ "prev_age_mci_onset" ] )
-            self.previous_mci_last_visit = subject_data[ "prev_mci_last_visit" ]
+            self.previous_ad_last_visit = remove_whitespace( subject_data[ "prev_ad_last_visit" ] )
+            self.previous_age_current = remove_whitespace( handle_age_values( subject_data[ "prev_age_current" ] ) )
+            self.previous_incad = remove_whitespace( subject_data[ "prev_incad" ] )
+            self.previous_prevad = remove_whitespace( subject_data[ "prev_prevad" ] )
+            self.previous_age_ad_onset = remove_whitespace( handle_age_values( subject_data[ "prev_age_ad_onset" ] ) )
+            self.previous_age_mci_onset = remove_whitespace( handle_age_values( subject_data[ "prev_age_mci_onset" ] ) )
+            self.previous_mci_last_visit = remove_whitespace( subject_data[ "prev_mci_last_visit" ] )
 
     def ad_check( self ):
         if self.ad_last_visit == 1:
@@ -565,11 +574,12 @@ class ADNI_Subject( Non_PSP_Subject ):
 
     ## checks that only run for update validation ( ie. compare update and previous )
     def update_age_check( self ):
-        if self.age_current !='NA' and self.previous_age_current !='NA':
+        
+        if self.age_current not in strings_dont_process and self.previous_age_current not in strings_dont_process:
             if not self.age_current >= self.previous_age_current:
                 self.data_errors[ "age_check" ] = "Age decreased between last release and update."
         else:
-            if self.age_current == 'NA' and self.previous_age_current == 'NA':
+            if self.age_current == 'NA' and self.previous_age_current in strings_dont_process:
                 return
             else:
                 if self.age_current != 'NA' and self.previous_age_current == 'NA':

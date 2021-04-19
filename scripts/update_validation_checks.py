@@ -50,18 +50,18 @@ def create_data_dict( LOADFILE, subject_type ):
         for row in pheno_file:
             if pheno_file.line_num > 1:
                 blob = {}
-                for index, value in enumerate(row):
+                for index, value in enumerate( row ):
                     try:
-                        blob[headers[index].lower()] = int(value)
+                        blob[ headers[ index ].lower( ) ] = int( value )
                     except:
-                        blob[headers[index].lower()] = value
+                        blob[ headers[ index ].lower( ) ] = value.strip( )
 
                 ## generated comparison file and database want 'subject_id', 
                 ## legacy data has 'subjid' so this just prevents key error if it's the wrong one in the file being processed
                 try:
-                    data_dict[ blob["subject_id"] ] = blob
+                    data_dict[ blob[ "subject_id" ] ] = blob
                 except KeyError:
-                    data_dict[ blob["subjid"] ] = blob
+                    data_dict[ blob[ "subjid" ] ] = blob
 
     return data_dict
 

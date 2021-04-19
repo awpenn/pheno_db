@@ -153,7 +153,7 @@ def build_comparison_table( subject_type, query_type, comparison_dataframe ):
     """takes query_type for filename and finished dataframe and creates csv"""
     ## need to remove any `/` in subject_type for placement in filename
     subject_type_corrected = subject_type.replace( "/", "-" )
-    comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison.csv",index=False,na_rep="No Baseline Value")
+    comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison.csv",index=False,na_rep="No Baseline/Previous Value")
 
 def get_latest_published_tracking_varnames( current_view ):
     """takes current_view and returns latest published tracking variables list to be added to query"""

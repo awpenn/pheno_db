@@ -447,7 +447,7 @@ def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_na
                     try:
                         blob[headers[ index ].lower()] = int( value )
                     except:
-                        blob[headers[ index ].lower()] = value
+                        blob[headers[ index ].lower()] = value.strip( )##remove whitespace from string values
 
                     blob[ "data_version" ] = release_dict[ data_version ]
 
