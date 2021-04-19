@@ -31,7 +31,7 @@ def handle_age_values( pheno_value ):
 def remove_whitespace( pheno_value ):
     """processes phenotypes, if str, removes whitespace"""
     if isinstance( pheno_value, str ):
-        return pheno_value.strip()
+        return pheno_value.strip( )
     else:
         return pheno_value
 
