@@ -476,26 +476,26 @@ def create_comparison_data_dict( LOADFILE, subject_type ):
     release_dict = build_release_dict()
     data_dict = {}
 
-    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open( f'./source_files/{ LOADFILE }', mode='r', encoding='utf-8-sig' ) as csv_file:
         """"get the relationship table names and indexes from the csv file headers"""
-        pheno_file = csv.reader(csv_file)
-        headers = next(pheno_file)
+        pheno_file = csv.reader( csv_file )
+        headers = next( pheno_file )
 
         for row in pheno_file:
             if pheno_file.line_num > 1:
                 blob = {}
-                for index, value in enumerate(row):
+                for index, value in enumerate( row ):
                     try:
-                        blob[headers[index].lower()] = int(value)
+                        blob[ headers[ index ].lower( ) ] = int( value )
                     except:
-                        blob[headers[index].lower()] = value
+                        blob[ headers[ index ].lower( ) ] = value.strip( )
                     
                 try: ## resolve subjid vs. subject_id errors between generated files, legacy data, database, etc. 
                     data_dict[ blob[ "subjid" ] ] = blob
                 except:
                     data_dict[ blob[ "subject_id" ] ] = blob
 
-    for key, record in data_dict.items():
+    for key, record in data_dict.items( ):
         """remove subject id from blob for each record in dict"""
         try: #deal with subjid vs subject_id
             record.pop( 'subjid' )
