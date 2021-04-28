@@ -49,7 +49,7 @@ class Non_PSP_Subject:
         self.sex = remove_whitespace( subject_data[ "sex" ] )
 
         if checktype == 'initial-validation':
-            self.comments = remove_whitespace( ubject_data[ "comments" ] )
+            self.comments = remove_whitespace( subject_data[ "comments" ] )
 
         if checktype == 'update-validation':
             try: ## have to do this because sometimes it subject_id, sometimes it subjid
