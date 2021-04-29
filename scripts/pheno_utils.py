@@ -19,6 +19,15 @@ DBPORT = os.getenv('DBPORT')
 DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 
+## these are tests that can be toggled in validation 
+checks_to_toggle = {
+    "1": 'braak_inc_prev',
+    "2": 'test'
+}
+
+## for confirmation queries
+valid_confirm_inputs = [ 'y', 'n' ]
+
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
 
@@ -310,7 +319,7 @@ def user_input_data_version():
 
     while True:
         try:
-            version_input = input(f"Which release_version does your data belong to (select from list)? Please only load data from one release at a time. {data_versions}")
+            version_input = input(f"Which release_version does your data belong to (select from list)? Please only load data from one release at a time. { data_versions }")
         except ValueError:
             continue
         if version_input in data_versions:
@@ -340,6 +349,50 @@ def user_input_publish_dataset( data_version_string, write_counter ):
                 return True
             else:
                 return False
+
+def user_input_toggle_checks( subject_type, checktype ):
+    """"takes subject_type and checktype, asks user what checks they want to toggle off, returns list compiled from `checks_to_toggle` dict"""
+    selected_checks_to_toggle = []
+    def add_check_to_toggle_list( check_name ):
+        selected_checks_to_toggle.append( checks_to_toggle[ select_input ] )
+        
+    while True:
+        try:
+            select_input = input( f"What checks would you like to toggle (enter numerical from list)? { ', '.join( [ f'{ key }: { value }' for key, value in checks_to_toggle.items( ) ] ) } " )
+        except ValueError:
+            continue
+        if not select_input:
+            print( 'Please enter value from list' )
+            continue
+        elif select_input not in checks_to_toggle.keys( ):
+            print( 'Please enter value from list' )
+            continue
+        else:
+            if checks_to_toggle[ select_input ] not in selected_checks_to_toggle:
+                add_check_to_toggle_list( checks_to_toggle[ select_input ] )
+        
+            while True:
+                try: 
+                    confirm_input = input( f"Tests toggled off: { ', '.join( [ check for check in selected_checks_to_toggle ] ) }. Select more?(y/n) " )
+                except ValueError:
+                    continue
+                if not confirm_input:
+                    print( 'Please enter y/n value' )
+                    continue
+                elif confirm_input.isdigit( ):
+                    print( 'Please enter y/n value' )
+                    continue
+                elif confirm_input.lower( ) not in valid_confirm_inputs:
+                    print( 'Please enter y/n value' )
+                    continue
+                else:
+                    if confirm_input.lower( ) == 'n':
+                        return selected_checks_to_toggle
+                        break
+                    else:
+                        break
+            continue
+
 
 # log generators
 def generate_errorlog():

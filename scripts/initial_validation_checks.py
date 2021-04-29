@@ -55,12 +55,18 @@ def run_checks( data_dict, classname_dict, subject_type ):
     """
     ## this will hold the dict info plus any errors that are found
     review_dict = {}
+    
+    ##ask user if they want to turn any toggle-able checks off
+    toggle_checks = user_input_toggle_checks( subject_type, checktype = "initial-validation" )
 
     for key, value in data_dict.items():
         reviewed_subject_object = value
         subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( key, value, data_dict, "initial-validation" )
         
-        subject_data_errors = subject.run_initial_validation_checks()
+        if toggle_checks:
+            subject_data_errors = subject.run_initial_validation_checks( toggle_checks )
+        else:
+            subject_data_errors = subject.run_initial_validation_checks( )
         
         if subject_data_errors:
             ## if there are errors, create a 'data_errors' variable, convert errors into a string, and store with the rest of the comparison data

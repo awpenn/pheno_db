@@ -116,7 +116,7 @@ class Non_PSP_Subject:
             if not ( self.incad == 0 and self.prevad == 0 ):
                 self.data_errors[ "ad_check" ] = "AD has value of 0 but 1 values in either incad or prevad"
 
-    def braak_inc_prev_check( self ):
+    def braak_inc_prev_check( self ): 
         if isinstance( self.braak, int ):
             if not ( self.incad == 'NA' and self.prevad == 'NA'):
                 if self.braak < 4:
@@ -125,8 +125,8 @@ class Non_PSP_Subject:
                 else:
                     if not (self.incad == 1 or self.prevad == 1):
                         self.data_errors[ "braak_inc_prev_check" ] = "Braak score greater than 3 but no inc/prev_ad indicated."       
-        # else: ## 4/7/21 disable for now
-        #     self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
+        else:
+            self.data_errors[ "braak_na_check" ] = "Missing braak value, examine for the absence of neuropathological confirmation of AD status."
     
     def age_range_check( self, age_phenotype, value ):
         try:
@@ -281,7 +281,7 @@ class PSP_Subject:
         if data_value_errors:
             self.data_errors [ 'accepted_values_check' ] = '; '.join( [ f"{ x[ 0 ] }: { x[ 1 ] }" for x in data_value_errors.items() ] )
 
-    def run_initial_validation_checks( self ):
+    def run_initial_validation_checks( self, checks_to_skip = None ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
         self.age_range_check( "ageonset", self.ageonset )
@@ -289,7 +289,7 @@ class PSP_Subject:
 
         return self.data_errors
 
-    def run_update_validation_checks( self ):
+    def run_update_validation_checks( self, checks_to_skip = None ):
         self.check_for_blank_values()
 
         return self.data_errors
@@ -326,8 +326,8 @@ class Case_Control_Subject( Non_PSP_Subject ):
                 ( self.braak, self.previous_braak, 'braak', 'braak_change_check' ),
             ]
 
-    ### functions that call the appropriate checks for initil validation and updates
-    def run_initial_validation_checks( self ):
+    ### functions that call the appropriate checks for initial validation and updates
+    def run_initial_validation_checks( self, checks_to_skip = None ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
         self.age_90_plus_check()
@@ -336,11 +336,19 @@ class Case_Control_Subject( Non_PSP_Subject ):
         self.age_range_check( "age_baseline", handle_age_values( self.age_baseline ) )
 
         self.ad_check()
-        self.braak_inc_prev_check()
+
+        ## if tests to skip passed in
+        if checks_to_skip:
+            ## run the braak test if its not in the list, else skip
+            if 'braak_inc_prev' not in checks_to_skip: 
+                self.braak_inc_prev_check()
+        ## if of checks_to_skip, run braak test
+        else:
+            self.braak_inc_prev_check()
 
         return self.data_errors
         
-    def run_update_validation_checks( self ):
+    def run_update_validation_checks( self, checks_to_skip = None ):
         self.check_for_blank_values()
         self.illegal_data_changes_check( self.values_that_cant_change )
         self.ad_to_NA_check()
@@ -463,7 +471,7 @@ class Family_Subject( Non_PSP_Subject ):
 
 
     ### functions that call the appropriate checks for initial validation and updates
-    def run_initial_validation_checks( self ):
+    def run_initial_validation_checks( self, checks_to_skip = None ):
         ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
         df = pd.read_json( json.dumps( self.all_data ) ).transpose()
 
@@ -485,7 +493,7 @@ class Family_Subject( Non_PSP_Subject ):
 
         return self.data_errors
 
-    def run_update_validation_checks( self ):
+    def run_update_validation_checks( self, checks_to_skip = None ):
         ## make a dataframe out of the all data so can do some pedigree-type checks across rows easily
         df = pd.read_json( json.dumps( self.all_data ) ).transpose()
 
@@ -593,8 +601,8 @@ class ADNI_Subject( Non_PSP_Subject ):
         if self.mci_last_visit == 0 and self.previous_mci_last_visit == 1:
             self.data_errors[ "mci_last_visit_case_to_control" ] = "Subject's MCI status changed from case to control in update.  Please confirm."
 
-    ### functions that call the appropriate checks for initil validation and updates
-    def run_initial_validation_checks( self ):
+    ### functions that call the appropriate checks for initial validation and updates
+    def run_initial_validation_checks( self, checks_to_skip = None ):
         self.check_for_blank_values()
         self.check_data_values_against_dictionary()
         self.age_range_check( "age_current", self.age_current )
@@ -610,7 +618,7 @@ class ADNI_Subject( Non_PSP_Subject ):
 
         return self.data_errors
 
-    def run_update_validation_checks( self ):
+    def run_update_validation_checks( self, checks_to_skip = None ):
         self.check_for_blank_values()
         self.update_age_check()
         self.ad_status_switch_check()
