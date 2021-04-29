@@ -57,9 +57,9 @@ def run_checks( data_dict, classname_dict, subject_type ):
     review_dict = {}
     
     ##ask user if they want to turn any toggle-able checks off
-    toggle_checks = user_input_toggle_checks( subject_type, checktype = "initial-validation" )
+    toggle_checks = user_input_toggle_checks( subject_type = subject_type, checktype = "initial-validation" )
 
-    for key, value in data_dict.items():
+    for key, value in data_dict.items( ):
         reviewed_subject_object = value
         subject = getattr( sys.modules[ __name__ ], classname_dict[ subject_type ] )( key, value, data_dict, "initial-validation" )
         

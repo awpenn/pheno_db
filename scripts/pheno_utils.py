@@ -353,46 +353,72 @@ def user_input_publish_dataset( data_version_string, write_counter ):
 def user_input_toggle_checks( subject_type, checktype ):
     """"takes subject_type and checktype, asks user what checks they want to toggle off, returns list compiled from `checks_to_toggle` dict"""
     selected_checks_to_toggle = []
+    
     def add_check_to_toggle_list( check_name ):
         selected_checks_to_toggle.append( checks_to_toggle[ select_input ] )
-        
-    while True:
-        try:
-            select_input = input( f"What checks would you like to toggle (enter numerical from list)? { ', '.join( [ f'{ key }: { value }' for key, value in checks_to_toggle.items( ) ] ) } " )
-        except ValueError:
-            continue
-        if not select_input:
-            print( 'Please enter value from list' )
-            continue
-        elif select_input not in checks_to_toggle.keys( ):
-            print( 'Please enter value from list' )
-            continue
-        else:
-            if checks_to_toggle[ select_input ] not in selected_checks_to_toggle:
-                add_check_to_toggle_list( checks_to_toggle[ select_input ] )
-        
-            while True:
-                try: 
-                    confirm_input = input( f"Tests toggled off: { ', '.join( [ check for check in selected_checks_to_toggle ] ) }. Select more?(y/n) " )
-                except ValueError:
-                    continue
-                if not confirm_input:
-                    print( 'Please enter y/n value' )
-                    continue
-                elif confirm_input.isdigit( ):
-                    print( 'Please enter y/n value' )
-                    continue
-                elif confirm_input.lower( ) not in valid_confirm_inputs:
-                    print( 'Please enter y/n value' )
-                    continue
-                else:
-                    if confirm_input.lower( ) == 'n':
-                        return selected_checks_to_toggle
-                        break
-                    else:
-                        break
-            continue
 
+    def initial_confirm( ):
+        while True:
+            try:
+                confirm_input = input( 'Do you want to toggle off any validation checks?(y/n) ' )
+            except ValueError:
+                continue
+            if not confirm_input:
+                print( 'Please enter y/n value' )
+                continue
+            elif confirm_input.isdigit( ):
+                print( 'Please enter y/n value' )
+                continue
+            elif confirm_input.lower( ) not in valid_confirm_inputs:
+                print( 'Please enter y/n value' )
+                continue
+            else:
+                if confirm_input.lower( ) == 'y':
+                    return True
+                else:
+                    return False
+
+    toggle_off = initial_confirm( )
+
+    if toggle_off:
+        while True:
+            try:
+                select_input = input( f"What checks would you like to toggle (enter numerical from list)? { ', '.join( [ f'{ key }: { value }' for key, value in checks_to_toggle.items( ) ] ) } " )
+            except ValueError:
+                continue
+            if not select_input:
+                print( 'Please enter value from list' )
+                continue
+            elif select_input not in checks_to_toggle.keys( ):
+                print( 'Please enter value from list' )
+                continue
+            else:
+                if checks_to_toggle[ select_input ] not in selected_checks_to_toggle:
+                    add_check_to_toggle_list( checks_to_toggle[ select_input ] )
+            
+                while True:
+                    try: 
+                        confirm_input = input( f"Tests toggled off: { ', '.join( [ check for check in selected_checks_to_toggle ] ) }. Select more?(y/n) " )
+                    except ValueError:
+                        continue
+                    if not confirm_input:
+                        print( 'Please enter y/n value' )
+                        continue
+                    elif confirm_input.isdigit( ):
+                        print( 'Please enter y/n value' )
+                        continue
+                    elif confirm_input.lower( ) not in valid_confirm_inputs:
+                        print( 'Please enter y/n value' )
+                        continue
+                    else:
+                        if confirm_input.lower( ) == 'n':
+                            return selected_checks_to_toggle
+                            break
+                        else:
+                            break
+                continue
+    else: ##user decided to not choose any checks to toggle off
+        return None
 
 # log generators
 def generate_errorlog():
