@@ -133,11 +133,16 @@ def highlight_change( query_type, sorted_dataframe ):
         compare_prefix = 'baseline'
 
     def add_update(var_update,var_y,var_x):
-        comp_update = sorted_dataframe[var_y].apply( str ) + " to " + sorted_dataframe[ var_x ].apply( str )
-        comp_update[ sorted_dataframe[ var_y ] == sorted_dataframe[ var_x ] ] = ""
-        comp_update[ sorted_dataframe[ var_y ].isnull() ] = ""
 
-        sorted_dataframe[var_update] = comp_update
+        if var_update != 'autopsy_change':## ie. if autopy, leave blank - 4/29/21 this turned off because phenotype definition being revised
+            comp_update = sorted_dataframe[var_y].apply( str ) + " to " + sorted_dataframe[ var_x ].apply( str )
+            comp_update[ sorted_dataframe[ var_y ] == sorted_dataframe[ var_x ] ] = ""
+            comp_update[ sorted_dataframe[ var_y ].isnull() ] = ""
+
+            sorted_dataframe[var_update] = comp_update
+        else:
+            sorted_dataframe[var_update] = ""
+
     ## access columns eg. sorted_dataframe[['sex', 'prev_sex']] //note twin brackets
     skip_column_keywords = ['update', 'published', 'release', 'version']
 

@@ -22,7 +22,6 @@ DBUSER = os.getenv('DBUSER')
 ## these are tests that can be toggled in validation 
 checks_to_toggle = {
     "1": 'braak_inc_prev',
-    "2": 'test'
 }
 
 ## for confirmation queries
@@ -353,7 +352,7 @@ def user_input_publish_dataset( data_version_string, write_counter ):
 def user_input_toggle_checks( subject_type, checktype ):
     """"takes subject_type and checktype, asks user what checks they want to toggle off, returns list compiled from `checks_to_toggle` dict"""
     selected_checks_to_toggle = []
-    
+
     def add_check_to_toggle_list( check_name ):
         selected_checks_to_toggle.append( checks_to_toggle[ select_input ] )
 
