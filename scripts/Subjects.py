@@ -10,7 +10,7 @@ import json
 from pheno_utils import *
 
 ## for all the checks that can get thrown off by string values, either NA or NBV, global variable here to check against
-strings_dont_process = [ 'NA', 'No Baseline Value' ]
+strings_dont_process = [ 'NA', 'No Baseline/Previous Value' ]
 
 #utils
 def handle_age_values( pheno_value ):
@@ -455,9 +455,9 @@ class Family_Subject( Non_PSP_Subject ):
             self.data_errors[ 'unknown_ad_age_match_check' ] = "Subject has AD value of '9', but age is given."
     
     def change_in_ad_certainty_check( self ):
-        if self.previous_release_version != 'No Baseline Value':
+        if self.previous_release_version not in strings_dont_process:
             if self.ad != self.previous_ad:
-                if self.ad != 0 and self.ad != 'NA':
+                if self.ad != 0 and self.ad not in strings_dont_process:
                     if self.ad > self.previous_ad:
                         self.data_errors[ 'ad_certainty_change_check' ] = f'ad status changed from { self.previous_ad } to { self.ad }. Please confirm that there is an explanatory comment.'
 
