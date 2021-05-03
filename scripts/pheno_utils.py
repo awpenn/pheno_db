@@ -453,6 +453,13 @@ def create_tsv( dataframe, subject_type, validation_type, requires_index = False
     else:
         dataframe.to_csv(f"./validation_error_files/{ corrected_subject_type }-{ validation_type }_errors-{ datestamp }.txt", sep="\t", index=False )
 
+def generate_update_report( data_dict, user_input_subject_type, loadtype ):
+    """called at end of write to database funct, args = the write_to_db dict, loadtype (publish or update) and the subect_type..."""
+    breakpoint()
+    ## build dict of latest published data for subject_type
+    current_view = database_connection( "SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = %s", ( user_input_subject_type, ) )
+    last_published_version_dict = { }
+
 # fetching data
 def get_dict_data( dict_name ):
     """takes dict name as arg, returns dataframe with dict info"""

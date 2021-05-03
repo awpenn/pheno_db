@@ -85,8 +85,12 @@ def write_to_db( data_dict ):
 
         _data = json.dumps( value )
 
-        database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{ subject_id }', '{ _data }', '{ user_input_subject_type }')")
-        
+        # database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES('{ subject_id }', '{ _data }', '{ user_input_subject_type }')")
+
+        ## add subject_id back in for reporting
+        data_dict[ key ][ 'subject_id' ] = subject_id
+
+    generate_update_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
 
 if __name__ == '__main__':
     main()
