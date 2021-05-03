@@ -27,13 +27,13 @@ checks_to_toggle = {
 ## for confirmation queries
 valid_confirm_inputs = [ 'y', 'n' ]
 
-def database_connection(query):
+def database_connection( query, params ):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
 
     try:
         connection = psycopg2.connect(user = DBUSER, password = DBPASS, host = DBIP, port = DBPORT, database = DB)
-        cursor = connection.cursor()
-        cursor.execute(query)
+        cursor = connection.cursor( )
+        cursor.execute( query, params )
 
         if "SELECT" in query:
             returned_array = cursor.fetchall()
