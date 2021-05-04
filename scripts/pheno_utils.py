@@ -314,7 +314,7 @@ def get_subject_to_drop( view_based_on_subject_type ):
     return single_dict
 
 def user_input_data_version():
-    """takes no arg, returns subject_type for data being handled"""
+    """takes no arg, returns dataversion for data being handled"""
     ## only returns versions not published, so once published, data cant be overwritten accidently 
     data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection( "SELECT DISTINCT release_version FROM data_versions WHERE published = FALSE", ( ) ) ]
 
@@ -457,10 +457,109 @@ def create_tsv( dataframe, subject_type, validation_type, requires_index = False
 
 def generate_update_report( data_dict, user_input_subject_type, loadtype ):
     """called at end of write to database funct, args = the write_to_db dict, loadtype (publish or update) and the subect_type..."""
-    breakpoint()
+
+    update_columns_by_subject_type = {
+        "case/control": 'subject_id, update_baseline, update_latest, update_adstatus, correction', 
+        "family": 'subject_id, update_baseline, update_latest, update_adstatus, correction',
+        "PSP/CDB": 'subject_id, update_baseline, update_latest, update_diagnosis, correction', 
+        "ADNI": 'subject_id, update_baseline, update_latest, update_diagnosis, correction', 
+    }
+
+    current_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+    ## taking data dict and keying by subjid rather than subjid+version
+    update_data_dict = { record[ 'subject_id' ]: record for key, record in data_dict.items( ) }
+
+    ## get update columns from subject_type current view and key by subject_id
+    current_view_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { current_view }", ( ) ) }
+
     ## build dict of latest published data for subject_type
-    current_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )
-    last_published_version_dict = { }
+    latest_published_version_dict = { }
+    for key, record in current_view_data.items( ):
+        blob = {}
+        ## split the columns string from `update_columns_by_subject_type` into list and enumerate
+        for index, header in enumerate( update_columns_by_subject_type[ user_input_subject_type ].split( ', ' ) ):
+            ## headers index will match index for that data value in the `current_view_data` (`record` in first for loop)
+            blob[ header ] = record[ index ]
+        
+        ## add all the labeled datapoints to the last_published dict, keyed by subject_id
+        latest_published_version_dict[ key ] = blob
+    
+    ## build dict to hold report info
+    report_dict = {
+        "new_subjects": {
+            "count": 0,
+            "subject_ids": [],
+        },
+        "updated_subjects": {
+            "count": 0,
+            "subject_ids": [],
+        },
+        "ad/diagnosis_update_subjects": {
+            "count": 0,
+            "subject_ids": [],
+        },
+        "correction_subjects": {
+            "count": 0,
+            "subject_ids": []
+        },
+    }
+
+    ## count subjects in update not in latest published
+    for key in update_data_dict.keys( ):
+        if key not in latest_published_version_dict.keys( ):
+            report_dict[ 'new_subjects' ][ 'count' ] += 1
+            report_dict[ 'new_subjects' ][ 'subject_ids' ].append( key )
+        
+        ## count subjects newly updated
+        if update_data_dict[ key ][ 'update_latest' ] == 1:
+            report_dict[ 'updated_subjects' ][ 'count' ] += 1
+            report_dict[ 'updated_subjects' ][ 'subject_ids' ].append( key )
+    
+        ## count corrections new to update
+        if update_data_dict[ key ][ 'correction' ] == 1: ## ...but the update has a correction
+            report_dict[ 'correction_subjects' ][ 'count' ] += 1
+            report_dict[ 'correction_subjects' ][ 'subject_ids' ].append( key )
+
+        ## count ad/diagnosis update, depending on subject_type
+        if 'update_adstatus' in update_columns_by_subject_type[ user_input_subject_type ]: ##for cc/fam
+            if update_data_dict[ key ][ 'update_adstatus' ] == 1:
+                report_dict[ 'ad/diagnosis_update_subjects' ][ 'count' ] += 1
+                report_dict[ 'ad/diagnosis_update_subjects' ][ 'subject_ids' ].append( key )
+        elif 'update_diagnosis' in update_columns_by_subject_type[ user_input_subject_type ]: ##for ADNI/psp
+            if update_data_dict[ key ][ 'update_diagnosis' ] == 1:
+                report_dict[ 'ad/diagnosis_update_subjects' ][ 'count' ] += 1
+                report_dict[ 'ad/diagnosis_update_subjects' ][ 'subject_ids' ].append( key )
+
+    ## build report file
+    date = datetime.date.today( )
+    time = datetime.datetime.now( ).strftime("%H:%M:%S")
+    f = open(f'./log_files/{ date }-{ time }-update-report.txt', 'w+')
+
+    f.write( f"SUMMARY REPORT FOR UNPUBLISHED UPDATE\n\n" )
+
+    ##new subjects
+    f.write( f"New subjects: { report_dict[ 'new_subjects' ][ 'count' ] }\n" )
+    for subject in report_dict[ 'new_subjects' ][ 'subject_ids' ]:
+        f.write( f"{ subject }\n" )
+    f.write("\n\n")
+
+    ##updates
+    f.write( f"Subjects with updated phenotypes: { report_dict[ 'updated_subjects' ][ 'count' ] }\n" )
+    for subject in report_dict[ 'updated_subjects' ][ 'subject_ids' ]:
+        f.write( f"{ subject }\n" )
+    f.write("\n\n")
+
+    ##updates to diagnosis
+    f.write( f"Subjects with updated ad/diagnosis: { report_dict[ 'ad/diagnosis_update_subjects' ][ 'count' ] }\n" )
+    for subject in report_dict[ 'ad/diagnosis_update_subjects' ][ 'subject_ids' ]:
+        f.write( f"{ subject }\n" )
+    f.write("\n\n")
+
+    ##corrections
+    f.write( f"Subjects with new corrections: { report_dict[ 'correction_subjects' ][ 'count' ] }\n" )
+    for subject in report_dict[ 'correction_subjects' ][ 'subject_ids' ]:
+        f.write( f"{ subject }\n" )
+    f.write("\n\n")
 
 # fetching data
 def get_dict_data( dict_name ):
@@ -627,5 +726,4 @@ def check_DEBUG( ):
     global DEBUG
     if len( sys.argv ) > 1:
         if sys.argv[ 1 ] == 'DEBUG':
-            breakpoint()
             DEBUG = True

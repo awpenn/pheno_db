@@ -27,11 +27,14 @@ def main():
     ## checks if DEBUG arg passed in script call, sets DEBUG variable to True if so
     pheno_utils.check_DEBUG( )
 
-    user_input_subject_type = pheno_utils.get_subject_type()
+    # user_input_subject_type = pheno_utils.get_subject_type()
+    user_input_subject_type = 'case/control'
 
-    data_version = pheno_utils.user_input_data_version()
+    # data_version = pheno_utils.user_input_data_version()
+    data_version = 'ng00067.v2'
 
-    LOADFILE = pheno_utils.get_filename()
+    # LOADFILE = pheno_utils.get_filename()
+    LOADFILE = 'reports2.csv'
 
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
@@ -87,9 +90,10 @@ def write_to_db( data_dict ):
 
         _data = json.dumps( value )
 
-        # if not DEBUG:
-        pheno_utils.database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
-
+        if not pheno_utils.DEBUG:
+            pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
+        else:
+            print( 'DEBUG mode, no write to db....\n')
         ## add subject_id back in for reporting
         data_dict[ key ][ 'subject_id' ] = subject_id
 
