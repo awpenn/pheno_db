@@ -12,12 +12,11 @@ import pandas as pd
 import calendar
 import time
 
-from flagchecks import *
-from pheno_utils import *
+import pheno_utils
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
-    LOADFILE = get_filename()
+    LOADFILE = pheno_utils.get_filename()
     data_dict = create_data_dict( LOADFILE )
 
     cleanup_string_numbers( data_dict )
@@ -28,9 +27,7 @@ def create_data_dict( LOADFILE ):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     data_dict = {}
 
-    upload_data = pd.read_csv(f"./source_files/{LOADFILE}", dtype=str)
-    # tada = upload_data.loc[upload_data['VARNAME'] == 'APOE']
-    # turn the values into a list val_list = [x for x in tada['VALUES]]
+    upload_data = pd.read_csv( f"./source_files/{ LOADFILE }", dtype=str )
 
     ## use list comprehension to create set of variables from dataframe, then use list comprehension to convert set to list
     unique_variables = [ u_var for u_var in set( [ var for var in upload_data.VARNAME ] ) ]
@@ -44,8 +41,8 @@ def create_data_dict( LOADFILE ):
 
         ## get the value-pairs from the value_list, split by colon, and assign as key-value pair to value_dict
         for value in value_list:
-            if not pd.isnull(value):
-                v_key, v_value = value.split(':')
+            if not pd.isnull( value ):
+                v_key, v_value = value.split( ':' )
                 value_dict[ v_key ] = v_value
         
         ## write dict of values and keys to the variable's data object
@@ -98,7 +95,7 @@ def write_to_db( data_dict ):
     _dict_data = json.dumps( data_dict ).replace("'", "''")
 
     if check_dict_not_dupe( dictionary_name ):
-        database_connection( f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES(%s, %s);", ( dictionary_name, _dict_data ) )
+        pheno_utils.database_connection( f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES(%s, %s);", ( dictionary_name, _dict_data ) )
     else:
         print(f'There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added. ')
 
@@ -107,13 +104,13 @@ def get_user_input( value_list ):
      (e.g. same variable has two assoc. dictionary names), gets user to choose correct one and returns"""
     while True:
         try:
-            value_input = input(f"Which value is correct? {set(value_list)}")
+            value_input = input(f"Which value is correct? { set( value_list ) }")
         except ValueError:
             continue
-        if str(value_input) in value_list:
+        if str( value_input ) in value_list:
             return value_input
         else:
-            print(f"{value_input} is not valid.  Please select a value from the list")
+            print(f"{ value_input } is not valid.  Please select a value from the list")
             continue
 
 def cleanup_string_numbers( value_dict ):
@@ -145,7 +142,7 @@ def get_dictionary_name( data_dict ):
 
 def check_dict_not_dupe( dict_name ):
     """takes dict name, returns true boolean if dictname not in db, false if already exists"""
-    if database_connection( f"SELECT COUNT(*) FROM data_dictionaries WHERE dictionary_name = %s", ( dict_name, ) )[ 0 ][ 0 ] > 0:
+    if pheno_utils.database_connection( f"SELECT COUNT(*) FROM data_dictionaries WHERE dictionary_name = %s", ( dict_name, ) )[ 0 ][ 0 ] > 0:
         return 0
     else:
         return 1

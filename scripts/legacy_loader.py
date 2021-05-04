@@ -11,9 +11,7 @@ import datetime
 import calendar
 import time
 
-from flagchecks import *
-from pheno_utils import *
-from initial_validation_checks import *
+import pheno_utils
 
 new_records = []
 success_id_log = []
@@ -26,23 +24,23 @@ def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global user_input_subject_type
     
-    user_input_subject_type = get_subject_type()
+    user_input_subject_type = pheno_utils.get_subject_type( )
 
-    data_version = user_input_data_version()
+    data_version = pheno_utils.user_input_data_version( )
 
     
-    LOADFILE = get_filename()
+    LOADFILE = pheno_utils.get_filename( )
 
     variables_match_dictionary, msg = check_legacy_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     if not variables_match_dictionary:
         print( msg )
-        sys.exit()
+        sys.exit( )
         
     else:
         print( msg )
         ## 12/15 create_data_dict generalized and moved to utils
-        data_dict = create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
+        data_dict = pheno_utils.create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
         legacy_write_to_db( data_dict, data_version )
     
 def legacy_write_to_db( data_dict, data_version_string ):
@@ -62,7 +60,7 @@ def legacy_write_to_db( data_dict, data_version_string ):
 
         _data = json.dumps( value )
         try:
-            database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
+            pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
             save_legacy_baseline( subject_id, value )
             write_counter += 1
 
@@ -72,19 +70,19 @@ def legacy_write_to_db( data_dict, data_version_string ):
     ## ask user if ready to publish dataset, if yes, will flip publish boolean in data versions table
     if write_counter > 0:
         if user_input_publish_dataset( data_version_string, write_counter ):
-            change_data_version_published_status( "TRUE", data_version )
+            pheno_utils.change_data_version_published_status( "TRUE", data_version )
         else:
             print( f"Phenotype records published for { data_version_string } and cannot be changed, but version not published." )
-            change_data_version_published_status( "FALSE", data_version )
+            pheno_utils.change_data_version_published_status( "FALSE", data_version )
     else:
         print( "No records entered in database." )
 
 def create_legacy_baseline_json( data ):
     """takes dict entry for subject being added to database and creates the copy of data for baseline table, returning json string"""
     baseline_data = {}
-    for key, value in data.items():
+    for key, value in data.items( ):
         if "update" not in key and "correction" not in key:
-            baseline_data[key] = value
+            baseline_data[ key ] = value
  
     return json.dumps( baseline_data )
 
@@ -94,7 +92,7 @@ def save_legacy_baseline( subject_id, data ):
 
     _baseline_data = create_legacy_baseline_json( data )
 
-    database_connection( f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES(%s, %s, '{user_input_subject_type}')", ( subject_id, _baseline_data ) ) 
+    pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _baseline_data ) ) 
 
 def check_legacy_loadfile_variables_match_dictionary( data_dict, dictionary, subject_type, LOADFILE ):
     """Gets the appropriate dictionary, checks phenotype variables in are correct and complete"""
@@ -104,7 +102,7 @@ def check_legacy_loadfile_variables_match_dictionary( data_dict, dictionary, sub
     modified_dictionary_varlist.extend( ['correction', 'update_latest', 'update_adstatus', 'update_baseline'] )
 
     ## use next/iter to get first key in data_dict(ie. a subject id), then gets the keys for that subjects phenotype data dict
-    data_dict_vars = [ var for var in data_dict[ next( iter( data_dict ) ) ].keys() ]
+    data_dict_vars = [ var for var in data_dict[ next( iter( data_dict ) ) ].keys( ) ]
 
     for var in dictionary_vars:
         if var  != 'duplicate_subjid':
@@ -134,9 +132,9 @@ def check_legacy_loadfile_variables_match_dictionary( data_dict, dictionary, sub
 def check_legacy_loadfile_correctness( LOADFILE, user_input_subject_type ):
     """takes loadfile and subject type, returns boolean indicating loadfile matches appropriate dict, along with a message"""
     """moved from initial_validation_check so can be used at beginning of any script"""
-    data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
-    dict_name = database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
-    dictionary = get_dict_data( dict_name )
+    data_dict = pheno_utils.create_comparison_data_dict( LOADFILE, user_input_subject_type )
+    dict_name = pheno_utils.database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+    dictionary = pheno_utils.get_dict_data( dict_name )
 
     variables_match_dictionary, msg = check_legacy_loadfile_variables_match_dictionary( data_dict, dictionary, user_input_subject_type, LOADFILE )
     

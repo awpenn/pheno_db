@@ -19,6 +19,8 @@ DBPORT = os.getenv('DBPORT')
 DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 
+## set to true if 'DEBUG' passed as cmdline arg, prevents database writing and etc.
+DEBUG = False
 ## these are tests that can be toggled in validation 
 checks_to_toggle = {
     "1": 'braak_inc_prev',
@@ -216,7 +218,7 @@ def get_publish_action():
             return publish_status
 
         elif pubstat_input in ['n', 'N', 'no', 'No', 'NO']:
-            print("Loaded records will no be published.")
+            print("Loaded records will not be published.")
             publish_status = False
             return publish_status
         else:
@@ -620,3 +622,10 @@ def get_test_json_from_file( filename ):
         data = json.load(json_file)
 
     return data
+
+def check_DEBUG( ):
+    global DEBUG
+    if len( sys.argv ) > 1:
+        if sys.argv[ 1 ] == 'DEBUG':
+            breakpoint()
+            DEBUG = True

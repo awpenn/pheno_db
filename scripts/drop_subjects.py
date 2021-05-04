@@ -10,29 +10,28 @@ import json
 import calendar
 import time
 
-from flagchecks import *
-from pheno_utils import *
+import pheno_utils
 
 error_log = {}
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
 
-    user_input_subject_type = get_subject_type()
-    views_based_on_subject_type = get_views_by_subject_type( user_input_subject_type )
+    user_input_subject_type = pheno_utils.get_subject_type()
+    views_based_on_subject_type = pheno_utils.get_views_by_subject_type( user_input_subject_type )
 
     for view in views_based_on_subject_type:
         if 'unpublished' in view:
             view_based_on_subject_type = view
 
-    is_batch_file = user_input_batch_loading()
+    is_batch_file = pheno_utils.user_input_batch_loading()
 
     if is_batch_file:
-       LOADFILE = get_filename()
-       drop_dict = create_drop_data_dict( LOADFILE, view_based_on_subject_type )
+       LOADFILE = pheno_utils.get_filename()
+       drop_dict = pheno_utils.create_drop_data_dict( LOADFILE, view_based_on_subject_type )
 
     else:
-       drop_dict = get_subject_to_drop( view_based_on_subject_type )
+       drop_dict = pheno_utils.get_subject_to_drop( view_based_on_subject_type )
     
     # drop_dict returns dict keyed by subject id with data_version (pkey from table) as value
     drop_from_database( user_input_subject_type, drop_dict )
@@ -42,14 +41,14 @@ def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
     returns dict of json data keyed by subject id of data to be entered in database"""
     drop_dict = {}
 
-    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
-        pheno_file = csv.reader(csv_file)
-        headers = next(pheno_file)
+    with open( f'./source_files/{ LOADFILE }', mode='r', encoding='utf-8-sig' ) as csv_file:
+        pheno_file = csv.reader( csv_file )
+        headers = next( pheno_file )
         
-        for index, row in enumerate(pheno_file): 
+        for index, row in enumerate( pheno_file ): 
             subjid = row[headers.index( "subjid" ) ] or None
             release_version = row[headers.index( "release_version" ) ] or None
-            data_version_id = get_data_version_id( release_version ) or None
+            data_version_id = pheno_utils.get_data_version_id( release_version ) or None
             
             missing_data = True in ( ele == None for ele in [ subjid, release_version, data_version_id ] )
 
@@ -72,7 +71,7 @@ def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
 def drop_from_database( subject_type, drop_dict ):
     """takes subject_type and dict keyed by subject id, with id for data version in which subject's record will be deleted."""
     for key, value in drop_dict.items():
-        database_connection( f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = %s AND _data->>'data_version' = '%s' AND subject_type = %s AND published = FALSE", ( key, value, subject_type )  )
+        pheno_utils.database_connection( f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = %s AND _data->>'data_version' = '%s' AND subject_type = %s AND published = FALSE", ( key, value, subject_type )  )
 
 if __name__ == '__main__':
     main()

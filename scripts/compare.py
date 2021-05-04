@@ -11,7 +11,7 @@ import pandas as pd
 import calendar
 import time
  
-from pheno_utils import *
+import pheno_utils
 
 new_records = []
 success_id_log = []
@@ -19,12 +19,12 @@ error_log = {}
 
 def main():
     """main conductor function for the script."""
-    user_input_subject_type = get_subject_type()
+    user_input_subject_type = pheno_utils.get_subject_type()
     
     ## calls function that returns the three view names based on user_input
-    views_based_on_subject_type = get_views_by_subject_type( user_input_subject_type )
+    views_based_on_subject_type = pheno_utils.get_views_by_subject_type( user_input_subject_type )
 
-    query_type = get_compare_query_type()
+    query_type = pheno_utils.get_compare_query_type()
 
     data_from_db = get_data( query_type, views_based_on_subject_type )
 
@@ -39,8 +39,8 @@ def get_data( query_type, views_based_on_subject_type ):
     current_view, update_view, baseline_view = views_based_on_subject_type
 
     if query_type == 'update_to_latest':
-        data = database_connection( f"SELECT * FROM { update_view } LEFT JOIN { current_view } ON { update_view }.subject_id = { current_view }.subject_id", ( ) )
-        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{ update_view }' ,'{ current_view }');", ( ) )
+        data = pheno_utils.database_connection( f"SELECT * FROM { update_view } LEFT JOIN { current_view } ON { update_view }.subject_id = { current_view }.subject_id", ( ) )
+        header_data = pheno_utils.database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{ update_view }' ,'{ current_view }');", ( ) )
         headers = [ ''.join( header ) for header in header_data ]
 
     if query_type == 'update_to_baseline': 
@@ -48,13 +48,13 @@ def get_data( query_type, views_based_on_subject_type ):
         tracking_columns = get_latest_published_tracking_varnames( current_view )
         ## join them as a string to be inserted into the query
         tracking_columns_query_string = ', '.join( tracking_columns )
-        data = database_connection(f"SELECT { update_view }.*, { baseline_view }.*, { tracking_columns_query_string } \
+        data = pheno_utils.database_connection(f"SELECT { update_view }.*, { baseline_view }.*, { tracking_columns_query_string } \
                                     FROM { update_view } \
                                     LEFT JOIN { baseline_view } ON { update_view }.subject_id = { baseline_view }.subject_id \
                                     LEFT JOIN { current_view } ON { update_view }.subject_id = { current_view }.subject_id \
                                   ", ( ) )
         #n.b. query below is hacky, figure out how to do without the sorting based on table name and ord                                              
-        header_data = database_connection( f"SELECT column_name FROM information_schema.columns WHERE table_name in('{ update_view }' ,'{ baseline_view }') ORDER BY table_name DESC, ordinal_position;;", ( ) )
+        header_data = pheno_utils.database_connection( f"SELECT column_name FROM information_schema.columns WHERE table_name in('{ update_view }' ,'{ baseline_view }') ORDER BY table_name DESC, ordinal_position;;", ( ) )
         headers = [ ''.join(header) for header in header_data ]
         ## split the table reference off each tracking var, and preprend latest_pub to it, then APPEND to headers list
         [ headers.append( ''.join( ( 'LATEST_PUB_', var[ var.index( "." ) + 1: ] ) ) ) for var in tracking_columns ]
@@ -114,7 +114,7 @@ def build_dataframe( query_type, views_based_on_subject_type, header_and_data_db
     unsorted_df = pd.DataFrame( data, columns=[ headers_cleaned ] )
     sorted_df = unsorted_df[ headers_sorted ]
     # convert column names to strings (from tuples)
-    sorted_df.columns = [str(i[0]) for i in sorted_df.columns]
+    sorted_df.columns = [ str( i[ 0 ] ) for i in sorted_df.columns ]
 
     ## delete the columns for update versions tracking vars
     for column in sorted_df:
@@ -148,9 +148,9 @@ def highlight_change( query_type, sorted_dataframe ):
 
     for j in sorted_dataframe.columns:
         ## if no part of any keyword appears in the current column name (j)
-        if not any(k in j for k in skip_column_keywords):
-            if f"{compare_prefix}_{j}" in sorted_dataframe:
-                add_update(f"{j}_change", f"{compare_prefix}_{j}", j)
+        if not any( k in j for k in skip_column_keywords ):
+            if f"{ compare_prefix }_{ j }" in sorted_dataframe:
+                add_update( f"{j}_change", f"{ compare_prefix }_{ j }", j )
 
     return sorted_dataframe
 
@@ -163,7 +163,7 @@ def build_comparison_table( subject_type, query_type, comparison_dataframe ):
 def get_latest_published_tracking_varnames( current_view ):
     """takes current_view and returns latest published tracking variables list to be added to query"""
     ## first get column names from view with _update, because differnet for ADNI
-    column_names = database_connection(f"SELECT column_name \
+    column_names = pheno_utils.database_connection(f"SELECT column_name \
                         FROM information_schema.columns \
                         WHERE table_name = '{ current_view }' \
                         and column_name like 'update_%' \

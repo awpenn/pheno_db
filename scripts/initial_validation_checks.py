@@ -10,17 +10,17 @@ import datetime
 
 import pandas as pd
 
-from pheno_utils import *
+import pheno_utils
 from Subjects import *
 
 def main():
-    user_input_subject_type = get_subject_type()
-    LOADFILE = get_filename()
+    user_input_subject_type = pheno_utils.get_subject_type()
+    LOADFILE = pheno_utils.get_filename()
     
-    variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
+    variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     ## dict gives the Class Object Names for each subject_type corresponding to user-input subject type selection
-    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection( "SELECT subject_type, subject_classname FROM env_var_by_subject_type", ( ) ) }
+    classname_dict = { subjname: classname for ( subjname, classname ) in pheno_utils.database_connection( "SELECT subject_type, subject_classname FROM env_var_by_subject_type", ( ) ) }
 
     
     if not variables_match_dictionary:
@@ -30,7 +30,7 @@ def main():
     else:
         print( msg )   
         
-        data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
+        data_dict = pheno_utils.create_comparison_data_dict( LOADFILE, user_input_subject_type )
         print('start checks ', datetime.datetime.now().strftime("%H:%M:%S") )  ##for testing, remove when done
         reviewed_dict = run_checks( data_dict, classname_dict, user_input_subject_type )
         for key, value in reviewed_dict.items():
@@ -40,7 +40,7 @@ def main():
                 df = pd.read_json( json.dumps( reviewed_dict ) ).transpose()
                 df.index.name = 'SUBJID'
                 df = df.reindex( columns = list( value.keys( ) ) )
-                create_tsv( df, user_input_subject_type, validation_type = 'initial_validation',  requires_index = True )
+                pheno_utils.create_tsv( df, user_input_subject_type, validation_type = 'initial_validation',  requires_index = True )
                 print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
                 ## Found an error, generated the tsv and now will exit.\
                 print('end checks ', datetime.datetime.now().strftime("%H:%M:%S") )
@@ -57,7 +57,7 @@ def run_checks( data_dict, classname_dict, subject_type ):
     review_dict = {}
     
     ##ask user if they want to turn any toggle-able checks off
-    toggle_checks = user_input_toggle_checks( subject_type = subject_type, checktype = "initial-validation" )
+    toggle_checks = pheno_utils.user_input_toggle_checks( subject_type = subject_type, checktype = "initial-validation" )
 
     for key, value in data_dict.items( ):
         reviewed_subject_object = value

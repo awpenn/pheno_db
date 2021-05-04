@@ -10,15 +10,15 @@ import datetime
 
 import pandas as pd
 
-from pheno_utils import *
+import pheno_utils
 from Subjects import *
     
 def main():
     ## dict of class names for different subject_types to pass into update_checks function
-    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection( "SELECT subject_type, subject_classname FROM env_var_by_subject_type", ( ) ) }
+    classname_dict = { subjname: classname for ( subjname, classname ) in pheno_utils.database_connection( "SELECT subject_type, subject_classname FROM env_var_by_subject_type", ( ) ) }
 
-    user_input_subject_type = get_subject_type()
-    LOADFILE = get_filename()
+    user_input_subject_type = pheno_utils.get_subject_type()
+    LOADFILE = pheno_utils.get_filename()
 
     ## data from comparison csv now in subjid-keyed json
     comparison_data = create_data_dict( LOADFILE, user_input_subject_type )
@@ -30,7 +30,7 @@ def main():
             df = pd.read_json( json.dumps( checked_data ) ).transpose()
             df = df.reindex( columns = list( value.keys( ) ) )
 
-            create_tsv( df, user_input_subject_type, validation_type = 'update_validation' )
+            pheno_utils.create_tsv( df, user_input_subject_type, validation_type = 'update_validation' )
             print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
             ## Found an error, generated the tsv and now will exit. 
             sys.exit()
@@ -39,7 +39,7 @@ def main():
 
 def create_data_dict( LOADFILE, subject_type ):
     """takes loadfile, subject_type as args, returns dict of json data keyed by subject id of data to be valcheck"""
-    release_dict = build_release_dict()
+    release_dict = pheno_utils.build_release_dict()
     data_dict = {}
 
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
