@@ -15,7 +15,7 @@ from Subjects import *
     
 def main():
     ## dict of class names for different subject_types to pass into update_checks function
-    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
+    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection( "SELECT subject_type, subject_classname FROM env_var_by_subject_type", ( ) ) }
 
     user_input_subject_type = get_subject_type()
     LOADFILE = get_filename()

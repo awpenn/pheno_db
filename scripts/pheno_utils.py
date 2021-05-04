@@ -60,7 +60,7 @@ def database_connection( query, params ):
 
 def change_data_version_published_status( data_version_published_status, data_version ):
     """takes user-input publish status for data version and data_version id, returns nothing"""
-    database_connection(f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = { data_version }")
+    database_connection( f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = %s", ( data_version, ) )
 
 #check-functions for data correctness
 def build_dupecheck_list( data_version_id, pub_check, subject_type ):
@@ -68,7 +68,7 @@ def build_dupecheck_list( data_version_id, pub_check, subject_type ):
     returns list of subjects for a particular release version to check for duplicates rather than call db every time"""    
 
     query = database_connection(f"SELECT subject_id FROM ds_subjects_phenotypes WHERE { pub_check } \
-    AND _data->>'data_version' = '{ data_version_id }' AND subject_type = '{ subject_type }'")
+    AND _data->>'data_version' = '%s' AND subject_type = '{ subject_type }'", ( data_version_id, ) )
 
     dupe_list = [ id_tupe[ 0 ] for id_tupe in query ]
 
@@ -83,7 +83,7 @@ def check_not_duplicate( subject_id, dupecheck_list ):
         return True
 
 def build_baseline_dupcheck_list( subject_type ):
-    query = database_connection(f"SELECT subject_id FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+    query = database_connection( f"SELECT subject_id FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'", ( ) )
     baseline_dupe_list = [ id_tupe[ 0 ] for id_tupe in query ]
 
     return baseline_dupe_list
@@ -96,9 +96,9 @@ def check_not_dupe_baseline( subject_id, baseline_dupecheck_list ):
     else:
         return True
 
-def get_data_version_id(release_version):
+def get_data_version_id( release_version ):
     """takes string release_version and returns id from data_version table"""
-    query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'")
+    query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'", ( ) )
     try:
         return query[0][0]
     except:
@@ -108,7 +108,7 @@ def get_data_version_id(release_version):
 
 def check_subject_exists(subject_type_view, subject_id, release_version):
     """takes id and release_version, makes sure that record exists for subject in target data version"""
-    query = database_connection(f"SELECT COUNT(*) FROM {subject_type_view} where subject_id = '{subject_id}' AND release_version = '{release_version}'")
+    query = database_connection(f"SELECT COUNT(*) FROM { subject_type_view } where subject_id = %s AND release_version = %s", ( subject_id, release_version ) )
 
     if query[0][0] > 0:
         return True
@@ -153,7 +153,7 @@ def check_loadfile_correctness( LOADFILE, user_input_subject_type ):
     """takes loadfile and subject type, returns boolean indicating loadfile matches appropriate dict, along with a message"""
     """moved from initial_validation_check so can be used at beginning of any script"""
     data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
-    dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
+    dict_name = database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
 
     variables_match_dictionary, msg = check_loadfile_variables_match_dictionary( data_dict, dictionary, user_input_subject_type, LOADFILE )
@@ -189,7 +189,7 @@ def get_filename():
         
 def get_subject_type():
     """takes nothing, returns subject_type for data being handled"""
-    subject_types = [ type_tuple[ 0 ] for type_tuple in database_connection("SELECT DISTINCT subject_type FROM env_var_by_subject_type") ]
+    subject_types = [ type_tuple[ 0 ] for type_tuple in database_connection( "SELECT DISTINCT subject_type FROM env_var_by_subject_type", ( ) ) ]
 
     while True:
         try:
@@ -296,7 +296,7 @@ def get_subject_to_drop( view_based_on_subject_type ):
                 print('Please enter a subject_id.')
                 continue
             else:
-                release_version = database_connection(f"SELECT release_version FROM data_versions WHERE id = {data_version_id}")
+                release_version = database_connection( f"SELECT release_version FROM data_versions WHERE id = { data_version_id }", ( ) )
                 if check_subject_exists( view_to_check, subject_id_input, release_version[0][0] ):
                     return subject_id_input
                 else:
@@ -314,7 +314,7 @@ def get_subject_to_drop( view_based_on_subject_type ):
 def user_input_data_version():
     """takes no arg, returns subject_type for data being handled"""
     ## only returns versions not published, so once published, data cant be overwritten accidently 
-    data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection("SELECT DISTINCT release_version FROM data_versions WHERE published = FALSE") ]
+    data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection( "SELECT DISTINCT release_version FROM data_versions WHERE published = FALSE", ( ) ) ]
 
     while True:
         try:
@@ -333,7 +333,7 @@ def user_input_publish_dataset( data_version_string, write_counter ):
                 JOIN data_versions \
                     ON CAST(ds_subjects_phenotypes._data::json->>'data_version' AS INT) = data_versions.id \
                         WHERE data_versions.release_version = '{ data_version_string }'"
-    subjects_by_version_in_db = database_connection( qstring )
+    subjects_by_version_in_db = database_connection( qstring, ( ) )
 
     while True:
         try:
@@ -457,13 +457,13 @@ def generate_update_report( data_dict, user_input_subject_type, loadtype ):
     """called at end of write to database funct, args = the write_to_db dict, loadtype (publish or update) and the subect_type..."""
     breakpoint()
     ## build dict of latest published data for subject_type
-    current_view = database_connection( "SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = %s", ( user_input_subject_type, ) )
+    current_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )
     last_published_version_dict = { }
 
 # fetching data
 def get_dict_data( dict_name ):
     """takes dict name as arg, returns dataframe with dict info"""
-    dict_data = [ return_tuple[ 0 ] for return_tuple in database_connection(f"SELECT _dict_data FROM data_dictionaries WHERE dictionary_name = '{ dict_name }'") ][ 0 ]
+    dict_data = [ return_tuple[ 0 ] for return_tuple in database_connection( f"SELECT _dict_data FROM data_dictionaries WHERE dictionary_name = %s", ( dict_name, ) ) ][ 0 ]
     ## create dataframe from returned json, with keys as rows
     data_df = pd.DataFrame.from_dict( dict_data, orient='index' )
 
@@ -484,7 +484,7 @@ def get_dict_data( dict_name ):
 def get_views_by_subject_type( subject_type ):
     """takes user-supplied subject_type, returns tuple of appropriate views from database table"""
     try:
-        return database_connection(f"SELECT current_view_name, unpublished_update_view_name, baseline_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'")[ 0 ]
+        return database_connection( f"SELECT current_view_name, unpublished_update_view_name, baseline_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'", ( ) )[ 0 ]
     except:
         print(f"No views found for datatype { subject_type }. Check database.  Program will exit.")
         sys.exit()
@@ -493,7 +493,7 @@ def build_release_dict():
     """takes no args, gets all the releases from the db with their string name and id, makes a dict with key
     as string name and id as value, so can replaces on the fly without 1 dbcall/row
     """
-    query = database_connection("SELECT id, release_version FROM data_versions")
+    query = database_connection("SELECT id, release_version FROM data_versions", ( ) )
     release_dict = { version[ 1 ] : version[ 0 ] for version in query }
 
     return release_dict
@@ -604,7 +604,7 @@ def save_baseline( baseline_dupecheck_list, subject_id, data, user_input_subject
     _baseline_data = create_baseline_json( data )
 
     if check_not_dupe_baseline( subject_id , baseline_dupecheck_list ):
-        database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
+        database_connection( f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES(%s, %s, %s)", ( subject_id, _baseline_data, user_input_subject_type ) ) 
     else:
         print(f'There is already a {user_input_subject_type} baseline record for {subject_id}.')
 #

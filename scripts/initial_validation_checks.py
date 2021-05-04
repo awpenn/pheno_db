@@ -20,7 +20,7 @@ def main():
     variables_match_dictionary, msg = check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     ## dict gives the Class Object Names for each subject_type corresponding to user-input subject type selection
-    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection("SELECT subject_type, subject_classname FROM env_var_by_subject_type") }
+    classname_dict = { subjname: classname for ( subjname, classname ) in database_connection( "SELECT subject_type, subject_classname FROM env_var_by_subject_type", ( ) ) }
 
     
     if not variables_match_dictionary:

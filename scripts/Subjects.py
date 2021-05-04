@@ -204,19 +204,20 @@ class Non_PSP_Subject:
         """takes list of tuples for values that cant change, confirms that only data values allowed to change between updates have changed"""
 
         for value_tup in values_that_cant_change:
-            if value_tup[ 0 ] != value_tup[ 1 ]:
-                if value_tup[ 2 ] == 'prevad':
-                    if self.ad != 'NA':
-                        self.data_errors[ value_tup[ 3 ] ] = f"Subject's { value_tup[ 2 ] } has changed. Should this be an incad change?"
-                else:
-                    self.data_errors[ value_tup[ 3 ] ] = f"Subject's { value_tup[ 2 ] } has changed."
+            if value_tup[ 1 ] not in strings_dont_process: ## if there is no previous version to compare it to
+                if value_tup[ 0 ] != value_tup[ 1 ]:
+                    if value_tup[ 2 ] == 'prevad':
+                        if self.ad != 'NA':
+                            self.data_errors[ value_tup[ 3 ] ] = f"Subject's { value_tup[ 2 ] } has changed. Should this be an incad change?"
+                    else:
+                        self.data_errors[ value_tup[ 3 ] ] = f"Subject's { value_tup[ 2 ] } has changed."
 
 class PSP_Subject:
     def __init__( self, subject_data, all_data, checktype ):
         
         self.subject_id = remove_whitespace( subject_id )
         self.subject_type = 'PSP/CDB'
-        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'", ( ) )[ 0 ][ 0 ] )
         self.race = remove_whitespace( subject_data[ "race" ] )
         self.sex = remove_whitespace( subject_data[ "sex" ] )
         self.diagnosis = remove_whitespace( subject_data[ "diagnosis" ] )
@@ -301,7 +302,7 @@ class Case_Control_Subject( Non_PSP_Subject ):
         
         self.subject_type = 'case/control'
         ## get the dictionary of appropriate variables and var-values from database
-        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'", ( ) )[ 0 ][ 0 ] )
         self.ad = remove_whitespace( subject_data[ "ad" ] )
         self.age = remove_whitespace( subject_data[ "age" ] )
         self.incad = remove_whitespace( subject_data[ "incad" ] )
@@ -363,7 +364,7 @@ class Family_Subject( Non_PSP_Subject ):
 
         self.subject_type = 'family'
         ## get the dictionary of appropriate variables and var-values from database
-        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'", ( ) )[ 0 ][ 0 ] )
         self.ad = remove_whitespace( subject_data[ "ad" ] )
         self.age = remove_whitespace( handle_age_values( subject_data[ "age" ] ) )
         self.famid = remove_whitespace( subject_data[ "famid" ] )
@@ -510,7 +511,7 @@ class ADNI_Subject( Non_PSP_Subject ):
         super().__init__( subject_id, subject_data, all_data, checktype )
 
         self.subject_type = 'ADNI'
-        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'" )[ 0 ][ 0 ] )
+        self.dictionary = get_dict_data( database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ self.subject_type }'", ( ) )[ 0 ][ 0 ] )
         self.ad_last_visit = remove_whitespace( subject_data[ "ad_last_visit" ] )
         self.age_current = remove_whitespace( handle_age_values( subject_data[ "age_current" ] ) )
         self.incad = remove_whitespace( subject_data[ "incad" ] )

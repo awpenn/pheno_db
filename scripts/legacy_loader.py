@@ -62,7 +62,7 @@ def legacy_write_to_db( data_dict, data_version_string ):
 
         _data = json.dumps( value )
         try:
-            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', TRUE)")
+            database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
             save_legacy_baseline( subject_id, value )
             write_counter += 1
 
@@ -94,7 +94,7 @@ def save_legacy_baseline( subject_id, data ):
 
     _baseline_data = create_legacy_baseline_json( data )
 
-    database_connection(f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES('{subject_id}', '{_baseline_data}', '{user_input_subject_type}')") 
+    database_connection( f"INSERT INTO ds_subjects_phenotypes_baseline(subject_id, _baseline_data, subject_type) VALUES(%s, %s, '{user_input_subject_type}')", ( subject_id, _baseline_data ) ) 
 
 def check_legacy_loadfile_variables_match_dictionary( data_dict, dictionary, subject_type, LOADFILE ):
     """Gets the appropriate dictionary, checks phenotype variables in are correct and complete"""
@@ -135,7 +135,7 @@ def check_legacy_loadfile_correctness( LOADFILE, user_input_subject_type ):
     """takes loadfile and subject type, returns boolean indicating loadfile matches appropriate dict, along with a message"""
     """moved from initial_validation_check so can be used at beginning of any script"""
     data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
-    dict_name = database_connection(f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'")[ 0 ][ 0 ]
+    dict_name = database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
 
     variables_match_dictionary, msg = check_legacy_loadfile_variables_match_dictionary( data_dict, dictionary, user_input_subject_type, LOADFILE )

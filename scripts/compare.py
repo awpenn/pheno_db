@@ -39,25 +39,25 @@ def get_data( query_type, views_based_on_subject_type ):
     current_view, update_view, baseline_view = views_based_on_subject_type
 
     if query_type == 'update_to_latest':
-        data = database_connection(f"SELECT * FROM {update_view} LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id")
-        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{current_view}');" )
-        headers = [ ''.join(header) for header in header_data ]
+        data = database_connection( f"SELECT * FROM { update_view } LEFT JOIN { current_view } ON { update_view }.subject_id = { current_view }.subject_id", ( ) )
+        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{ update_view }' ,'{ current_view }');", ( ) )
+        headers = [ ''.join( header ) for header in header_data ]
 
     if query_type == 'update_to_baseline': 
         ##need to get update_ tracking variables first and add to the query
         tracking_columns = get_latest_published_tracking_varnames( current_view )
         ## join them as a string to be inserted into the query
         tracking_columns_query_string = ', '.join( tracking_columns )
-        data = database_connection(f"SELECT {update_view}.*, {baseline_view}.*, {tracking_columns_query_string} \
-                                    FROM {update_view} \
-                                    LEFT JOIN {baseline_view} ON {update_view}.subject_id = {baseline_view}.subject_id \
-                                    LEFT JOIN {current_view} ON {update_view}.subject_id = {current_view}.subject_id \
-                                  ")
+        data = database_connection(f"SELECT { update_view }.*, { baseline_view }.*, { tracking_columns_query_string } \
+                                    FROM { update_view } \
+                                    LEFT JOIN { baseline_view } ON { update_view }.subject_id = { baseline_view }.subject_id \
+                                    LEFT JOIN { current_view } ON { update_view }.subject_id = { current_view }.subject_id \
+                                  ", ( ) )
         #n.b. query below is hacky, figure out how to do without the sorting based on table name and ord                                              
-        header_data = database_connection(f"SELECT column_name FROM information_schema.columns WHERE table_name in('{update_view}' ,'{baseline_view}') ORDER BY table_name DESC, ordinal_position;;" )
+        header_data = database_connection( f"SELECT column_name FROM information_schema.columns WHERE table_name in('{ update_view }' ,'{ baseline_view }') ORDER BY table_name DESC, ordinal_position;;", ( ) )
         headers = [ ''.join(header) for header in header_data ]
         ## split the table reference off each tracking var, and preprend latest_pub to it, then APPEND to headers list
-        [ headers.append( ''.join(( 'LATEST_PUB_', var[ var.index( "." ) + 1: ] )) ) for var in tracking_columns ]
+        [ headers.append( ''.join( ( 'LATEST_PUB_', var[ var.index( "." ) + 1: ] ) ) ) for var in tracking_columns ]
 
     return headers, data
 
@@ -167,7 +167,7 @@ def get_latest_published_tracking_varnames( current_view ):
                         FROM information_schema.columns \
                         WHERE table_name = '{ current_view }' \
                         and column_name like 'update_%' \
-                    ")
+                    ", ( ) )
 
     tracking_vars = [ f"{current_view}.{str( var[ 0 ] )}" for var in column_names ]
     tracking_vars.append(f"{current_view}.comments")

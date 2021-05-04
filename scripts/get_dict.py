@@ -30,7 +30,7 @@ def make_dictionary_csv( dict_name ):
 def user_select_dictionary():
     """no args, returns choice of dictionary"""
     ## make a list from the tuples returned from query for dictionary_names in the table
-    dictionaries = [ name_tuple[ 0 ] for name_tuple in database_connection("SELECT DISTINCT dictionary_name FROM data_dictionaries") ]
+    dictionaries = [ name_tuple[ 0 ] for name_tuple in database_connection( "SELECT DISTINCT dictionary_name FROM data_dictionaries", ( ) ) ]
 
     while True:
         try:

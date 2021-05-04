@@ -16,7 +16,7 @@ error_log = {}
 ## update_baseline
 def build_update_baseline_check_dict( subject_type ):
     """takes subject_type, returns dict keyed by subject with baseline data matching correct subject_type"""
-    _baseline_data = database_connection(f"SELECT subject_id, _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+    _baseline_data = database_connection( f"SELECT subject_id, _baseline_data FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'", ( ) )
 
     ## take data and transform into dict keyed by subject_id
     update_baseline_dict = { record[ 0 ]:  record[ 1 ] for record in _baseline_data }
@@ -60,14 +60,14 @@ def update_baseline_check( subject_id, data, update_baseline_dict ):
 def build_update_latest_dict( subject_type ):
     """takes subject_type, gets all subject data from [type]_current view for particular subject type, keyed by subject_id"""
 
-    current_view = database_connection(f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }' ")[ 0 ][ 0 ]    
+    current_view = database_connection(f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }' ", ( ) )[ 0 ][ 0 ]    
     try:
-        most_recent_published_data_version = database_connection(f"SELECT DISTINCT data_version FROM { current_view } ORDER BY data_version DESC")[ 0 ][ 0 ]
+        most_recent_published_data_version = database_connection(f"SELECT DISTINCT data_version FROM { current_view } ORDER BY data_version DESC", ( ) )[ 0 ][ 0 ]
     except:
         print(f'No published data from { subject_type } subjects.')
         return {}
     _latest_data = database_connection(f"SELECT subject_id, _data FROM ds_subjects_phenotypes \
-        WHERE subject_type = '{ subject_type }' AND published = 'TRUE' AND _data->>'data_version' = '{ most_recent_published_data_version }'")
+        WHERE subject_type = '{ subject_type }' AND published = 'TRUE' AND _data->>'data_version' = '{ most_recent_published_data_version }'", ( ) )
 
     update_latest_dict = { record[ 0 ]:  record[ 1 ] for record in _latest_data }
 
@@ -107,7 +107,7 @@ def update_latest_check( subject_id, data, update_latest_dict ):
 ## update adstatus
 def build_adstatus_check_dict( subject_type ):
     _baseline_ad_data = database_connection(f"SELECT subject_id, _baseline_data->>'ad' \
-        FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+        FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'", ( ) )
 
     adstatus_check_dict = { record[ 0 ]:  record[ 1 ] for record in _baseline_ad_data }
 
@@ -148,7 +148,7 @@ def build_update_diagnosis_check_dict( subject_type ):
         query_variables = [ 'diagnosis' ]
 
     query = database_connection(f"SELECT subject_id, _baseline_data \
-        FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'")
+        FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'", ( ) )
     
     _baseline_diagnosis_data = { record[ 0 ]: record[ 1 ] for record in query }
 

@@ -94,7 +94,7 @@ def write_to_db( data_dict, data_version_string ):
 
         if publish_status:
             ## update an existing unpublished record (WHERE published = FALSE), setting it to truek
-            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = ('{ subject_id }', '{ _data }', TRUE) WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
+            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = (%s, %s, TRUE) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
             write_counter += 1          
             try:
                 save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
@@ -102,7 +102,7 @@ def write_to_db( data_dict, data_version_string ):
                 print(f"Error making baseline entry for { subject_id } in { data_version_string }")
 
         else:
-            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = ('{ subject_id }', '{ _data }') WHERE subject_id = '{ subject_id }' AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '{ version }' AND published = FALSE")
+            database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = (%s, %s) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
 
         
         

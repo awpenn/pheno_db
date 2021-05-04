@@ -60,19 +60,19 @@ def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
                 if pheno_file.line_num > 1:
                     if check_subject_exists( view_based_on_subject_type, subjid, release_version ):
                         try:
-                            if isinstance(data_version_id, int):
-                                drop_dict[subjid] = data_version_id
+                            if isinstance( data_version_id, int ):
+                                drop_dict[ subjid ] = data_version_id
                         except:
-                            print(f"release_version ({release_version}) given for {subjid} is not in database.  Subject drop discarded.  Check data.")
+                            print(f"release_version ({ release_version }) given for { subjid } is not in database.  Subject drop discarded.  Check data.")
                     else:
-                        print(f'{subjid} has no unpublished record in {row[headers.index("release_version")]}.  Subject drop discarded. Check data.')
+                        print(f'{ subjid } has no unpublished record in { row[ headers.index( "release_version" ) ] }.  Subject drop discarded. Check data.')
               
     return drop_dict
 
 def drop_from_database( subject_type, drop_dict ):
     """takes subject_type and dict keyed by subject id, with id for data version in which subject's record will be deleted."""
     for key, value in drop_dict.items():
-        database_connection(f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = '{ key }' AND _data->>'data_version' = '{ value }' AND subject_type = '{ subject_type }' AND published = FALSE")
+        database_connection( f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = %s AND _data->>'data_version' = '%s' AND subject_type = %s AND published = FALSE", ( key, value, subject_type )  )
 
 if __name__ == '__main__':
     main()

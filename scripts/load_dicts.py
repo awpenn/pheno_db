@@ -98,7 +98,7 @@ def write_to_db( data_dict ):
     _dict_data = json.dumps( data_dict ).replace("'", "''")
 
     if check_dict_not_dupe( dictionary_name ):
-        database_connection(f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES('{ dictionary_name }', '{ _dict_data }');")
+        database_connection( f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES(%s, %s);", ( dictionary_name, _dict_data ) )
     else:
         print(f'There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added. ')
 
@@ -145,7 +145,7 @@ def get_dictionary_name( data_dict ):
 
 def check_dict_not_dupe( dict_name ):
     """takes dict name, returns true boolean if dictname not in db, false if already exists"""
-    if database_connection(f"SELECT COUNT(*) FROM data_dictionaries WHERE dictionary_name = '{ dict_name }'")[ 0 ][ 0 ] > 0:
+    if database_connection( f"SELECT COUNT(*) FROM data_dictionaries WHERE dictionary_name = %s", ( dict_name, ) )[ 0 ][ 0 ] > 0:
         return 0
     else:
         return 1

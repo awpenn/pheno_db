@@ -105,7 +105,7 @@ def write_to_db( data_dict, data_version_string ):
         _data = json.dumps( value )
 
         try:
-            database_connection(f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES('{ subject_id }', '{ _data } ', '{ user_input_subject_type }', TRUE)")
+            database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
             write_counter += 1
             
             try:
