@@ -27,14 +27,14 @@ def main():
     ## checks if DEBUG arg passed in script call, sets DEBUG variable to True if so
     pheno_utils.check_DEBUG( )
 
-    # user_input_subject_type = pheno_utils.get_subject_type()
-    user_input_subject_type = 'case/control'
+    user_input_subject_type = pheno_utils.get_subject_type()
+    # user_input_subject_type = 'case/control'
 
-    # data_version = pheno_utils.user_input_data_version()
-    data_version = 'ng00067.v2'
+    data_version = pheno_utils.user_input_data_version()
+    # data_version = 'ng00067.v2'
 
-    # LOADFILE = pheno_utils.get_filename()
-    LOADFILE = 'reports2.csv'
+    LOADFILE = pheno_utils.get_filename()
+    # LOADFILE = 'reports2.csv'
 
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
@@ -97,7 +97,7 @@ def write_to_db( data_dict ):
         ## add subject_id back in for reporting
         data_dict[ key ][ 'subject_id' ] = subject_id
 
-    pheno_utils.generate_update_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
+    pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
 
 if __name__ == '__main__':
     main()

@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS "env_var_by_subject_type"
         "current_view_name" VARCHAR(50) NOT NULL,
         "unpublished_update_view_name" VARCHAR(50) NOT NULL,
         "baseline_view_name" VARCHAR(50) NOT NULL,
+        "all_view_name" VARCHAR(50) NOT NULL,
         "dictionary_name" VARCHAR(50) NOT NULL,
         "subject_classname" VARCHAR(50) NOT NULL,
         "createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,

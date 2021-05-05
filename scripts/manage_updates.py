@@ -26,13 +26,19 @@ def main():
     global user_input_subject_type
     global publish_status
 
+    ## checks if DEBUG arg passed in script call, sets DEBUG variable to True if so
+    pheno_utils.check_DEBUG( )
+
     user_input_subject_type = pheno_utils.get_subject_type()
+    # user_input_subject_type = 'case/control'
 
     data_version = pheno_utils.user_input_data_version()
+    # data_version = 'ng00067.v2'
 
     publish_status = pheno_utils.get_publish_action()
 
     LOADFILE = pheno_utils.get_filename()
+    # LOADFILE = 'reports2.csv'
     
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
@@ -93,25 +99,40 @@ def write_to_db( data_dict, data_version_string ):
         _data = json.dumps( value )
 
         if publish_status:
-            ## update an existing unpublished record (WHERE published = FALSE), setting it to truek
-            pheno_utils.database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = (%s, %s, TRUE) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
-            write_counter += 1          
-            try:
-                pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
-            except:
-                print(f"Error making baseline entry for { subject_id } in { data_version_string }")
+            ## update an existing unpublished record (WHERE published = FALSE), setting it to true
+            if not pheno_utils.DEBUG:
+                pheno_utils.database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = (%s, %s, TRUE) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
+            write_counter += 1
+
+            if not pheno_utils.DEBUG:          
+                try:
+                    pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
+                except:
+                    print(f"Error making baseline entry for { subject_id } in { data_version_string }")
 
         else:
-            pheno_utils.database_connection( f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = (%s, %s) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
-        
-    if write_counter > 0:
-        if pheno_utils.user_input_publish_dataset( data_version_string, write_counter ):
-            pheno_utils.change_data_version_published_status( "TRUE", data_version )
+            if not pheno_utils.DEBUG:
+                pheno_utils.database_connection( f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = (%s, %s) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
+
+        ## add subject_id back in for reporting
+        data_dict[ key ][ 'subject_id' ] = subject_id
+
+    if not pheno_utils.DEBUG:
+        if write_counter > 0:
+            if pheno_utils.user_input_publish_dataset( data_version_string, write_counter ):
+                pheno_utils.change_data_version_published_status( "TRUE", data_version )
+            else:
+                print( f"Phenotype records published for { data_version_string } and cannot be changed, but version not published." )
+                pheno_utils.change_data_version_published_status( "FALSE", data_version )
         else:
-            print( f"Phenotype records published for { data_version_string } and cannot be changed, but version not published." )
-            pheno_utils.change_data_version_published_status( "FALSE", data_version )
+            print( "No added records were published." )
+    
+    ## report generation
+    if publish_status:
+        pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'new_published_release' )
     else:
-        print( "No added records were published." )
+        pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
+
         
 if __name__ == '__main__':
     main()

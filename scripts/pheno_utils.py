@@ -455,7 +455,7 @@ def create_tsv( dataframe, subject_type, validation_type, requires_index = False
     else:
         dataframe.to_csv(f"./validation_error_files/{ corrected_subject_type }-{ validation_type }_errors-{ datestamp }.txt", sep="\t", index=False )
 
-def generate_update_report( data_dict, user_input_subject_type, loadtype ):
+def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
     """called at end of write to database funct, args = the write_to_db dict, loadtype (publish or update) and the subect_type..."""
 
     update_columns_by_subject_type = {
@@ -464,25 +464,45 @@ def generate_update_report( data_dict, user_input_subject_type, loadtype ):
         "PSP/CDB": 'subject_id, update_baseline, update_latest, update_diagnosis, correction', 
         "ADNI": 'subject_id, update_baseline, update_latest, update_diagnosis, correction', 
     }
-
-    current_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+    
     ## taking data dict and keying by subjid rather than subjid+version
     update_data_dict = { record[ 'subject_id' ]: record for key, record in data_dict.items( ) }
 
-    ## get update columns from subject_type current view and key by subject_id
-    current_view_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { current_view }", ( ) ) }
+    if loadtype == 'unpublished_update':
+        current_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+        ## get update columns from subject_type current view and key by subject_id
+        retrieved_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { current_view }", ( ) ) }
+
+    elif loadtype == 'new_published_release':
+        ##figure out what this published view is, get the previous one, use that in where clause below to get comparison data
+        retrieval_view = database_connection( f"SELECT all_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+
+        ## get data version id from first subject in dict of data from current load
+        loaded_data_data_version = update_data_dict[ list( update_data_dict.keys( ) )[ 0 ] ][ 'data_version' ]
+
+        ordered_list_data_versions = [ data_version[ 0 ] for data_version in database_connection( f"SELECT DISTINCT (data_version) FROM { retrieval_view } ORDER BY data_version DESC", ( ) ) ]
+        ## ordered_list_data_versions = [ data_version[ 0 ] for data_version in database_connection( f"SELECT DISTINCT (data_version) FROM { retrieval_view } WHERE version_published = True ORDER BY data_version DESC", ( ) ) ]
+        
+        ## take current load's version id, get index of that from DESC ordered list of data versions above, get the version that follows it in list
+
+        if len( ordered_list_data_versions ) > 1:
+            previous_latest_version = ordered_list_data_versions[ ordered_list_data_versions.index( loaded_data_data_version ) + 1 ]
+        else:
+            previous_latest_version = ordered_list_data_versions[ 0 ]
+
+        retrieved_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { retrieval_view } WHERE data_version = '{ previous_latest_version }'", ( ) ) }
 
     ## build dict of latest published data for subject_type
-    latest_published_version_dict = { }
-    for key, record in current_view_data.items( ):
+    retrieved_data_dict = { }
+    for key, record in retrieved_data.items( ):
         blob = {}
         ## split the columns string from `update_columns_by_subject_type` into list and enumerate
         for index, header in enumerate( update_columns_by_subject_type[ user_input_subject_type ].split( ', ' ) ):
-            ## headers index will match index for that data value in the `current_view_data` (`record` in first for loop)
+            ## headers index will match index for that data value in the `retrieved_data` (`record` in first for loop)
             blob[ header ] = record[ index ]
         
         ## add all the labeled datapoints to the last_published dict, keyed by subject_id
-        latest_published_version_dict[ key ] = blob
+        retrieved_data_dict[ key ] = blob
     
     ## build dict to hold report info
     report_dict = {
@@ -506,7 +526,7 @@ def generate_update_report( data_dict, user_input_subject_type, loadtype ):
 
     ## count subjects in update not in latest published
     for key in update_data_dict.keys( ):
-        if key not in latest_published_version_dict.keys( ):
+        if key not in retrieved_data_dict.keys( ):
             report_dict[ 'new_subjects' ][ 'count' ] += 1
             report_dict[ 'new_subjects' ][ 'subject_ids' ].append( key )
         
@@ -533,12 +553,19 @@ def generate_update_report( data_dict, user_input_subject_type, loadtype ):
     ## build report file
     date = datetime.date.today( )
     time = datetime.datetime.now( ).strftime("%H:%M:%S")
-    f = open(f'./log_files/{ date }-{ time }-update-report.txt', 'w+')
 
-    f.write( f"SUMMARY REPORT FOR UNPUBLISHED UPDATE\n\n" )
+    if loadtype == 'unpublished_update':
+        f = open(f'./log_files/{ date }-{ time }-update-report.txt', 'w+')
+
+        f.write( f"SUMMARY REPORT FOR UNPUBLISHED UPDATE\n\n" )
+
+    elif loadtype == 'new_published_release':
+        f = open(f'./log_files/{ date }-{ time }-new-release-report.txt', 'w+')
+
+        f.write( f"SUMMARY REPORT FOR NEW RELEASE\n\n" )
 
     ##new subjects
-    f.write( f"New subjects: { report_dict[ 'new_subjects' ][ 'count' ] }\n" )
+    f.write( f"Subject not in previous release: { report_dict[ 'new_subjects' ][ 'count' ] }\n" )
     for subject in report_dict[ 'new_subjects' ][ 'subject_ids' ]:
         f.write( f"{ subject }\n" )
     f.write("\n\n")
