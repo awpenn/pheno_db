@@ -28,13 +28,10 @@ def main():
     pheno_utils.check_DEBUG( )
 
     user_input_subject_type = pheno_utils.get_subject_type()
-    # user_input_subject_type = 'case/control'
 
     data_version = pheno_utils.user_input_data_version()
-    # data_version = 'ng00067.v2'
 
     LOADFILE = pheno_utils.get_filename()
-    # LOADFILE = 'reports2.csv'
 
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
