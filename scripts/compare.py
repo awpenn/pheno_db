@@ -9,7 +9,7 @@ import json
 import pandas as pd
 
 import calendar
-import time
+import datetime
  
 import pheno_utils
 
@@ -64,7 +64,7 @@ def get_data( query_type, views_based_on_subject_type ):
 def build_dataframe( query_type, views_based_on_subject_type, header_and_data_db_responses ):
     """takes query_type, views, the _data and headers responses from get_data as args, returns appropriately constructed comparison dataframe"""
     headers_unpacked, data = header_and_data_db_responses
-    skip_column_keywords = [ 'update', 'published', 'comment', 'correction' ]
+    skip_column_keywords = [ 'update', 'published', 'correction' ]
     unique_headers_len = int( len( headers_unpacked )/2 )
     headers_cleaned = []
     headers_sorted = []
@@ -157,8 +157,10 @@ def highlight_change( query_type, sorted_dataframe ):
 def build_comparison_table( subject_type, query_type, comparison_dataframe ):
     """takes query_type for filename and finished dataframe and creates csv"""
     ## need to remove any `/` in subject_type for placement in filename
+    date = datetime.date.today( )
+    time = datetime.datetime.now( ).strftime("%H:%M:%S")
     subject_type_corrected = subject_type.replace( "/", "-" )
-    comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison.csv",index=False,na_rep="No Baseline/Previous Value")
+    comparison_dataframe.to_csv(f"./comparison_files/{ subject_type_corrected }_{ query_type }_comparison-{ date }-{ time }.csv",index=False,na_rep="No Baseline/Previous Value")
 
 def get_latest_published_tracking_varnames( current_view ):
     """takes current_view and returns latest published tracking variables list to be added to query"""
