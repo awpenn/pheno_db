@@ -15,7 +15,6 @@ import pheno_utils
 
 new_records = []
 success_id_log = []
-error_log = {}
 
 user_input_subject_type = ''
 script_name = 'legacy_loader.py'

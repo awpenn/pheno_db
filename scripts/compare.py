@@ -15,7 +15,6 @@ import pheno_utils
 
 new_records = []
 success_id_log = []
-error_log = {}
 
 def main():
     """main conductor function for the script."""
@@ -179,5 +178,4 @@ def get_latest_published_tracking_varnames( current_view ):
 
 if __name__ == '__main__':
     main()
-    # generate_errorlog()
-    # generate_success_list()
+

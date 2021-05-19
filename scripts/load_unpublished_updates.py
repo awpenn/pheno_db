@@ -15,7 +15,6 @@ import flagchecks
 
 new_records = []
 success_id_log = []
-error_log = {}
 
 user_input_subject_type = ''
 script_name = 'load_unpublished_updates.py'

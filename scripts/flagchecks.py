@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 import os
 import json
 
-error_log = {}
 
 #flag-checkers for legacy data loading
 

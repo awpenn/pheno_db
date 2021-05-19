@@ -422,14 +422,27 @@ def user_input_toggle_checks( subject_type, checktype ):
         return None
 
 # log generators
-def generate_errorlog():
-    """creates error log and writes to 'log_files' directory"""
-    if len(error_log) > 0:
-        timestamp = calendar.timegm(time.gmtime())
-        f = open(f'./log_files/{timestamp}-log.txt', 'w+')
-        f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
-        for key, value in error_log.items():
-            f.write(f'Error: {value[1]} \n')
+def generate_errorlog( ):
+    """
+    creates error log and writes to 'log_files' directory
+
+    error log is dict, keyed by entry number, each entry is list with string error in first position and (non-required?) data object in second
+    """
+    if len( error_log ) > 0:
+        date = datetime.date.today( )
+        time = datetime.datetime.now( ).strftime("%H-%M-%S")
+
+        f = open(f'./log_files/{ date }-{ time }-log.txt', 'w+')
+        f.write( f'{ str( len( error_log.items( ) ) ) } flag(s) raised in runtime. See details below: \n\n')
+        for key, value in error_log.items( ):
+            pass
+            f.write( f"Error: { value[ 0 ] }\n" )
+            if len( value ) > 1:
+                f.write( "Relevant error data\n" )
+                for errkey, errvalue in value [ 1 ].items( ):
+                    f.write( f"{ errkey }: { errvalue }\n" )
+
+            f.write( "\n\n" )
 
 def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""

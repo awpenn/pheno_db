@@ -16,7 +16,6 @@ import pheno_utils
 
 new_records = []
 success_id_log = []
-error_log = {}
 
 user_input_subject_type = ''
 script_name = 'load_phenotypes.py'
@@ -130,4 +129,3 @@ def write_to_db( data_dict, data_version_string ):
 if __name__ == '__main__':
     main()
     # pheno_utils.generate_errorlog()
-    # pheno_utils.generate_success_list()
