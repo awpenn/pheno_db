@@ -17,11 +17,14 @@ import pheno_utils
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     LOADFILE = pheno_utils.get_filename()
+
     data_dict = create_data_dict( LOADFILE )
 
     cleanup_string_numbers( data_dict )
 
     write_to_db( data_dict )
+
+    pheno_utils.generate_errorlog( )
 
 def create_data_dict( LOADFILE ):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
@@ -97,7 +100,9 @@ def write_to_db( data_dict ):
     if check_dict_not_dupe( dictionary_name ):
         pheno_utils.database_connection( f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES(%s, %s);", ( dictionary_name, _dict_data ) )
     else:
-        print(f'There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added. ')
+        err = f'There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added.'
+        print( err )
+        pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
 def get_user_input( value_list ):  
     """takes the list of values pulled from dataframe in cases where there is more than one,
@@ -135,7 +140,9 @@ def get_dictionary_name( data_dict ):
                 dictionary_name_list.append( dvalue )
     
     if any( dictionary_name_list[ 0 ] != dname for dname in dictionary_name_list ):
-        print(f" There is more than dictionary_name found in the uploaded dict { set( dictionary_name_list ) }.  Check upload file and retry.  Program will exit. ")
+        err = f"There is more than dictionary_name found in the uploaded dict { set( dictionary_name_list ) }.  Check upload file and retry.  Program will exit. "
+        print( err )
+        pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ] 
         sys.exit()
     else:
         return dictionary_name_list[ 0 ]

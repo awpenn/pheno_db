@@ -15,29 +15,27 @@ import pheno_utils
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
 
-    # user_input_subject_type = pheno_utils.get_subject_type()
-    user_input_subject_type = 'case/control'
+    user_input_subject_type = pheno_utils.get_subject_type()
+
     views_based_on_subject_type = pheno_utils.get_views_by_subject_type( user_input_subject_type )
 
     for view in views_based_on_subject_type:
         if 'unpublished' in view:
             view_based_on_subject_type = view
 
-    # is_batch_file = pheno_utils.user_input_batch_loading()
-    is_batch_file = True
+    is_batch_file = pheno_utils.user_input_batch_loading()
 
     if is_batch_file:
-    #    LOADFILE = pheno_utils.get_filename()
-       LOADFILE = 'testing/logging-tests/dropfail.csv'
+       LOADFILE = pheno_utils.get_filename()
        drop_dict = create_drop_data_dict( LOADFILE, view_based_on_subject_type )
 
     else:
        drop_dict = pheno_utils.get_subject_to_drop( view_based_on_subject_type )
     
     # drop_dict returns dict keyed by subject id with data_version (pkey from table) as value
-    # drop_from_database( user_input_subject_type, drop_dict )
+    drop_from_database( user_input_subject_type, drop_dict )
+    
     pheno_utils.generate_errorlog( )
-
 
 def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
     """takes loadfile name and view to look up based on subject_type as args, 
