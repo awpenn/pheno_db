@@ -1,0 +1,1 @@
+This directory will hold generated error logs. You must create a `.gitignore` file for this directory to prevent sensitive information from being pushed to github. 
