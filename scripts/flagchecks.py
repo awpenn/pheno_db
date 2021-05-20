@@ -63,8 +63,11 @@ def build_update_latest_dict( subject_type ):
     try:
         most_recent_published_data_version = pheno_utils.database_connection(f"SELECT DISTINCT data_version FROM { current_view } ORDER BY data_version DESC", ( ) )[ 0 ][ 0 ]
     except:
-        print(f'No published data from { subject_type } subjects.')
+        flag = f'FLAG: No published data from { subject_type } subjects found when assessing update_to_latest flag.'
+        # print( flag )
+        pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ flag ]
         return {}
+        
     _latest_data = pheno_utils.database_connection(f"SELECT subject_id, _data FROM ds_subjects_phenotypes \
         WHERE subject_type = '{ subject_type }' AND published = 'TRUE' AND _data->>'data_version' = '{ most_recent_published_data_version }'", ( ) )
 

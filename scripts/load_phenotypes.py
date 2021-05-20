@@ -104,12 +104,12 @@ def write_to_db( data_dict, data_version_string ):
                 pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
 
             except:
-                err = f"Error making baseline entry for { subject_id } in { data_version_string }"
+                err = f"ERROR: Error making baseline entry for { subject_id } in { data_version_string }"
                 print( err )
                 pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
         except:
-            err = f"Error making entry for { subject_id } in { data_version_string }"
+            err = f"ERROR: Error making entry for { subject_id } in { data_version_string }"
             print( err )
             pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 

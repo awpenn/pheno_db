@@ -54,7 +54,7 @@ def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
             missing_data = True in ( ele == None for ele in [ subjid, release_version, data_version_id ] )
 
             if missing_data:
-                err = f'There are empty fields and/or data errors in the the loadfile, row { index + 1 }'
+                err = f'ERROR: There are empty fields and/or data errors in the the loadfile, row { index + 1 }'
                 err_obj = {
                     "subjid": subjid,
                     "release_version": release_version,
@@ -71,11 +71,11 @@ def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
                             if isinstance( data_version_id, int ):
                                 drop_dict[ subjid ] = data_version_id
                         except:
-                            err = f"release_version ({ release_version }) given for { subjid } is not in database.  Subject drop discarded.  Check data."
+                            err = f"ERROR: release_version ({ release_version }) given for { subjid } is not in database.  Subject drop discarded.  Check data."
                             print( err )
                             pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
                     else:
-                        err = f' Subject { subjid } has no unpublished record in { row[ headers.index( "release_version" ) ] }.  Subject drop discarded. Check data.'
+                        err = f'ERROR: Subject { subjid } has no unpublished record in { row[ headers.index( "release_version" ) ] }.  Subject drop discarded. Check data.'
                         print( err )
                         pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
               
@@ -87,7 +87,7 @@ def drop_from_database( subject_type, drop_dict ):
         try:
             pheno_utils.database_connection( f"DELETE FROM ds_subjects_phenotypes WHERE subject_id = %s AND _data->>'data_version' = '%s' AND subject_type = %s AND published = FALSE", ( key, value, subject_type )  )
         except:
-            err = f'Failed to drop subject { key } from { value }'
+            err = f'ERROR: Failed to drop subject { key } from { value }'
             pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
 

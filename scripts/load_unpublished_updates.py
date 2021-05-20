@@ -91,7 +91,7 @@ def write_to_db( data_dict ):
             try:
                 pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
             except:
-                err = f'Error adding update for { subject_id } to database.'
+                err = f'ERROR: Error adding update for { subject_id } to database.'
                 print( err )
                 pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
         else:

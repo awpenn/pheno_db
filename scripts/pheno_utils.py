@@ -439,8 +439,8 @@ def generate_errorlog( ):
         f = open(f'./log_files/error_logs/{ date }-{ time }-log.txt', 'w+')
         f.write( f'{ str( len( error_log.items( ) ) ) } flag(s) raised in runtime. See details below: \n\n')
         for key, value in error_log.items( ):
-            pass
-            f.write( f"Error: { value[ 0 ] }\n" )
+            f.write( f"{ value[ 0 ] }\n" )
+                
             if len( value ) > 1:
                 f.write( "Relevant error data\n" )
                 for errkey, errvalue in value [ 1 ].items( ):

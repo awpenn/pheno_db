@@ -100,7 +100,7 @@ def write_to_db( data_dict ):
     if check_dict_not_dupe( dictionary_name ):
         pheno_utils.database_connection( f"INSERT INTO data_dictionaries(dictionary_name, _dict_data) VALUES(%s, %s);", ( dictionary_name, _dict_data ) )
     else:
-        err = f'There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added.'
+        err = f'ERROR: There is already a dictionary with name { dictionary_name } in the database.  Check the database. This dictionary will not be added.'
         print( err )
         pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
@@ -140,7 +140,7 @@ def get_dictionary_name( data_dict ):
                 dictionary_name_list.append( dvalue )
     
     if any( dictionary_name_list[ 0 ] != dname for dname in dictionary_name_list ):
-        err = f"There is more than dictionary_name found in the uploaded dict { set( dictionary_name_list ) }.  Check upload file and retry.  Program will exit. "
+        err = f"ERROR: There is more than dictionary_name found in the uploaded dict { set( dictionary_name_list ) }.  Check upload file and retry.  Program will exit. "
         print( err )
         pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ] 
         sys.exit()
