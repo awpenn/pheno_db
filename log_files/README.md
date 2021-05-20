@@ -2,4 +2,6 @@ This directory will contain generated reports. Must set up DOT-GITIGNORE so no s
 ```
 *
 !README.md
+!error_logs
+!success_lists
 ```

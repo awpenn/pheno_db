@@ -14,8 +14,10 @@ import time
 import flagchecks
 import pheno_utils
 
-new_records = []
-success_id_log = []
+success_id_log = {
+    "release": '',
+    "ids": []
+}
 
 user_input_subject_type = ''
 script_name = 'load_phenotypes.py'
@@ -30,14 +32,16 @@ If you are loading phenotype updates not currently in the database, please use t
 If you are uploading changes to updates already in the database, but which are not yet ready to publish, please use the `manage_phenotypes` script. " 
     )
     
-    time.sleep(5)
+    # time.sleep(5)
 
-    user_input_subject_type = pheno_utils.get_subject_type( )
+    user_input_subject_type = 'case/control'
+    # user_input_subject_type = pheno_utils.get_subject_type( )
 
-    data_version = pheno_utils.user_input_data_version( )
+    data_version = 'tada'
+    # data_version = pheno_utils.user_input_data_version( )
 
-    
-    LOADFILE = pheno_utils.get_filename( )
+    LOADFILE = 'cc-published.csv'
+    # LOADFILE = pheno_utils.get_filename( )
 
 
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
@@ -98,17 +102,17 @@ def write_to_db( data_dict, data_version_string ):
         _data = json.dumps( value )
 
         try:
-            pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
+            # pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
             write_counter += 1
+            success_id_log[ 'ids' ].append( subject_id )
             
             try:
-                pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
+                pass
+                # pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
             except:
                 err = f"Error making baseline entry for { subject_id } in { data_version_string }"
                 print( err )
                 pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
-
-            
 
         except:
             err = f"Error making entry for { subject_id } in { data_version_string }"
@@ -117,6 +121,8 @@ def write_to_db( data_dict, data_version_string ):
 
     ## ask user if ready to publish dataset, if yes, will flip publish boolean in data versions table
     if write_counter > 0:
+        success_id_log[ "release" ] = data_version_string
+
         if pheno_utils.user_input_publish_dataset( data_version_string, write_counter ):
             pheno_utils.change_data_version_published_status( "TRUE", data_version )
         else:
@@ -128,3 +134,4 @@ def write_to_db( data_dict, data_version_string ):
 if __name__ == '__main__':
     main( )
     pheno_utils.generate_errorlog( )
+    pheno_utils.generate_success_list( success_id_log )

@@ -445,19 +445,19 @@ def generate_errorlog( ):
 
             f.write( "\n\n" )
 
-def generate_success_list():
-    """creates a list of successfully created and inserted ADSP IDs"""
+def generate_success_list( success_id_log ):
+    """takes as arg dict with release name string and list of ids for added phenotypes, creates a list of successfully created and inserted ADSP IDs"""
 
-    if len(success_id_log) > 0:
-        timestamp = calendar.timegm(time.gmtime())
-        f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
-        for id in success_id_log:
-            if success_id_log.index(id) >= len(success_id_log)-1:
-                f.write(id)
-            else:
-                f.write(id + ', ')
+    if len( success_id_log[ 'ids' ] ) > 0:
+        date = datetime.date.today( )
+        time = datetime.datetime.now( ).strftime("%H-%M-%S")
+        f = open(f'./log_files/success_lists/{ date }-{ time }-phenotype_records_added.txt', 'w+')
+        f.write( f"Subject records added to database for { success_id_log[ 'release' ] }\n\n" )
 
-        f.close()
+        for id in success_id_log[ 'ids' ]:
+            f.write( f'{ id }\n')
+            
+        f.close( )
 
 def create_tsv( dataframe, subject_type, validation_type, requires_index = False ):
     """takes the compiled dataframe and subject-type (to formulate filename), validation_type (if initial or update checks), and creates a TSV."""
