@@ -605,7 +605,31 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
         f.write( f"{ subject }\n" )
     f.write("\n\n")
 
-# fetching data
+# data handling
+def get_unpublished_subjects_by_release( subject_type ):
+    """takes subject_type str arg, returns dict keyed by release name, with list of subjects with unpublished ids in database"""
+    ## initialize dict to hold data
+    unpublished_subjects_by_release_dict = {}
+
+    ## get dict of release names, keyed by their str'd tablekey
+    releases = { str( vers[ 0 ] ): vers[ 1 ] for vers in database_connection( "SELECT id, release_version FROM data_versions", ( ) ) }
+
+    ## get unpublished subjects in ds_subjects_phenotypes table, keyed by tablekey
+    subjects = { subject[ 0 ]: {
+        "subject_id": subject[ 1 ],
+        "data_version": subject[ 2 ],
+    } for subject in database_connection( f"SELECT id, subject_id, _data->>'data_version' FROM ds_subjects_phenotypes WHERE published = FALSE AND subject_type = '{ subject_type }'", ( ) ) }
+
+    ## sort the subjects into a nested dict keyed by release name, with str value release tablekey and a list of unpublished subjects
+    for key, release in releases.items( ):
+        unpublished_subjects_by_release_dict[ release ] = { "release_tablekey": key, "unpublished_subjects": [ ] } ## create nested dict with release tablekey and empty list to hold subject_ids
+
+        for skey, subject in subjects.items( ):
+            if subject[ 'data_version' ] == key: ## if the key ( tablekey of versions table ) equals the current subject's data_version value
+                unpublished_subjects_by_release_dict[ release ][ "unpublished_subjects" ].append( subject[ 'subject_id' ] )
+
+    return unpublished_subjects_by_release_dict
+
 def get_dict_data( dict_name ):
     """takes dict name as arg, returns dataframe with dict info"""
     dict_data = [ return_tuple[ 0 ] for return_tuple in database_connection( f"SELECT _dict_data FROM data_dictionaries WHERE dictionary_name = %s", ( dict_name, ) ) ][ 0 ]

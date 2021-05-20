@@ -15,23 +15,31 @@ import time
 
 user_input_subject_type = 'other'
 publish_status = False
+unpublished_subjects_in_database_dict = None
 script_name = 'manage_updates.py'
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     global user_input_subject_type
     global publish_status
+    global unpublished_subjects_in_database_dict
 
     ## checks if DEBUG arg passed in script call, sets DEBUG variable to True if so
     pheno_utils.check_DEBUG( )
 
-    user_input_subject_type = pheno_utils.get_subject_type()
+    user_input_subject_type = 'case/control'
+    # user_input_subject_type = pheno_utils.get_subject_type()
 
-    data_version = pheno_utils.user_input_data_version()
+    unpublished_subjects_in_database_dict = pheno_utils.get_unpublished_subjects_by_release( subject_type = user_input_subject_type )
 
-    publish_status = pheno_utils.get_publish_action()
+    data_version = 'ng00067.v2'
+    # data_version = pheno_utils.user_input_data_version()
 
-    LOADFILE = pheno_utils.get_filename()
+    publish_status = False
+    # publish_status = pheno_utils.get_publish_action()
+
+    LOADFILE = 'catchtest.csv'
+    # LOADFILE = pheno_utils.get_filename()
     
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
@@ -53,10 +61,24 @@ def write_to_db( data_dict, data_version_string ):
 
     global user_input_subject_type
     global publish_status
+    global unpublished_subjects_in_database_dict
 
     data_version = None ## saving data version id from dict so can set publish status in data_version table after upload
     write_counter = 0
     
+    ## check if subject has unpublished record for this data version in database, log error and remove from data_dict if DOESN'T
+    for key, subject in list( data_dict.items( ) ):
+        if 'subjid' in subject.keys( ):
+            sid = subject[ 'subjid' ]
+        elif 'subject_id' in subject.keys( ):
+            sid = subject[ 'subject_id' ]
+        
+        if sid not in unpublished_subjects_in_database_dict[ data_version_string ][ 'unpublished_subjects' ]:
+            del data_dict[ key ]
+            err = f'{ sid } has no unpublished record in { data_version_string }. No action will be taken.'
+            print( err )
+            pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
+
     ## gets list of subjects in baseline table of type matching the user_input_subject_type, so can see if have to add to baseline table
     baseline_dupecheck_list = pheno_utils.build_baseline_dupcheck_list( user_input_subject_type )
 
