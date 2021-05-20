@@ -32,16 +32,13 @@ If you are loading phenotype updates not currently in the database, please use t
 If you are uploading changes to updates already in the database, but which are not yet ready to publish, please use the `manage_phenotypes` script. " 
     )
     
-    # time.sleep(5)
+    time.sleep(5)
 
-    user_input_subject_type = 'case/control'
-    # user_input_subject_type = pheno_utils.get_subject_type( )
+    user_input_subject_type = pheno_utils.get_subject_type( )
 
-    data_version = 'tada'
-    # data_version = pheno_utils.user_input_data_version( )
+    data_version = pheno_utils.user_input_data_version( )
 
-    LOADFILE = 'cc-published.csv'
-    # LOADFILE = pheno_utils.get_filename( )
+    LOADFILE = pheno_utils.get_filename( )
 
 
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
@@ -102,13 +99,13 @@ def write_to_db( data_dict, data_version_string ):
         _data = json.dumps( value )
 
         try:
-            # pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
+            pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
             write_counter += 1
             success_id_log[ 'ids' ].append( subject_id )
             
             try:
-                pass
-                # pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
+                pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
+                
             except:
                 err = f"Error making baseline entry for { subject_id } in { data_version_string }"
                 print( err )
