@@ -31,7 +31,7 @@ def main():
         print( msg )   
         
         data_dict = pheno_utils.create_comparison_data_dict( LOADFILE, user_input_subject_type )
-        print('start checks ', datetime.datetime.now().strftime("%H-%M-%S") )  ##for testing, remove when done
+
         reviewed_dict = run_checks( data_dict, classname_dict, user_input_subject_type )
         for key, value in reviewed_dict.items():
 
@@ -40,11 +40,12 @@ def main():
                 df = pd.read_json( json.dumps( reviewed_dict ) ).transpose()
                 df.index.name = 'SUBJID'
                 df = df.reindex( columns = list( value.keys( ) ) )
+
                 pheno_utils.create_tsv( df, user_input_subject_type, validation_type = 'initial_validation',  requires_index = True )
+
                 print(f"One or more data errors found in { LOADFILE }. A tsv with error flags will be generated.")
-                ## Found an error, generated the tsv and now will exit.\
-                print('end checks ', datetime.datetime.now().strftime("%H-%M-%S") )
-                sys.exit()
+                ## Found an error, generated the tsv and now will exit.
+                sys.exit( )
 
         print(f"No data errors found in { LOADFILE }.")
 
@@ -77,6 +78,4 @@ def run_checks( data_dict, classname_dict, subject_type ):
     return review_dict
 
 if __name__ == '__main__':
-    # print('start ', datetime.datetime.now().strftime("%H:%M:%S") )
     main()  
-    # print('end ', datetime.datetime.now().strftime("%H:%M:%S") )

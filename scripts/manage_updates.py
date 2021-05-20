@@ -13,9 +13,6 @@ import pheno_utils
 import calendar
 import time
 
-new_records = []
-success_id_log = []
-
 user_input_subject_type = 'other'
 publish_status = False
 script_name = 'manage_updates.py'
@@ -97,18 +94,30 @@ def write_to_db( data_dict, data_version_string ):
         if publish_status:
             ## update an existing unpublished record (WHERE published = FALSE), setting it to true
             if not pheno_utils.DEBUG:
-                pheno_utils.database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = (%s, %s, TRUE) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
-            write_counter += 1
+                try:
+                    pheno_utils.database_connection(f"UPDATE ds_subjects_phenotypes SET(subject_id, _data, published) = (%s, %s, TRUE) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
+                    write_counter += 1
+                except:
+                    err = f'Error updating phenotype record for { subject_id } in { data_version_string }'
+                    print( err )
+                    pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
             if not pheno_utils.DEBUG:          
                 try:
                     pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
                 except:
-                    print(f"Error making baseline entry for { subject_id } in { data_version_string }")
+                    err = f"Error making baseline entry for { subject_id } in { data_version_string }"
+                    print( err )
+                    pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
         else:
-            if not pheno_utils.DEBUG:
-                pheno_utils.database_connection( f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = (%s, %s) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
+            try:
+                if not pheno_utils.DEBUG:
+                    pheno_utils.database_connection( f"UPDATE ds_subjects_phenotypes SET(subject_id, _data) = (%s, %s) WHERE subject_id = %s AND subject_type = '{ user_input_subject_type }' AND _data->>'data_version' = '%s' AND published = FALSE", ( subject_id, _data, subject_id, version ) )
+            except:
+                err = f'Error loading changes to update for { subject_id } in { data_version_string }'
+                print( err )
+                pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
         ## add subject_id back in for reporting
         data_dict[ key ][ 'subject_id' ] = subject_id
@@ -132,4 +141,4 @@ def write_to_db( data_dict, data_version_string ):
         
 if __name__ == '__main__':
     main()
-    # pheno_utils.generate_errorlog()
+    pheno_utils.generate_errorlog( )

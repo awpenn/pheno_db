@@ -14,7 +14,6 @@ import pheno_utils
 import flagchecks
 
 new_records = []
-success_id_log = []
 
 user_input_subject_type = ''
 script_name = 'load_unpublished_updates.py'
@@ -87,7 +86,12 @@ def write_to_db( data_dict ):
         _data = json.dumps( value )
 
         if not pheno_utils.DEBUG:
-            pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
+            try:
+                pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
+            except:
+                err = f'Error adding update for { subject_id } to database.'
+                print( err )
+                pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
         else:
             print( 'DEBUG mode, no write to db....\n')
         ## add subject_id back in for reporting
@@ -97,5 +101,4 @@ def write_to_db( data_dict ):
 
 if __name__ == '__main__':
     main()
-    # pheno_utils.generate_errorlog()
-    # pheno_utils.generate_success_list()
+    pheno_utils.generate_errorlog( )

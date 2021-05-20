@@ -63,7 +63,6 @@ def database_connection( query, params ):
         if(connection):
             cursor.close()
             connection.close()
-            # print('database connection closed')
 
 def change_data_version_published_status( data_version_published_status, data_version ):
     """takes user-input publish status for data version and data_version id, returns nothing"""
@@ -437,7 +436,7 @@ def generate_errorlog( ):
         date = datetime.date.today( )
         time = datetime.datetime.now( ).strftime("%H-%M-%S")
 
-        f = open(f'./log_files/{ date }-{ time }-log.txt', 'w+')
+        f = open(f'./log_files/error_logs/{ date }-{ time }-log.txt', 'w+')
         f.write( f'{ str( len( error_log.items( ) ) ) } flag(s) raised in runtime. See details below: \n\n')
         for key, value in error_log.items( ):
             pass
