@@ -39,23 +39,18 @@ If you are uploading changes to updates already in the database, but which are n
     
     LOADFILE = pheno_utils.get_filename( )
 
-    start_time = datetime.datetime.now( )
-    print( 'start ', start_time )
 
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
     if not variables_match_dictionary:
         print( msg )
-        sys.exit()
+        sys.exit( )
         
     else:
         print( msg )
         ## 12/15 create_data_dict generalized and moved to utils
         data_dict = pheno_utils.create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
         write_to_db( data_dict, data_version )
-
-    print('end ', datetime.datetime.now())
-    print(f"( Program started { start_time } )")
     
 def write_to_db( data_dict, data_version_string ):
     """takes data dict and writes to database"""
@@ -109,12 +104,16 @@ def write_to_db( data_dict, data_version_string ):
             try:
                 pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
             except:
-                print(f"Error making baseline entry for { subject_id } in { data_version_string }")
+                err = f"Error making baseline entry for { subject_id } in { data_version_string }"
+                print( err )
+                pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
             
 
         except:
-            print(f"Error making entry for { subject_id } in { data_version_string }")
+            err = f"Error making entry for { subject_id } in { data_version_string }"
+            print( err )
+            pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
 
     ## ask user if ready to publish dataset, if yes, will flip publish boolean in data versions table
     if write_counter > 0:
@@ -127,5 +126,5 @@ def write_to_db( data_dict, data_version_string ):
         print( "No records entered in database." )
 
 if __name__ == '__main__':
-    main()
-    # pheno_utils.generate_errorlog()
+    main( )
+    pheno_utils.generate_errorlog( )

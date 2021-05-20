@@ -52,6 +52,7 @@ def database_connection( query, params ):
 
     except (Exception, psycopg2.Error) as error:
         print('Error in database connection', error)
+        raise ValueError
     
 
     finally:
