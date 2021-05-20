@@ -13,9 +13,6 @@ import time
 
 import pheno_utils
 
-new_records = []
-success_id_log = []
-
 user_input_subject_type = ''
 script_name = 'legacy_loader.py'
 
@@ -27,7 +24,6 @@ def main():
 
     data_version = pheno_utils.user_input_data_version( )
 
-    
     LOADFILE = pheno_utils.get_filename( )
 
     variables_match_dictionary, msg = check_legacy_loadfile_correctness( LOADFILE, user_input_subject_type )

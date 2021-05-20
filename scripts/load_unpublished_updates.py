@@ -45,7 +45,9 @@ def main():
             write_to_db( data_dict )
         else:
             print( "No records will be added to the database." )
-
+    
+    pheno_utils.generate_errorlog( )
+    
 def write_to_db( data_dict ):
     """takes data dict and writes to database"""
 
@@ -100,5 +102,4 @@ def write_to_db( data_dict ):
     pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
 
 if __name__ == '__main__':
-    main()
-    pheno_utils.generate_errorlog( )
+    main( )

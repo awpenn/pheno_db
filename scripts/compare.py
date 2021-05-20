@@ -13,9 +13,6 @@ import datetime
  
 import pheno_utils
 
-new_records = []
-success_id_log = []
-
 def main():
     """main conductor function for the script."""
     user_input_subject_type = pheno_utils.get_subject_type()
@@ -177,5 +174,5 @@ def get_latest_published_tracking_varnames( current_view ):
     return tracking_vars
 
 if __name__ == '__main__':
-    main()
+    main( )
 

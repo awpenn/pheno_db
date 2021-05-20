@@ -44,6 +44,8 @@ def main():
         data_dict = pheno_utils.create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
         write_to_db( data_dict, data_version )
 
+    pheno_utils.generate_errorlog( )
+
 def write_to_db( data_dict, data_version_string ):
     """takes data dict and string version of data version and writes to database"""
     requires_ad_status_check = ['case/control', 'family']
@@ -140,5 +142,4 @@ def write_to_db( data_dict, data_version_string ):
 
         
 if __name__ == '__main__':
-    main()
-    pheno_utils.generate_errorlog( )
+    main( )

@@ -87,6 +87,4 @@ def run_update_checks( comparison_data, classname_dict, subject_type ):
     return review_dict
 
 if __name__ == '__main__':
-    print('start ', datetime.datetime.now().strftime("%H:%M:%S") )
-    main()  
-    print('end ', datetime.datetime.now().strftime("%H:%M:%S") )
+    main( )  

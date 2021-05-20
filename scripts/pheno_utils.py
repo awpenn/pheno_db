@@ -11,7 +11,7 @@ import datetime
 import pandas as pd
 
 error_log = {}
-success_id_log = {
+success_ids_log = {
     "release": '',
     "ids": []
 }
@@ -451,13 +451,13 @@ def generate_errorlog( ):
 def generate_success_list( ):
     """no args, creates a list of successfully created and inserted ADSP IDs"""
 
-    if len( success_id_log[ 'ids' ] ) > 0:
+    if len( success_ids_log[ 'ids' ] ) > 0:
         date = datetime.date.today( )
         time = datetime.datetime.now( ).strftime("%H-%M-%S")
         f = open(f'./log_files/success_lists/{ date }-{ time }-phenotype_records_added.txt', 'w+')
-        f.write( f"Subject records added to database for { success_id_log[ 'release' ] }\n\n" )
+        f.write( f"Subject records added to database for { success_ids_log[ 'release' ] }\n\n" )
 
-        for id in success_id_log[ 'ids' ]:
+        for id in success_ids_log[ 'ids' ]:
             f.write( f'{ id }\n')
 
         f.close( )

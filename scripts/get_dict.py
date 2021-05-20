@@ -15,7 +15,8 @@ import time
 import pheno_utils
 
 def main():
-    dict_name = user_select_dictionary()
+    dict_name = user_select_dictionary( )
+    
     make_dictionary_csv( dict_name )
 
 def make_dictionary_csv( dict_name ):

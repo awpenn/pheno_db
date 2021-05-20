@@ -34,9 +34,9 @@ def main():
     
     # drop_dict returns dict keyed by subject id with data_version (pkey from table) as value
     drop_from_database( user_input_subject_type, drop_dict )
-    
-    pheno_utils.generate_errorlog( )
 
+    pheno_utils.generate_errorlog( )
+    
 def create_drop_data_dict( LOADFILE, view_based_on_subject_type ):
     """takes loadfile name and view to look up based on subject_type as args, 
     returns dict of json data keyed by subject id of data to be entered in database"""
@@ -93,4 +93,3 @@ def drop_from_database( subject_type, drop_dict ):
 
 if __name__ == '__main__':
     main()
-    pheno_utils.generate_errorlog()

@@ -78,4 +78,4 @@ def run_checks( data_dict, classname_dict, subject_type ):
     return review_dict
 
 if __name__ == '__main__':
-    main()  
+    main( )  

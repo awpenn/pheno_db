@@ -14,8 +14,6 @@ import time
 import flagchecks
 import pheno_utils
 
-
-
 user_input_subject_type = ''
 script_name = 'load_phenotypes.py'
 
@@ -46,9 +44,11 @@ If you are uploading changes to updates already in the database, but which are n
         
     else:
         print( msg )
-        ## 12/15 create_data_dict generalized and moved to utils
         data_dict = pheno_utils.create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
         write_to_db( data_dict, data_version )
+    
+    pheno_utils.generate_errorlog( )
+    pheno_utils.generate_success_list( )
     
 def write_to_db( data_dict, data_version_string ):
     """takes data dict and writes to database"""
@@ -98,7 +98,7 @@ def write_to_db( data_dict, data_version_string ):
         try:
             pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type, published) VALUES(%s, %s, '{ user_input_subject_type }', TRUE)", ( subject_id, _data ) )
             write_counter += 1
-            pheno_utils.success_id_log[ 'ids' ].append( subject_id )
+            pheno_utils.success_ids_log[ 'ids' ].append( subject_id )
             
             try:
                 pheno_utils.save_baseline( baseline_dupecheck_list, subject_id, value, user_input_subject_type )
@@ -115,7 +115,7 @@ def write_to_db( data_dict, data_version_string ):
 
     ## ask user if ready to publish dataset, if yes, will flip publish boolean in data versions table
     if write_counter > 0:
-        pheno_utils.success_id_log[ "release" ] = data_version_string
+        pheno_utils.success_ids_log[ "release" ] = data_version_string
 
         if pheno_utils.user_input_publish_dataset( data_version_string, write_counter ):
             pheno_utils.change_data_version_published_status( "TRUE", data_version )
@@ -127,5 +127,3 @@ def write_to_db( data_dict, data_version_string ):
 
 if __name__ == '__main__':
     main( )
-    pheno_utils.generate_errorlog( )
-    pheno_utils.generate_success_list( )

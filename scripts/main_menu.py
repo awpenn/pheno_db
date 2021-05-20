@@ -8,6 +8,7 @@ import load_phenotypes
 import initial_validation_checks
 import update_validation_checks
 import load_unpublished_updates
+import pheno_utils
 
 def main():
     function_dict = {
@@ -57,10 +58,18 @@ def call_function( function_dict, fname, **kwargs ):
             continue
         else:
             if more_work_input.lower() ==  'y':
-                main()
+                ## reset errorlog and success ids object in pheno_utils
+                pheno_utils.error_log = {}
+                pheno_utils.success_ids_log = {
+                                "release": '',
+                                "ids": []
+                            }
+                main( )
                 break
+
             else:
                 print( 'Ending program.' )
                 break
+            
 if __name__ == '__main__':
     main()
