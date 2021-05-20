@@ -11,6 +11,10 @@ import datetime
 import pandas as pd
 
 error_log = {}
+success_id_log = {
+    "release": '',
+    "ids": []
+}
 
 load_dotenv()
 DBIP = os.getenv('DBIP')
@@ -445,8 +449,8 @@ def generate_errorlog( ):
 
             f.write( "\n\n" )
 
-def generate_success_list( success_id_log ):
-    """takes as arg dict with release name string and list of ids for added phenotypes, creates a list of successfully created and inserted ADSP IDs"""
+def generate_success_list( ):
+    """no args, creates a list of successfully created and inserted ADSP IDs"""
 
     if len( success_id_log[ 'ids' ] ) > 0:
         date = datetime.date.today( )
@@ -456,7 +460,7 @@ def generate_success_list( success_id_log ):
 
         for id in success_id_log[ 'ids' ]:
             f.write( f'{ id }\n')
-            
+
         f.close( )
 
 def create_tsv( dataframe, subject_type, validation_type, requires_index = False ):
