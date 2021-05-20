@@ -27,19 +27,15 @@ def main():
     ## checks if DEBUG arg passed in script call, sets DEBUG variable to True if so
     pheno_utils.check_DEBUG( )
 
-    user_input_subject_type = 'case/control'
-    # user_input_subject_type = pheno_utils.get_subject_type()
+    user_input_subject_type = pheno_utils.get_subject_type()
 
     unpublished_subjects_in_database_dict = pheno_utils.get_unpublished_subjects_by_release( subject_type = user_input_subject_type )
 
-    data_version = 'tada'
-    # data_version = pheno_utils.user_input_data_version()
+    data_version = pheno_utils.user_input_data_version()
 
-    publish_status = False
-    # publish_status = pheno_utils.get_publish_action()
+    publish_status = pheno_utils.get_publish_action()
 
-    LOADFILE = 'cc-published.csv'
-    # LOADFILE = pheno_utils.get_filename()
+    LOADFILE = pheno_utils.get_filename()
     
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
