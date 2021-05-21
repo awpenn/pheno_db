@@ -569,7 +569,7 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
 
     ## build report file
     date = datetime.date.today( )
-    time = datetime.datetime.now( ).strftime("%H:%M:%S")
+    time = datetime.datetime.now( ).strftime("%H-%M-%S")
 
     if loadtype == 'unpublished_update':
         f = open(f'./log_files/{ date }-{ time }-update-report.txt', 'w+')
@@ -670,7 +670,7 @@ def build_release_dict():
 def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name ):
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     """used in the loading and management scripts""" ## nb. 1/14/21 - could consolidate with create_comparison_data_dict ?
-    scripts_requiring_pub_and_unpub_check = ['load_unpublished_updates.py']
+    scripts_requiring_pub_and_unpub_check = [ 'load_unpublished_updates.py' ]
     release_dict = build_release_dict()
 
     ## if running script in s_r_p_a_u_c list above, create the two checklists with hardcoded pub values.  Otherwise, where scripts can 
@@ -679,7 +679,7 @@ def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_na
         published_dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = TRUE', user_input_subject_type )
         unpublished_dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = FALSE', user_input_subject_type )
 
-    ## 12/15 have to think about this more, right now 'else' runs if load_pheno or manage_updates, don't think in either of those cases want
+    ## 12/15/20 have to think about this more, right now 'else' runs if load_pheno or manage_updates, don't think in either of those cases want
     ## to worry about duplicate unpublished records.  
     else:
         dupecheck_list = build_dupecheck_list( release_dict[ data_version ], 'PUBLISHED = TRUE', user_input_subject_type )

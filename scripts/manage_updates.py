@@ -154,10 +154,10 @@ def write_to_db( data_dict, data_version_string ):
     
     ## report generation
     if publish_status:
-        pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'new_published_release' )
+        if data_dict:
+            pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'new_published_release' )
     else:
         pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
-
         
 if __name__ == '__main__':
     main( )
