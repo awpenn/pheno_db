@@ -66,6 +66,7 @@ def database_connection( query, params ):
 
 def change_data_version_published_status( data_version_published_status, data_version ):
     """takes user-input publish status for data version and data_version id, returns nothing"""
+
     database_connection( f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = %s", ( data_version, ) )
 
 #check-functions for data correctness
@@ -89,6 +90,7 @@ def check_not_duplicate( subject_id, dupecheck_list ):
         return True
 
 def build_baseline_dupcheck_list( subject_type ):
+
     query = database_connection( f"SELECT subject_id FROM ds_subjects_phenotypes_baseline WHERE subject_type = '{ subject_type }'", ( ) )
     baseline_dupe_list = [ id_tupe[ 0 ] for id_tupe in query ]
 
@@ -104,6 +106,7 @@ def check_not_dupe_baseline( subject_id, baseline_dupecheck_list ):
 
 def get_data_version_id( release_version ):
     """takes string release_version and returns id from data_version table"""
+
     query = database_connection(f"SELECT id FROM data_versions WHERE release_version = '{release_version}'", ( ) )
     try:
         return query[0][0]
@@ -114,6 +117,7 @@ def get_data_version_id( release_version ):
 
 def check_subject_exists(subject_type_view, subject_id, release_version):
     """takes id and release_version, makes sure that record exists for subject in target data version"""
+
     query = database_connection(f"SELECT COUNT(*) FROM { subject_type_view } where subject_id = %s AND release_version = %s", ( subject_id, release_version ) )
 
     if query[0][0] > 0:
@@ -158,6 +162,7 @@ def check_loadfile_variables_match_dictionary( data_dict, dictionary, subject_ty
 def check_loadfile_correctness( LOADFILE, user_input_subject_type ):
     """takes loadfile and subject type, returns boolean indicating loadfile matches appropriate dict, along with a message"""
     """moved from initial_validation_check so can be used at beginning of any script"""
+
     data_dict = create_comparison_data_dict( LOADFILE, user_input_subject_type )
     dict_name = database_connection( f"SELECT dictionary_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
     dictionary = get_dict_data( dict_name )
@@ -227,6 +232,7 @@ def get_filename():
         
 def get_subject_type():
     """takes nothing, returns subject_type for data being handled"""
+
     subject_types = [ type_tuple[ 0 ] for type_tuple in database_connection( "SELECT DISTINCT subject_type FROM env_var_by_subject_type", ( ) ) ]
 
     while True:
@@ -325,6 +331,7 @@ def get_subject_to_drop( view_based_on_subject_type ):
         
     def get_subject_id( data_version_id, view_to_check ):
         """returns subject_id inputed, after checking that it exists for given release_version"""
+
         while True:
             try:
                 subject_id_input = input(f"Enter subject_id to be dropped. ")
@@ -367,6 +374,7 @@ def user_input_data_version():
             continue 
 
 def user_input_publish_dataset( data_version_string, write_counter ):
+
     qstring = f"SELECT COUNT(*) FROM ds_subjects_phenotypes \
                 JOIN data_versions \
                     ON CAST(ds_subjects_phenotypes._data::json->>'data_version' AS INT) = data_versions.id \
@@ -640,6 +648,7 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
 # data handling
 def get_unpublished_subjects_by_release( subject_type ):
     """takes subject_type str arg, returns dict keyed by release name, with list of subjects with unpublished ids in database"""
+
     ## initialize dict to hold data
     unpublished_subjects_by_release_dict = {}
 
@@ -684,6 +693,7 @@ def get_dict_data( dict_name ):
     
 def get_views_by_subject_type( subject_type ):
     """takes user-supplied subject_type, returns tuple of appropriate views from database table"""
+
     try:
         return database_connection( f"SELECT current_view_name, unpublished_update_view_name, baseline_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'", ( ) )[ 0 ]
     except:
@@ -694,6 +704,7 @@ def build_release_dict():
     """takes no args, gets all the releases from the db with their string name and id, makes a dict with key
     as string name and id as value, so can replaces on the fly without 1 dbcall/row
     """
+
     query = database_connection("SELECT id, release_version FROM data_versions", ( ) )
     release_dict = { version[ 1 ] : version[ 0 ] for version in query }
 
@@ -812,7 +823,7 @@ def save_baseline( baseline_dupecheck_list, subject_id, data, user_input_subject
 def get_phenotype_and_consent_level_data( database_type, subject_type ):
     """takes string for database type and string representing subject type, returns 2 dicts subject dict and dict of subjects keyed by consent"""
     global DB
-    DB = 'pheno_db_v5'## need to change this to accept the sandbox/production string later
+    DB = os.getenv('DB')
 
     ## get subject type and the [type]_current view
     current_release_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'" , ( ) )[ 0 ][ 0 ]

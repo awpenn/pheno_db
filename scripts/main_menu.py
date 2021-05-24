@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+import pheno_utils
+import os 
+
 import compare
 import get_dict
 import load_dicts
@@ -9,8 +13,14 @@ import initial_validation_checks
 import update_validation_checks
 import load_unpublished_updates
 import pheno_utils
+import get_phenotypes_and_consents
+import get_phenotypes_split_by_consents
 
 def main():
+    ## resets the DB to phenotype database before commands are run, in case previously run command involed connections to other dbs
+    load_dotenv( )
+    pheno_utils.DB = os.getenv( 'DB' )
+
     function_dict = {
         "1": initial_validation_checks.main,
         "2": load_unpublished_updates.main,
@@ -20,6 +30,8 @@ def main():
         "6": drop_subjects.main,
         "7": load_dicts.main,
         "8": get_dict.main,
+        "9": get_phenotypes_and_consents.main,
+        "10": get_phenotypes_split_by_consents.main,
     }
 
     funcname_dict = {
@@ -31,6 +43,8 @@ def main():
         "6": "Drop subjects\n",
         "7": "Load dictionaries\n",
         "8": "Get dictionaries\n",
+        "9": "Get all phenotypes with consents\n",
+        "10": "Get all phenotypes split by consent\n",
     }
     
     function_input = input( f'\nWhat action would you like to take?(Select numerical value) \n{ "".join( [ f"{ key }: { value }" for key, value in funcname_dict.items() ] ) } ' )

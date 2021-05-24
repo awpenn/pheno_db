@@ -48,7 +48,7 @@ def build_output_files_split_by_consent( subjects_dict, subject_type ):
 
         ##need to remove slash in case/control for filename
         if subject_type == 'case/control':
-            subject_type = 'case+control'
+            subject_type = 'case-control'
 
         df.to_csv(f"./log_files/{ subject_type }-{ consent }-phenotypes-and-consents-{ date }-{ time }.txt", sep="\t", index=False )
 
