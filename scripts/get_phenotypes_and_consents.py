@@ -1,8 +1,6 @@
 """
-Like the phenotypes by consent level in consent_database, 
-this will pull latest published phenotypes for a subject_type, get consent level by matching 
-adspid( phenodb ) to site_indiv_id ( consentdb ) via adspid_db, build a dict of phenotype records keyed by 
-consent level, then build output files split by consent level
+Pulls latest published phenotypes for a subject_type, get consent level by matching 
+adspid( phenodb ) to site_indiv_id ( consentdb ) via adspid_db, creates csv with phenotypes data and cohort/consent level
 """
 import sys
 sys.path.append('/home/pheno_db/.venv/lib/python3.6/site-packages/')
@@ -13,7 +11,6 @@ import json
 import datetime
 import pandas as pd
 
-import flagchecks
 import pheno_utils
 
 def main( ):
