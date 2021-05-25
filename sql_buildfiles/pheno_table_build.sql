@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS "env_var_by_subject_type"
         "id" SERIAL NOT NULL,
         "subject_type" VARCHAR(50) NOT NULL,
         "current_view_name" VARCHAR(50) NOT NULL,
+        "latest_published_view_name" VARCHAR(50) NOT NULL,
         "unpublished_update_view_name" VARCHAR(50) NOT NULL,
         "baseline_view_name" VARCHAR(50) NOT NULL,
         "all_view_name" VARCHAR(50) NOT NULL,
