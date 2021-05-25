@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/home/pheno_db/.venv/lib/python3.6/site-packages/')
 from dotenv import load_dotenv
 import pheno_utils
 import os 

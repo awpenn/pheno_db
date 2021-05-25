@@ -12,6 +12,8 @@ import datetime
 import pandas as pd
 
 import pheno_utils
+script_name = 'get_phenotypes_and_consents.py'
+
 
 def main( ):
     database_type = pheno_utils.select_database_type( )
