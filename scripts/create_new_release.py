@@ -31,9 +31,12 @@ def main( ):
     ##      i. get latest published version no from view
     ##      ii. get records from ds table with that version
     ##      iii. update data version in json
-    
+
+    print( f"Beginning data load: { datetime.datetime.now( ).strftime('%H:%M:%S') }" )
+    write_to_db( data_dict = subjects_from_previous_release, user_input_subject_type = user_input_subject_type )
     ##      iv. run flags
     ##      v. create new unpublished records in ds-table
+    print( f"Data load finished: { datetime.datetime.now( ).strftime('%H:%M:%S') }" )
 
 def user_input_new_release_data( ):
     """no args, requests new release name and saves to database, returns string of user-entered release name and string of version id created by database"""
@@ -46,8 +49,7 @@ def user_input_new_release_data( ):
         except:
             print( f'Error saving { release_name } to database.' )
             sys.exit( )
-
-        return str( pheno_utils.database_connection( "SELECT id FROM data_versions WHERE release_version = %s", ( release_name ) )[ 0 ][ 0 ] )
+        return str( pheno_utils.database_connection( f"SELECT id FROM data_versions WHERE release_version = %s", ( release_name, ) )[ 0 ][ 0 ] )
 
     ## get release name
     def get_release_name( ):
@@ -136,6 +138,53 @@ def get_previous_release_data( subject_type, new_data_version_tablekey ):
 
     return phenotype_data
 
+def write_to_db( data_dict, user_input_subject_type ):
+    """takes data dict and subject_type (str), and writes to database"""
+
+    requires_ad_status_check = ['case/control', 'family']
+    requires_diagnosis_update_check = ['ADNI', 'PSP/CDB']
+
+    ## gets list of subjects in baseline table of type matching the user_input_subject_type, so can see if have to add to baseline table
+    baseline_dupecheck_list = pheno_utils.build_baseline_dupcheck_list( user_input_subject_type )
+
+    ## dicts for dbcall-less flag updates
+    update_baseline_dict = flagchecks.build_update_baseline_check_dict( user_input_subject_type )
+    update_latest_dict = flagchecks.build_update_latest_dict( user_input_subject_type )
+
+    if user_input_subject_type in requires_ad_status_check:
+        adstatus_check_dict = flagchecks.build_adstatus_check_dict( user_input_subject_type )
+    
+    if user_input_subject_type in requires_diagnosis_update_check:
+        diagnosis_update_check_dict = flagchecks.build_update_diagnosis_check_dict( user_input_subject_type )
+    
+    for key, value in data_dict.items():
+        subject_id = key
+        value[ "update_baseline" ] = flagchecks.update_baseline_check( subject_id , value, update_baseline_dict )
+        value[ "update_latest" ] = flagchecks.update_latest_check( subject_id, value, update_latest_dict )
+        value[ "correction" ] = flagchecks.correction_check( value )
+
+        if user_input_subject_type in requires_ad_status_check:
+            value[ "update_adstatus" ] = flagchecks.update_adstatus_check( subject_id, value[ "ad" ], adstatus_check_dict )     
+
+        if user_input_subject_type in requires_diagnosis_update_check:
+            value[ "update_diagnosis" ] = flagchecks.update_diagnosis_check( subject_id, user_input_subject_type, value, diagnosis_update_check_dict )
+
+        _data = json.dumps( value )
+
+        if not pheno_utils.DEBUG:
+            try:
+                pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
+            except:
+                err = f'ERROR: Error adding update for { subject_id } to database.'
+                print( err )
+                pheno_utils.error_log[ len( pheno_utils.error_log ) + 1 ] = [ err ]
+        else:
+            print( 'DEBUG mode, no write to db....\n')
+        ## add subject_id back in for reporting
+        data_dict[ key ][ 'subject_id' ] = subject_id
+
+    pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
+
 if __name__ == '__main__':
     pass
-    # main( )
+    main( )
