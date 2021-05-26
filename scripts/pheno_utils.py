@@ -64,10 +64,23 @@ def database_connection( query, params ):
             cursor.close()
             connection.close()
 
-def change_data_version_published_status( data_version_published_status, data_version ):
-    """takes user-input publish status for data version and data_version id, returns nothing"""
+def publish_subjects_and_data_version( data_version_published_status, data_version, subject_type ):
+    """takes user-input publish status (str) for data version (tablekey int) and subject_type (str), returns nothing""" 
+    ## changing this function 5/26 to more general publish function
+    ## Functions:
+    ##  1. for subject in data_version x, with subject_type y, set published = true
+    ##  2. for data_version with id x in data_versions table, set published = true
+    ##  3. for any subjects in new version that don't have baseline records, create baseline records
+    ##
+    if data_version_published_status == 'TRUE':
+        ## update subjects' pubstatus
+        database_connection( f"UPDATE ds_subjects_phenotypes SET published = true WHERE _data->>'data_version' = %s AND subject_type = %s AND published = false", ( str( data_version ), subject_type ) )
+        
+        ## create dicts of version (filtered by subject_type) and baseline(filted by subject_type), find version records without baseline records and store to baseline
+        ## //need to write the//
 
-    database_connection( f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = %s", ( data_version, ) )
+        ##update version pubstatus
+        database_connection( f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = %s", ( data_version, ) )
 
 #check-functions for data correctness
 def build_dupecheck_list( data_version_id, pub_check, subject_type ):
