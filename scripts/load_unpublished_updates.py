@@ -85,11 +85,15 @@ def write_to_db( data_dict ):
         if user_input_subject_type in requires_diagnosis_update_check:
             value[ "update_diagnosis" ] = flagchecks.update_diagnosis_check( subject_id, user_input_subject_type, value, diagnosis_update_check_dict )
 
+        is_update = value.pop( 'is_update' )
         _data = json.dumps( value )
 
         if not pheno_utils.DEBUG:
             try:
-                pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
+                if is_update: ##if update to a record already copied over when creating new release (ie. vs. record completely new to this release)
+                    pheno_utils.database_connection( f"UPDATE ds_subjects_phenotypes SET _data = %s WHERE subject_id = %s and subject_type = %s and published = False", ( _data, subject_id, user_input_subject_type ) )
+                else:
+                    pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
             except:
                 err = f'ERROR: Error adding update for { subject_id } to database.'
                 print( err )

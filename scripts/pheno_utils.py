@@ -714,7 +714,7 @@ def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_na
     """takes loadfile name as arg, returns dict of json data keyed by subject id of data to be entered in database"""
     """used in the loading and management scripts""" ## nb. 1/14/21 - could consolidate with create_comparison_data_dict ?
     scripts_requiring_pub_and_unpub_check = [ 'load_unpublished_updates.py' ]
-    release_dict = build_release_dict()
+    release_dict = build_release_dict( )
 
     ## if running script in s_r_p_a_u_c list above, create the two checklists with hardcoded pub values.  Otherwise, where scripts can 
     ## run data that is either to be published or unpublished, make one checklist with pubstat depending on arg passed into function
@@ -756,11 +756,15 @@ def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_na
                 # otherwise, just the one with pubstat dependant on user input
                 if script_name in scripts_requiring_pub_and_unpub_check:
                     if check_not_duplicate( blob[ subject_id_varname ], published_dupecheck_list ) and check_not_duplicate( blob[ subject_id_varname ], unpublished_dupecheck_list ):
+                        blob[ 'is_update' ] = False ## for loading_unpublished, if id'd as a d
                         data_dict[f'{ blob[subject_id_varname] }_{ data_version }'] = blob
                     else:
+                        blob[ 'is_update' ] = True
+                        data_dict[f'{ blob[subject_id_varname] }_{ data_version }'] = blob
                         print( f'{ blob[ subject_id_varname ] } already has record in { data_version }')
                 else:
                     if check_not_duplicate( blob[ subject_id_varname ], dupecheck_list ):
+                        blob[ 'is_update' ] = False
                         data_dict[f'{ blob[ subject_id_varname ] }_{ data_version }'] = blob
                     else:
                         print(f'{ blob[ subject_id_varname ] } already has record in { data_version }')
