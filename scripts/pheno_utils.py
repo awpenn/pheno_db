@@ -77,10 +77,19 @@ def publish_subjects_and_data_version( data_version_published_status, data_versi
         database_connection( f"UPDATE ds_subjects_phenotypes SET published = true WHERE _data->>'data_version' = %s AND subject_type = %s AND published = false", ( str( data_version ), subject_type ) )
         
         ## create dicts of version (filtered by subject_type) and baseline(filted by subject_type), find version records without baseline records and store to baseline
-        ## //need to write the//
+        published_subjects_in_data_version = {record[ 0 ]: record[ 1 ] for record in database_connection(f"SELECT subject_id, _data FROM ds_subjects_phenotypes WHERE _data->>'data_version' = %s AND subject_type = %s", ( str( data_version ), subject_type ) ) }
+        
+        baseline_subject_ids = [ record[ 0 ] for record in database_connection(f"SELECT subject_id FROM ds_subjects_phenotypes_baseline WHERE subject_type = %s", ( subject_type, ) ) ] 
+
+        for id in baseline_subject_ids:
+            if id in list( published_subjects_in_data_version.keys( ) ):
+                del published_subjects_in_data_version[ id ]
+        
+        for key, value in published_subjects_in_data_version.items( ):
+            save_baseline( baseline_dupecheck_list = baseline_subject_ids, subject_id = key, data = value, user_input_subject_type = subject_type )
 
         ##update version pubstatus
-        database_connection( f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = %s", ( data_version, ) )
+        database_connection( f"UPDATE data_versions SET published = true WHERE id = %s", ( data_version, ) )
 
 #check-functions for data correctness
 def build_dupecheck_list( data_version_id, pub_check, subject_type ):
@@ -777,7 +786,6 @@ def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_na
                         print( f'{ blob[ subject_id_varname ] } already has record in { data_version }')
                 else:
                     if check_not_duplicate( blob[ subject_id_varname ], dupecheck_list ):
-                        blob[ 'is_update' ] = False
                         data_dict[f'{ blob[ subject_id_varname ] }_{ data_version }'] = blob
                     else:
                         print(f'{ blob[ subject_id_varname ] } already has record in { data_version }')
