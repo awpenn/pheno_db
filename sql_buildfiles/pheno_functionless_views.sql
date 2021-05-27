@@ -28,15 +28,15 @@
         FROM
             (
             SELECT DISTINCT 
-                ds_subjects_phenotypes.subject_id, max(ds_subjects_phenotypes._data->>'data_version') AS dv 
+                ds_subjects_phenotypes.subject_id, max( CAST( ds_subjects_phenotypes._data->>'data_version' AS INT ) ) AS dv 
                 FROM ds_subjects_phenotypes 
                 JOIN data_versions
-                    ON CAST(ds_subjects_phenotypes._data->>'data_version' AS INT) = data_versions.id
+                    ON CAST( ds_subjects_phenotypes._data->>'data_version' AS INT ) = data_versions.id
                 WHERE ds_subjects_phenotypes.published = TRUE AND data_versions.published = TRUE 
                 GROUP BY ds_subjects_phenotypes.subject_id
             ) as subq
         JOIN ds_subjects_phenotypes
-        ON subq.subject_id = ds_subjects_phenotypes.subject_id AND subq.dv = ds_subjects_phenotypes._data->>'data_version';
+        ON subq.subject_id = ds_subjects_phenotypes.subject_id AND subq.dv = CAST( ds_subjects_phenotypes._data->>'data_version' AS INT ) ;
 
 ---Get all unpublished updates json
     CREATE OR REPLACE VIEW _get_unpublished_updates_data AS
@@ -50,7 +50,7 @@
         FROM
             (
             SELECT DISTINCT 
-                ds_subjects_phenotypes.subject_id, max(ds_subjects_phenotypes._data->>'data_version') AS dv 
+                ds_subjects_phenotypes.subject_id, max( CAST( ds_subjects_phenotypes._data->>'data_version' AS INT ) ) AS dv 
                 FROM ds_subjects_phenotypes 
                 JOIN data_versions
                     ON CAST(ds_subjects_phenotypes._data->>'data_version' AS INT) = data_versions.id
@@ -58,7 +58,7 @@
                 GROUP BY ds_subjects_phenotypes.subject_id
             ) as subq
         JOIN ds_subjects_phenotypes
-        ON subq.subject_id = ds_subjects_phenotypes.subject_id AND subq.dv = ds_subjects_phenotypes._data->>'data_version';
+        ON subq.subject_id = ds_subjects_phenotypes.subject_id AND subq.dv = CAST( ds_subjects_phenotypes._data->>'data_version' AS INT );
 ---Get newest json
     CREATE OR REPLACE VIEW _get_newest_data AS
         SELECT 
@@ -71,14 +71,14 @@
         FROM
             (
             SELECT DISTINCT 
-                ds_subjects_phenotypes.subject_id, max(ds_subjects_phenotypes._data->>'data_version') AS dv 
+                ds_subjects_phenotypes.subject_id, max( CAST( ds_subjects_phenotypes._data->>'data_version' AS INT ) ) AS dv 
                 FROM ds_subjects_phenotypes 
                 JOIN data_versions
                     ON CAST(ds_subjects_phenotypes._data->>'data_version' AS INT) = data_versions.id
                 GROUP BY ds_subjects_phenotypes.subject_id
             ) as subq
         JOIN ds_subjects_phenotypes
-        ON subq.subject_id = ds_subjects_phenotypes.subject_id AND subq.dv = ds_subjects_phenotypes._data->>'data_version';
+        ON subq.subject_id = ds_subjects_phenotypes.subject_id AND subq.dv = CAST( ds_subjects_phenotypes._data->>'data_version' AS INT );
 
 --
 --
