@@ -66,12 +66,7 @@ def database_connection( query, params ):
 
 def publish_subjects_and_data_version( data_version_published_status, data_version, subject_type ):
     """takes user-input publish status (str) for data version (tablekey int) and subject_type (str), returns nothing""" 
-    ## changing this function 5/26 to more general publish function
-    ## Functions:
-    ##  1. for subject in data_version x, with subject_type y, set published = true
-    ##  2. for data_version with id x in data_versions table, set published = true
-    ##  3. for any subjects in new version that don't have baseline records, create baseline records
-    ##
+
     if data_version_published_status == 'TRUE':
         ## update subjects' pubstatus
         database_connection( f"UPDATE ds_subjects_phenotypes SET published = true WHERE _data->>'data_version' = %s AND subject_type = %s AND published = false", ( str( data_version ), subject_type ) )
@@ -394,6 +389,49 @@ def user_input_data_version():
         else:
             print("Please input a valid entry. ")
             continue 
+
+def user_input_data_version_to_publish():
+    """takes no arg, returns str name of data_version and it's int tablekey"""
+    ## only returns versions not published, so once published, data cant be overwritten accidently 
+
+    data_versions = { version_tuple[ 0 ]: version_tuple[ 1 ] for version_tuple in database_connection( "SELECT id, release_version FROM data_versions WHERE published = FALSE", ( ) ) }
+
+    ## add newline for display
+    for key, value in list( data_versions.items( ) ):
+        data_versions[ key ] = value + '\n'
+    
+    while True:
+        try:
+            version_input = input( f"Which release_version does your data belong to?(select numerical key from list) Please only load data from one release at a time. \n{ ''.join( [ f'{ key }: { value }' for key, value in data_versions.items( ) ] ) }" )
+        except ValueError:
+            print( 'Please select numerical value from list.' )
+            continue
+        if not version_input:
+            print( 'Please select numerical value from list.' )
+            continue
+        elif not version_input.isdigit( ):
+            print( 'Please select numerical value from list.' )
+            continue
+        elif int( version_input ) not in data_versions.keys( ):
+            print( 'Please select numerical value from list.' )
+            continue
+        else:
+            while True:
+                try:
+                    confirm_input = input( f"Confirm { data_versions[ int( version_input ) ].strip( ) } is release to be published?(y/n) " )
+                except ValueError:
+                    continue
+                if not confirm_input:
+                    continue
+                elif confirm_input.lower( ) not in [ 'y', 'n' ]:
+                    continue
+                else:
+                    if confirm_input.lower( ) == 'y':
+                        return data_versions[ int( version_input ) ].strip( ), int( version_input )
+                    else:
+                        break    
+            continue
+
 
 def user_input_publish_dataset( data_version_string, write_counter ):
 

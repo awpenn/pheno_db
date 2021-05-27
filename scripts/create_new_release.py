@@ -19,23 +19,17 @@ import pheno_utils
 script_name = 'create_new_release.py'
 
 def main( ):
-    pass
-    ## 1. Create new version
+
     release_name, release_tablekey = user_input_new_release_data( )
-    ##      i. make sure not a dupe
-    ##      ii. add to table and get new dvid
-    ## 2. Get subject type
+
     user_input_subject_type = pheno_utils.get_subject_type( )
-    ## 3. Copy subjects from previous release to new one
+
     subjects_from_previous_release = get_previous_release_data( subject_type = user_input_subject_type, new_data_version_tablekey = release_tablekey )
-    ##      i. get latest published version no from view
-    ##      ii. get records from ds table with that version
-    ##      iii. update data version in json
 
     print( f"Beginning data load: { datetime.datetime.now( ).strftime('%H:%M:%S') }" )
+    
     write_to_db( data_dict = subjects_from_previous_release, user_input_subject_type = user_input_subject_type )
-    ##      iv. run flags
-    ##      v. create new unpublished records in ds-table
+
     print( f"Data load finished: { datetime.datetime.now( ).strftime('%H:%M:%S') }" )
 
 def user_input_new_release_data( ):
