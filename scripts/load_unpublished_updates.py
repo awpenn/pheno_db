@@ -91,7 +91,7 @@ def write_to_db( data_dict ):
         if not pheno_utils.DEBUG:
             try:
                 if is_update: ##if update to a record already copied over when creating new release (ie. vs. record completely new to this release)
-                    pheno_utils.database_connection( f"UPDATE ds_subjects_phenotypes SET _data = %s WHERE subject_id = %s and subject_type = %s and published = False", ( _data, subject_id, user_input_subject_type ) )
+                    pheno_utils.database_connection( f"UPDATE ds_subjects_phenotypes SET _data = %s WHERE subject_id = %s and subject_type = %s and published = false", ( _data, subject_id, user_input_subject_type ) )
                 else:
                     pheno_utils.database_connection( f"INSERT INTO ds_subjects_phenotypes(subject_id, _data, subject_type) VALUES(%s, %s, '{ user_input_subject_type }')", ( subject_id, _data ) )
             except:

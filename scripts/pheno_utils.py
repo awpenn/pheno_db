@@ -86,6 +86,11 @@ def publish_subjects_and_data_version( data_version_published_status, data_versi
         ##update version pubstatus
         database_connection( f"UPDATE data_versions SET published = true WHERE id = %s", ( data_version, ) )
 
+def change_data_version_published_status( data_version_published_status, data_version ):
+    """takes user-input publish status for data version and data_version id, returns nothing"""
+
+    database_connection( f"UPDATE data_versions SET Published = { data_version_published_status } WHERE id = %s", ( data_version, ) )
+    
 #check-functions for data correctness
 def build_dupecheck_list( data_version_id, pub_check, subject_type ):
     """takes version, publication status and subject type as args,
