@@ -26,8 +26,8 @@ def main():
     pheno_utils.DB = os.getenv( 'DB' )
 
     function_dict = {
-        "1": initial_validation_checks.main,
-        "2": create_new_release.main,
+        "1": create_new_release.main,
+        "2": initial_validation_checks.main,
         "3": drop_subjects.main,
         "4": load_unpublished_updates.main,
         "5": compare.main,
@@ -41,8 +41,8 @@ def main():
     }
 
     funcname_dict = {
-        "1": "Run initial validation checks\n",
-        "2": "Create new release\n",
+        "1": "Create new release\n",
+        "2": "Run initial validation checks\n",
         "3": "Drop subjects from update\n",
         "4": "Load new subjects/updates to existing subjects\n",
         "5": "Generate comparison file\n",
