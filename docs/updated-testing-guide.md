@@ -43,5 +43,30 @@
 ## new workflow
 
 1. In main menu, run `create new release`.  You'll choose the data type, and assign a release name and date, and the script will create copies of the subjects from the latest published version, now assigned to the new release.  
-2.  
-3. Load new subjects/updates to existing subjects
+
+2. Drop subjects, load new subjects, load changes to existing subjects' phenotypes
+    - a. Delete subjects dropped from new release
+        - Use `drop_subject_tempate` ( in jupyterhub `templates` folder ) file to create a batch file for subjects to be dropped. You'll provide subject_ids and the release_name of the new release you created in step 1. 
+
+    - b. Load new subjects/updates to existing subjects
+        - create a file ( using the template appropriate for your data type ) containing only phenotype records for subjects not in the previous release AND subjects from the previous release who have updated phenotypes in the new release.
+        - subjects not in previous releases will have new records created for them, subjects copied over from the previous release, but which have updated phenotypes, will have their existing database record updated.
+
+3. Generate the comparison file
+    - the generated comparison file will have an `is_change` column containing a TRUE/FALSE value, indicating whether there are any changes for that subjects between the latest published/baseline record and the latest update.  You can use this to filter records to see only those that have changed phenotype values. 
+
+4. (optional for testing I think) Run update validation checks  
+
+5. Load corrections/changes to update:
+    - create copy of comparison file
+    - remove the following columns from the copy:
+        - all beginning with `prev_` ( ie. those showing the current version of a phenotype valuePUBLISHED in the database )
+        - `data_version` columns ( you'll select this manually in the script )
+        - all comparison columns ( ie. those at end of table showing changes between update andpublished )
+        - `data_errors`  
+    - add the `duplicate_subjid` column back in 
+    - select `Makes changes to updates` from main menu  
+    
+6. Publish the new release
+    - if you are loading changes to update records ( step 5 ), you can choose to publish the release at the end of the script running
+    - if you are ready to publish the release and have no corrections/changes to load, select `publish new release` from the main menu
