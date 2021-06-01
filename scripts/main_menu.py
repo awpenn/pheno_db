@@ -14,9 +14,11 @@ import load_phenotypes
 import initial_validation_checks
 import update_validation_checks
 import load_unpublished_updates
+import publish_data_version
 import pheno_utils
 import get_phenotypes_and_consents
 import get_phenotypes_split_by_consents
+import create_new_release
 
 def main():
     ## resets the DB to phenotype database before commands are run, in case previously run command involed connections to other dbs
@@ -25,28 +27,30 @@ def main():
 
     function_dict = {
         "1": initial_validation_checks.main,
-        "2": load_unpublished_updates.main,
-        "3": compare.main,
-        "4": update_validation_checks.main,
-        "5": manage_updates.main,
-        "6": drop_subjects.main,
-        "7": load_dicts.main,
-        "8": get_dict.main,
+        "2": create_new_release.main,
+        "3": drop_subjects.main,
+        "4": load_unpublished_updates.main,
+        "5": compare.main,
+        "6": update_validation_checks.main,
+        "7": manage_updates.main,
+        "8": publish_data_version.main,
         "9": get_phenotypes_and_consents.main,
         "10": get_phenotypes_split_by_consents.main,
+        "11": load_dicts.main,
+        "12": get_dict.main,
     }
 
     funcname_dict = {
-        "1": "Run intial validation checks\n",
-        "2": "Load unpublished phenotypes\n",
-        "3": "Generate comparison file\n",
-        "4": "Validate phenotype update data\n",
-        "5": "Manage updates\n",
-        "6": "Drop subjects\n",
-        "7": "Load dictionaries\n",
-        "8": "Get dictionaries\n",
-        "9": "Get all phenotypes with consents\n",
-        "10": "Get all phenotypes split by consent\n",
+        "1": "Run initial validation checks\n",
+        "2": "Create new release\n",
+        "3": "Drop subjects from update\n",
+        "4": "Load new subjects/updates to existing subjects\n",
+        "5": "Generate comparison file\n",
+        "6": "Run update validation checks\n",
+        "7": "Makes changes to updates\n",
+        "8": "Publish new release\n",
+        "9": "Get phenotypes and consent levels\n",
+        "10": "Get phenotypes and consent levels, split by consent\n",
     }
     
     function_input = input( f'\nWhat action would you like to take?(Select numerical value) \n{ "".join( [ f"{ key }: { value }" for key, value in funcname_dict.items() ] ) } ' )

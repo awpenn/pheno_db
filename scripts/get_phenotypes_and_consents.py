@@ -22,7 +22,10 @@ def main( ):
 
     pheno_dict, by_consents_dict = pheno_utils.get_phenotype_and_consent_level_data( database_type = database_type, subject_type = user_input_subject_type )
     
-    build_output_file( subjects_dict = pheno_dict, subject_type = user_input_subject_type )
+    if by_consents_dict:
+        build_output_file( subjects_dict = pheno_dict, subject_type = user_input_subject_type )
+    else:
+        print( f'No published {  user_input_subject_type } records found with consent levels.' )
 
 ##script-specific functions
 def build_output_file( subjects_dict, subject_type ):
@@ -33,7 +36,7 @@ def build_output_file( subjects_dict, subject_type ):
     if len( subjects ) > 1:
         df = pd.read_json( json.dumps( subjects ) ).transpose( )
 
-    else: ##if only one subject in df, need to do this reindex thing to preserve column order
+    elif len( subjects ) == 1: ##if only one subject in df, need to do this reindex thing to preserve column order
         df = pd.read_json( json.dumps( subjects ) ).transpose( )
         df = df.reindex(columns=list( subjects[ list( subjects.keys( ) )[ 0 ] ].keys( ) ) ) ##take subject dict, get keys as list, use first (only) key to get subject's keys (ie. the columns)
     
