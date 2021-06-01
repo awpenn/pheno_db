@@ -139,6 +139,12 @@ def highlight_change( query_type, sorted_dataframe ):
         else:
             sorted_dataframe[var_update] = ""
 
+    def add_change_indicator( value, df, col ):        
+        if value[ col ] != '':
+            return 1
+        else:
+            return value.loc[ 'is_change' ]
+
     ## access columns eg. sorted_dataframe[['sex', 'prev_sex']] //note twin brackets
     skip_column_keywords = ['update', 'published', 'release', 'version']
 
@@ -147,6 +153,13 @@ def highlight_change( query_type, sorted_dataframe ):
         if not any( k in j for k in skip_column_keywords ):
             if f"{ compare_prefix }_{ j }" in sorted_dataframe:
                 add_update( f"{j}_change", f"{ compare_prefix }_{ j }", j )
+    
+    sorted_dataframe[ 'is_change' ] = 0
+    
+    for j in sorted_dataframe.columns:
+        if '_change' in j and j != 'is_change':
+            sorted_dataframe[ 'is_change' ] = sorted_dataframe[ [ j, 'is_change'] ].apply( add_change_indicator, args = (sorted_dataframe, j ), axis = 1 )
+            # sorted_dataframe[ 'is_change' ] = sorted_dataframe[ j ].apply( add_change_indicator )
 
     return sorted_dataframe
 
@@ -172,6 +185,7 @@ def get_latest_published_tracking_varnames( current_view ):
     tracking_vars.append(f"{current_view}.correction")
 
     return tracking_vars
+
 
 if __name__ == '__main__':
     main( )
