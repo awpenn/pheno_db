@@ -141,7 +141,7 @@ def highlight_change( query_type, sorted_dataframe ):
 
     def add_change_indicator( value, df, col ):        
         if value[ col ] != '':
-            return 1
+            return 'TRUE'
         else:
             return value.loc[ 'is_change' ]
 
@@ -154,12 +154,11 @@ def highlight_change( query_type, sorted_dataframe ):
             if f"{ compare_prefix }_{ j }" in sorted_dataframe:
                 add_update( f"{j}_change", f"{ compare_prefix }_{ j }", j )
     
-    sorted_dataframe[ 'is_change' ] = 0
+    sorted_dataframe[ 'is_change' ] = 'FALSE'
     
     for j in sorted_dataframe.columns:
         if '_change' in j and j != 'is_change':
             sorted_dataframe[ 'is_change' ] = sorted_dataframe[ [ j, 'is_change'] ].apply( add_change_indicator, args = (sorted_dataframe, j ), axis = 1 )
-            # sorted_dataframe[ 'is_change' ] = sorted_dataframe[ j ].apply( add_change_indicator )
 
     return sorted_dataframe
 
