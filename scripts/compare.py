@@ -154,6 +154,7 @@ def highlight_change( query_type, sorted_dataframe ):
             if f"{ compare_prefix }_{ j }" in sorted_dataframe:
                 add_update( f"{j}_change", f"{ compare_prefix }_{ j }", j )
     
+    ## create is_change column and set default value = FALSE
     sorted_dataframe[ 'is_change' ] = 'FALSE'
     
     for j in sorted_dataframe.columns:
