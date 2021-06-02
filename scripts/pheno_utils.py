@@ -608,7 +608,7 @@ def generate_summary_report( user_input_subject_type, loadtype ):
         retrieval_view = database_connection( f"SELECT all_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
 
         ## get data version id from first subject in dict of data from current load
-        loaded_data_data_version = update_data[ list( update_data.keys( ) )[ 0 ] ][ 'data_version' ]
+        loaded_data_data_version = update_data[ list( update_data.keys( ) )[ 0 ] ][ -1 ]
 
         ordered_list_data_versions = [ data_version[ 0 ] for data_version in database_connection( f"SELECT DISTINCT (data_version) FROM { retrieval_view } ORDER BY data_version DESC", ( ) ) ]
         

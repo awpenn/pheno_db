@@ -17,7 +17,6 @@ import pheno_utils
 script_name = 'publish_data_version.py'
 
 def main( ):
-
     ## User select datatype
     user_input_subject_type = pheno_utils.get_subject_type( )
 
@@ -28,5 +27,7 @@ def main( ):
     ## change version publish status
     pheno_utils.publish_subjects_and_data_version( data_version_published_status = 'TRUE', data_version = tablekey_of_release_to_publish, subject_type = user_input_subject_type )
     
+    pheno_utils.generate_summary_report( user_input_subject_type = user_input_subject_type, loadtype = 'new_published_release' )
+
 if __name__ == '__main__':
     main( )
