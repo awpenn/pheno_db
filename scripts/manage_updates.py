@@ -123,11 +123,14 @@ def write_to_db( data_dict, data_version_string ):
         if write_counter > 0:
             if pheno_utils.user_input_publish_dataset( data_version_string, write_counter ):
                 pheno_utils.publish_subjects_and_data_version( data_version_published_status = "TRUE", data_version = data_version, subject_type = user_input_subject_type )
+                
+                ##generate report
+                pheno_utils.generate_summary_report( user_input_subject_type = user_input_subject_type, loadtype = 'new_published_release' )
             else:
                 print( f"Phenotype records updated for { data_version_string } but version not published." )
+                ##generate report
+                pheno_utils.generate_summary_report( user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
     
-    ## report generation
-    pheno_utils.generate_summary_report( user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
         
 if __name__ == '__main__':
     main( )

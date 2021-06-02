@@ -596,7 +596,7 @@ def generate_summary_report( user_input_subject_type, loadtype ):
         ## get data for latest_published version of subject_type
         latest_published_view = database_connection( f"SELECT latest_published_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
         ## get update columns from subject_type latest_published view and key by subject_id
-        retrieved_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] } FROM { latest_published_view }", ( ) ) }
+        previous_release_comparison_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] } FROM { latest_published_view }", ( ) ) }
 
     elif loadtype == 'new_published_release':
         ## get data from latest_published_version
@@ -619,19 +619,19 @@ def generate_summary_report( user_input_subject_type, loadtype ):
         else:
             previous_latest_version = ordered_list_data_versions[ 0 ]
 
-        retrieved_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { retrieval_view } WHERE data_version = '{ previous_latest_version }'", ( ) ) }
+        previous_release_comparison_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { retrieval_view } WHERE data_version = '{ previous_latest_version }'", ( ) ) }
 
     ## build dict for retrieved (comparison) data
-    retrieved_data_dict = { }
-    for key, record in retrieved_data.items( ):
+    previous_release_comparison_data_dict = { }
+    for key, record in previous_release_comparison_data.items( ):
         blob = {}
         ## split the columns string from `update_columns_by_subject_type` into list and enumerate
         for index, header in enumerate( update_columns_by_subject_type[ user_input_subject_type ].split( ', ' ) ):
-            ## headers index will match index for that data value in the `retrieved_data` (`record` in first for loop)
+            ## headers index will match index for that data value in the `previous_release_comparison_data` (`record` in first for loop)
             blob[ header ] = record[ index ]
         
         ## add all the labeled datapoints to the last_published dict, keyed by subject_id
-        retrieved_data_dict[ key ] = blob
+        previous_release_comparison_data_dict[ key ] = blob
     
     ## build dict for update/newly published data 
     update_data_dict = { }
@@ -671,7 +671,7 @@ def generate_summary_report( user_input_subject_type, loadtype ):
 
     ## count subjects in update not in latest published
     for key in update_data_dict.keys( ):
-        if key not in retrieved_data_dict.keys( ):
+        if key not in previous_release_comparison_data_dict.keys( ):
             report_dict[ 'new_subjects' ][ 'count' ] += 1
             report_dict[ 'new_subjects' ][ 'subject_ids' ].append( key )
         
@@ -696,7 +696,7 @@ def generate_summary_report( user_input_subject_type, loadtype ):
                 report_dict[ 'ad/diagnosis_update_subjects' ][ 'subject_ids' ].append( key )
 
     ## count and identify subjects in the previous release not in newest
-    for key in retrieved_data_dict.keys( ):
+    for key in previous_release_comparison_data_dict.keys( ):
         if key not in update_data_dict.keys( ):
             report_dict[ 'dropped_subjects' ][ 'count' ] += 1
             report_dict[ 'dropped_subjects' ][ 'subject_ids' ].append( key )
@@ -715,6 +715,9 @@ def generate_summary_report( user_input_subject_type, loadtype ):
         f = open(f'./log_files/{ date }-{ time }-new-release-report.txt', 'w+')
 
         f.write( f"SUMMARY REPORT FOR NEW RELEASE\n\n" )
+
+    ## total subject count
+    f.write( f"Subjects in release: { len( update_data_dict ) }\n\n" )
 
     ##new subjects
     f.write( f"Subject not in previous release: { report_dict[ 'new_subjects' ][ 'count' ] }\n" )
