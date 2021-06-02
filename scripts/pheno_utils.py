@@ -577,7 +577,7 @@ def create_tsv( dataframe, subject_type, validation_type, requires_index = False
     else:
         dataframe.to_csv(f"./validation_error_files/{ corrected_subject_type }-{ validation_type }_errors-{ datestamp }.txt", sep="\t", index=False )
 
-def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
+def generate_summary_report( user_input_subject_type, loadtype ):
     """called at end of write to database funct, args = the write_to_db dict, loadtype (publish or update) and the subect_type..."""
 
     update_columns_by_subject_type = {
@@ -587,23 +587,30 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
         "ADNI": 'subject_id, update_baseline, update_latest, update_diagnosis, correction', 
     }
     
-    ## taking data dict and keying by subjid rather than subjid+version
-    update_data_dict = { record[ 'subject_id' ]: record for key, record in data_dict.items( ) }
-
     if loadtype == 'unpublished_update':
-        current_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
-        ## get update columns from subject_type current view and key by subject_id
-        retrieved_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { current_view }", ( ) ) }
+        ## get data for unpublished_update for subject_type
+        unpublished_update_view = database_connection( f"SELECT unpublished_update_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+
+        update_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] } FROM { unpublished_update_view }", ( ) ) }
+        
+        ## get data for latest_published version of subject_type
+        latest_published_view = database_connection( f"SELECT latest_published_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+        ## get update columns from subject_type latest_published view and key by subject_id
+        retrieved_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] } FROM { latest_published_view }", ( ) ) }
 
     elif loadtype == 'new_published_release':
+        ## get data from latest_published_version
+        latest_published_view = database_connection( f"SELECT latest_published_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
+        
+        update_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }, data_version FROM { latest_published_view }", ( ) ) }
+        
         ##figure out what this published view is, get the previous one, use that in where clause below to get comparison data
         retrieval_view = database_connection( f"SELECT all_view_name FROM env_var_by_subject_type WHERE subject_type = '{ user_input_subject_type }'", ( ) )[ 0 ][ 0 ]
 
         ## get data version id from first subject in dict of data from current load
-        loaded_data_data_version = update_data_dict[ list( update_data_dict.keys( ) )[ 0 ] ][ 'data_version' ]
+        loaded_data_data_version = update_data[ list( update_data.keys( ) )[ 0 ] ][ 'data_version' ]
 
         ordered_list_data_versions = [ data_version[ 0 ] for data_version in database_connection( f"SELECT DISTINCT (data_version) FROM { retrieval_view } ORDER BY data_version DESC", ( ) ) ]
-        ## ordered_list_data_versions = [ data_version[ 0 ] for data_version in database_connection( f"SELECT DISTINCT (data_version) FROM { retrieval_view } WHERE version_published = True ORDER BY data_version DESC", ( ) ) ]
         
         ## take current load's version id, get index of that from DESC ordered list of data versions above, get the version that follows it in list
 
@@ -614,7 +621,7 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
 
         retrieved_data = { record[ 0 ]: record for record in database_connection( f"SELECT { update_columns_by_subject_type[ user_input_subject_type ] }  FROM { retrieval_view } WHERE data_version = '{ previous_latest_version }'", ( ) ) }
 
-    ## build dict of latest published data for subject_type
+    ## build dict for retrieved (comparison) data
     retrieved_data_dict = { }
     for key, record in retrieved_data.items( ):
         blob = {}
@@ -626,6 +633,18 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
         ## add all the labeled datapoints to the last_published dict, keyed by subject_id
         retrieved_data_dict[ key ] = blob
     
+    ## build dict for update/newly published data 
+    update_data_dict = { }
+    for key, record in update_data.items( ):
+        blob = {}
+        ## split the columns string from `update_columns_by_subject_type` into list and enumerate
+        for index, header in enumerate( update_columns_by_subject_type[ user_input_subject_type ].split( ', ' ) ):
+            ## headers index will match index for that data value in the `update_data` (`record` in first for loop)
+            blob[ header ] = record[ index ]
+        
+        ## add all the labeled datapoints to the dict, keyed by subject_id
+        update_data_dict[ key ] = blob
+
     ## build dict to hold report info
     report_dict = {
         "new_subjects": {
@@ -643,6 +662,10 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
         "correction_subjects": {
             "count": 0,
             "subject_ids": []
+        },
+        "dropped_subjects": {
+            "count": 0,
+            "subject_ids": [],
         },
     }
 
@@ -671,6 +694,13 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
             if update_data_dict[ key ][ 'update_diagnosis' ] == 1:
                 report_dict[ 'ad/diagnosis_update_subjects' ][ 'count' ] += 1
                 report_dict[ 'ad/diagnosis_update_subjects' ][ 'subject_ids' ].append( key )
+
+    ## count and identify subjects in the previous release not in newest
+    for key in retrieved_data_dict.keys( ):
+        if key not in update_data_dict.keys( ):
+            report_dict[ 'dropped_subjects' ][ 'count' ] += 1
+            report_dict[ 'dropped_subjects' ][ 'subject_ids' ].append( key )
+     
 
     ## build report file
     date = datetime.date.today( )
@@ -707,6 +737,12 @@ def generate_summary_report( data_dict, user_input_subject_type, loadtype ):
     ##corrections
     f.write( f"Subjects with new corrections: { report_dict[ 'correction_subjects' ][ 'count' ] }\n" )
     for subject in report_dict[ 'correction_subjects' ][ 'subject_ids' ]:
+        f.write( f"{ subject }\n" )
+    f.write("\n\n")
+
+    ## dropped subjects
+    f.write( f"Subjects dropped from this release: { report_dict[ 'dropped_subjects' ][ 'count' ] }\n" )
+    for subject in report_dict[ 'dropped_subjects' ][ 'subject_ids' ]:
         f.write( f"{ subject }\n" )
     f.write("\n\n")
 
@@ -894,7 +930,7 @@ def get_phenotype_and_consent_level_data( database_type, subject_type ):
     DB = os.getenv('DB')
 
     ## get subject type and the [type]_current view
-    current_release_view = database_connection( f"SELECT current_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'" , ( ) )[ 0 ][ 0 ]
+    current_release_view = database_connection( f"SELECT latest_published_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'" , ( ) )[ 0 ][ 0 ]
     
     ## get phenotype data based on selected subject_type
     pheno = database_connection( f"SELECT * FROM { current_release_view }" , ( ) )

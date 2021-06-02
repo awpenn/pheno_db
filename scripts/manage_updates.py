@@ -127,7 +127,7 @@ def write_to_db( data_dict, data_version_string ):
                 print( f"Phenotype records updated for { data_version_string } but version not published." )
     
     ## report generation
-    pheno_utils.generate_summary_report( data_dict = data_dict, user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
+    pheno_utils.generate_summary_report( user_input_subject_type = user_input_subject_type, loadtype = 'unpublished_update' )
         
 if __name__ == '__main__':
     main( )
