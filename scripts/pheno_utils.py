@@ -437,6 +437,35 @@ def user_input_data_version_to_publish():
                         break    
             continue
 
+def get_filename_prefix( ):
+    """takes no args, returns string filename prefix provided by user"""
+    while True:
+        try:
+            filename_prefix_input = input( f"Please enter a filename prefix for the phenotype output files. " )
+        except ValueError:
+            print( 'Please enter a filename prefix.' )
+            continue
+        if not filename_prefix_input:
+            print( 'Please enter a filename prefix.' )
+            continue
+        elif '/' in filename_prefix_input:
+            print( 'Filename prefix contains an backslash ( "/" ). Please enter a prefix without a backslash' )
+        else:
+            while True:
+                try:
+                    confirm_input = input( f"Confirm { filename_prefix_input.strip( ) } is correct filename prefix?(y/n) " )
+                except ValueError:
+                    continue
+                if not confirm_input:
+                    continue
+                elif confirm_input.lower( ) not in [ 'y', 'n' ]:
+                    continue
+                else:
+                    if confirm_input.lower( ) == 'y':
+                        return filename_prefix_input.strip( )
+                    else:
+                        break    
+            continue
 
 def user_input_publish_dataset( data_version_string, write_counter ):
 

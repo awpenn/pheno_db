@@ -22,13 +22,16 @@ def main( ):
 
     user_input_subject_type = pheno_utils.get_subject_type( )
 
+    ## get file prefix from user
+    user_input_filename_prefix = pheno_utils.get_filename_prefix( )
+
     pheno_dict, by_consents_dict = pheno_utils.get_phenotype_and_consent_level_data( database_type = database_type, subject_type = user_input_subject_type )
     
-    build_output_files_split_by_consent( subjects_dict = by_consents_dict, subject_type = user_input_subject_type )
+    build_output_files_split_by_consent( subjects_dict = by_consents_dict, subject_type = user_input_subject_type, filename_prefix = user_input_filename_prefix )
 
 ##script-specific functions
-def build_output_files_split_by_consent( subjects_dict, subject_type ):
-    """takes dict of subjects, creates dataframe and csv file with phenotypes and subjects consent/cohort"""
+def build_output_files_split_by_consent( subjects_dict, subject_type, filename_prefix ):
+    """takes dict of subjects, string subject type, and string filename_prefix, creates dataframe and csv file with phenotypes and subjects consent/cohort"""
     subjects = subjects_dict
 
     print( f'{ len( subjects.keys( ) ) } consent level(s) found for { subject_type } subjects...\n' )
@@ -52,9 +55,9 @@ def build_output_files_split_by_consent( subjects_dict, subject_type ):
         if subject_type == 'case/control':
             subject_type = 'case-control'
 
-        df.to_csv(f"./log_files/{ subject_type }-{ consent }-phenotypes-and-consents-{ date }-{ time }.txt", sep="\t", index=False )
+        df.to_csv( f"./log_files/{ filename_prefix }-{ consent }.txt", sep="\t", index=False )
 
-        print( f'Output file " { subject_type }-{ consent }-phenotypes-and-consents-{ date }-{ time }.txt " in log_files directory.\n' )
+        print( f'Output file " { filename_prefix }-{ consent }.txt " in log_files directory.\n' )
 
 if __name__ == '__main__':
     main( )
