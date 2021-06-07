@@ -379,7 +379,7 @@ def get_subject_to_drop( view_based_on_subject_type ):
     return single_dict
 
 def user_input_data_version():
-    """takes no arg, returns dataversion for data being handled"""
+    """takes no arg, returns dataversion ( string ) for data being handled"""
     ## only returns versions not published, so once published, data cant be overwritten accidently 
     data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection( "SELECT DISTINCT release_version FROM data_versions WHERE published = FALSE", ( ) ) ]
 
@@ -888,6 +888,7 @@ def create_data_dict( LOADFILE, user_input_subject_type, data_version, script_na
                 ## if need to check for published AND unpublished records for subject, use the two checklists created, 
                 # otherwise, just the one with pubstat dependant on user input
                 if script_name in scripts_requiring_pub_and_unpub_check:
+
                     if check_not_duplicate( blob[ subject_id_varname ], published_dupecheck_list ) and check_not_duplicate( blob[ subject_id_varname ], unpublished_dupecheck_list ):
                         blob[ 'is_update' ] = False ## for loading_unpublished, if id'd as a d
                         data_dict[f'{ blob[subject_id_varname] }_{ data_version }'] = blob
@@ -1028,6 +1029,28 @@ def get_phenotype_and_consent_level_data( database_type, subject_type ):
 
     ## return phenotype dict ( keyed by adspid ) and consents dict ( keyed by consent level )
     return pheno_dict, by_consents_dict
+
+def get_previous_comments( subject_type ):
+    """take string subject_type as arg, returns dict, keyed by subject_id, with value being comment from latest_published_version"""
+
+    ##get correct view name ( for latest published version )
+    latest_published_view = database_connection( f"SELECT latest_published_view_name FROM env_var_by_subject_type WHERE subject_type = '{ subject_type }'", ( ) )[ 0 ][ 0 ]
+
+    ## build dict, key = subject_id, value = comment
+    comments_dict = { record[ 0 ]: record[ 1 ] for record in database_connection( f"SELECT subject_id, comments FROM { latest_published_view }", ( ) ) }
+
+    return comments_dict
+
+def add_previous_comments_to_data_dict( data_dict, subject_type ):
+    """"takes data dict ( keyed by subject_id + release name, value is phenotype dict ) and string subject_type as args, adds the comments from previous published version, returns dict"""
+    previous_comments_dict = get_previous_comments( subject_type )
+
+    for key, value in list( data_dict.items( ) ):
+        ## if there is a previous comment for the subject AND that comment is not already in the update's comment
+        if value[ 'subject_id' ] in previous_comments_dict.keys( ) and previous_comments_dict[ value[ 'subject_id' ] ] and previous_comments_dict[ value[ 'subject_id' ] ] not in data_dict[ key ][ 'comments' ]:
+            data_dict[ key ][ 'comments' ] = f"{ previous_comments_dict[ value[ 'subject_id' ] ] }; { data_dict[ key ][ 'comments' ] }"
+    
+    return data_dict
 
 #
 # for dev/debugging

@@ -43,7 +43,13 @@ def main():
     else:
         print( msg )
         data_dict = pheno_utils.create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
-        write_to_db( data_dict, data_version )
+
+        data_dict_with_previous_comments = pheno_utils.add_previous_comments_to_data_dict( data_dict = data_dict, subject_type = user_input_subject_type )
+
+        if data_dict_with_previous_comments:
+            write_to_db( data_dict, data_version )
+        else:
+            print( "No records will be added to the database." )
 
     pheno_utils.generate_errorlog( )
 

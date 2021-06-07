@@ -25,11 +25,11 @@ def main():
     ## checks if DEBUG arg passed in script call, sets DEBUG variable to True if so
     pheno_utils.check_DEBUG( )
 
-    user_input_subject_type = pheno_utils.get_subject_type()
+    user_input_subject_type = pheno_utils.get_subject_type( )
 
-    data_version = pheno_utils.user_input_data_version()
+    data_version = pheno_utils.user_input_data_version( )
 
-    LOADFILE = pheno_utils.get_filename()
+    LOADFILE = pheno_utils.get_filename( )
 
     variables_match_dictionary, msg = pheno_utils.check_loadfile_correctness( LOADFILE, user_input_subject_type )
     
@@ -41,13 +41,26 @@ def main():
         print( msg )
         data_dict = pheno_utils.create_data_dict( LOADFILE, user_input_subject_type, data_version, script_name )
 
-        if data_dict: ## ie. if any records were found that can be added to the database
-            write_to_db( data_dict )
+        data_dict_with_previous_comments = pheno_utils.add_previous_comments_to_data_dict( data_dict = data_dict, subject_type = user_input_subject_type )
+
+        if data_dict_with_previous_comments: ## ie. if any records were found that can be added to the database
+            write_to_db( data_dict_with_previous_comments )
         else:
             print( "No records will be added to the database." )
     
     pheno_utils.generate_errorlog( )
+
+def add_previous_comments_to_data_dict( data_dict, subject_type ):
+    """"takes data dict ( keyed by subject_id + release name, value is phenotype dict ) and string subject_type as args, adds the comments from previous published version, returns dict"""
+    previous_comments_dict = pheno_utils.get_previous_comments( subject_type )
+
+    for key, value in list( data_dict.items( ) ):
+        ## if there is a previous comment for the subject AND that comment is not already in the update's comment
+        if previous_comments_dict[ value[ 'subject_id' ] ] and previous_comments_dict[ value[ 'subject_id' ] ] not in data_dict[ key ][ 'comments' ]:
+            data_dict[ key ][ 'comments' ] = f"{ previous_comments_dict[ value[ 'subject_id' ] ] }; { data_dict[ key ][ 'comments' ] }"
     
+    return data_dict
+
 def write_to_db( data_dict ):
     """takes data dict and writes to database"""
 
