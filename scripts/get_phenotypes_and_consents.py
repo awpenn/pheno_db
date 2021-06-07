@@ -8,7 +8,6 @@ sys.path.append('/home/pheno_db/.venv/lib/python3.6/site-packages/')
 import csv
 import os
 import json
-import datetime
 import pandas as pd
 
 import pheno_utils
@@ -20,15 +19,18 @@ def main( ):
 
     user_input_subject_type = pheno_utils.get_subject_type( )
 
+    ## get file prefix from user
+    user_input_filename_prefix = pheno_utils.get_filename_prefix( )
+
     pheno_dict, by_consents_dict = pheno_utils.get_phenotype_and_consent_level_data( database_type = database_type, subject_type = user_input_subject_type )
     
     if by_consents_dict:
-        build_output_file( subjects_dict = pheno_dict, subject_type = user_input_subject_type )
+        build_output_file( subjects_dict = pheno_dict, subject_type = user_input_subject_type, filename_prefix = user_input_filename_prefix )
     else:
         print( f'No published {  user_input_subject_type } records found with consent levels.' )
 
 ##script-specific functions
-def build_output_file( subjects_dict, subject_type ):
+def build_output_file( subjects_dict, subject_type, filename_prefix ):
     """takes dict of subjects, creates dataframe and csv file with phenotypes and subjects consent/cohort"""
     subjects = subjects_dict
 
@@ -43,16 +45,12 @@ def build_output_file( subjects_dict, subject_type ):
     ## drop the site_id from final file, was only used to match
     df = df.drop( 'site_indiv_id', axis=1 )
 
-    date = datetime.date.today( )
-    time = datetime.datetime.now( ).strftime("%H-%M-%S")
-
     ##need to remove slash in case/control for filename
     if subject_type == 'case/control':
         subject_type = 'case-control'
 
-    df.to_csv(f"./log_files/{ subject_type }-phenotypes-and-consents-{ date }-{ time }.txt", sep="\t", index=False )
+        df.to_csv( f"./log_files/{ filename_prefix }-ALL.txt", sep="\t", index=False )
 
-    print( f'Output file " { subject_type }-phenotypes-and-consents-{ date }-{ time }.txt " in log_files directory.' )
-
+        print( f'Output file " { filename_prefix }-ALL.txt " in log_files directory.\n' )
 if __name__ == '__main__':
     main( )

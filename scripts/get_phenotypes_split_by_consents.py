@@ -10,7 +10,6 @@ sys.path.append('/home/pheno_db/.venv/lib/python3.6/site-packages/')
 import csv
 import os
 import json
-import datetime
 import pandas as pd
 
 import pheno_utils
@@ -47,9 +46,6 @@ def build_output_files_split_by_consent( subjects_dict, subject_type, filename_p
         
         ## drop the site_id from final file, was only used to match
         df = df.drop( 'site_indiv_id', axis=1 )
-
-        date = datetime.date.today( )
-        time = datetime.datetime.now( ).strftime("%H-%M-%S")
 
         ##need to remove slash in case/control for filename
         if subject_type == 'case/control':
