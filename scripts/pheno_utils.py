@@ -1046,7 +1046,7 @@ def add_previous_comments_to_data_dict( data_dict, subject_type ):
     previous_comments_dict = get_previous_comments( subject_type )
 
     for key, value in list( data_dict.items( ) ):
-        ## if there is a previous comment for the subject AND that comment is not already in the update's comment
+        ## if the current subject is in the comments dict (ie. is not compeletly new) |AND| if there is a previous comment for the subject |AND| that comment is not already in the update's comment
         if value[ 'subject_id' ] in previous_comments_dict.keys( ) and previous_comments_dict[ value[ 'subject_id' ] ] and previous_comments_dict[ value[ 'subject_id' ] ] not in data_dict[ key ][ 'comments' ]:
             data_dict[ key ][ 'comments' ] = f"{ previous_comments_dict[ value[ 'subject_id' ] ] }; { data_dict[ key ][ 'comments' ] }"
     
