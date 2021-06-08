@@ -269,6 +269,9 @@ def get_subject_type():
         if not casefam_input:
             print("Please input a valid entry. ")
             continue
+        elif not casefam_input.isdigit( ):
+            print("Please input a valid numerical entry. ")
+            continue
         elif int( casefam_input ) in subject_types.keys( ):
             print(f"Loading { subject_types[ int( casefam_input ) ].strip( ) } data.")
             return subject_types[ int( casefam_input ) ].strip( )
@@ -278,20 +281,28 @@ def get_subject_type():
 
 def get_publish_action():
     """takes nothing returns boolean value for publish status based on user input"""
+    global valid_confirm_inputs
+
     while True:
         try:
-            pubstat_input = input(f"Do you want loaded data to be published? ")
+            pubstat_input = input(f"Do you want loaded data to be published? (y/n) ")
         except ValueError:
             continue
-        if pubstat_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-            publish_status = True
-            print("Loaded records will be given publish status.")
-            return publish_status
+        if not pubstat_input:
+            print( 'Please enter (y/n)' )
+            continue
+        elif pubstat_input not in valid_confirm_inputs:
+            print( 'Please enter (y/n)' )
+            continue     
 
-        elif pubstat_input in ['n', 'N', 'no', 'No', 'NO']:
+        elif pubstat_input.lower( ) == 'y':
+            print("Loaded records will be given publish status.")
+            return True
+
+        elif pubstat_input.lower( ) == 'n':
             print("Loaded records will not be published.")
-            publish_status = False
-            return publish_status
+            return False
+
         else:
             print("Please input a valid entry. ")
             continue
@@ -300,16 +311,18 @@ def get_compare_query_type():
     """takes nothing as arg, and returns query type for comparison (ie. update vs. current or update vs. baseline"""
     while True:
         response_dict = {
-            1: "update_to_latest",
-            2: "update_to_baseline"
+            1: "update_to_latest\n",
+            2: "update_to_baseline\n"
         }
         try:
-            querytype_input = input(f"Select type of comparison (by key) to generate: {response_dict} ")
+            querytype_input = input(f"Select type of comparison (by key) to generate: \n{ ''.join( [ f'{ key }: { value }' for key, value in response_dict.items( ) ] ) } ")
         except ValueError:
             continue
-        if int(querytype_input) in response_dict.keys():
-            query_type = response_dict[ int( querytype_input ) ]
-            print(f"{query_type} comparison file will be generated. ")
+        if not querytype_input:
+            continue
+        elif int( querytype_input ) in response_dict.keys( ):
+            query_type = response_dict[ int( querytype_input ) ].strip( )
+            print( f"{ query_type } comparison file will be generated. " )
             return query_type
 
         else:
@@ -318,20 +331,25 @@ def get_compare_query_type():
 
 def user_input_batch_loading():
     """takes no args, returns boolean for whether dropping subjects by batch file or manual input"""
+    global valid_confirm_inputs
     while True:
         try:
-            isbatch_input = input(f"Are you dropping subjects via batchfile? ")
+            isbatch_input = input(f"Are you dropping subjects via batchfile?(y/n) ")
         except ValueError:
             continue
-        if isbatch_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
-            isbatch_status = True
-            print("You will be prompted to input loadfile name.")
-            return isbatch_status
+        if not isbatch_input:
+            continue
+        elif isbatch_input not in valid_confirm_inputs:
+            print("Please input a valid entry. ")
+            continue
 
-        elif isbatch_input in ['n', 'N', 'no', 'No', 'NO']:
+        elif isbatch_input.lower( ) == 'y':
+            print("You will be prompted to input loadfile name.")
+            return True
+
+        elif isbatch_input.lower( ) == 'n':
             print("You will be prompted for subject_id and release_version of intended drop subject.")
-            isbatch_status = False
-            return isbatch_status
+            return False
         else:
             print("Please input a valid entry. ")
             continue
@@ -347,7 +365,7 @@ def get_subject_to_drop( view_based_on_subject_type ):
                 release_name_input = input(f"Enter release_version for subjects to be dropped. ")
             except ValueError:
                 continue
-            if len(release_name_input) < 1:
+            if len( release_name_input ) < 1:
                 print('Please enter a release name.')
                 continue
             else:
@@ -388,19 +406,28 @@ def get_subject_to_drop( view_based_on_subject_type ):
 def user_input_data_version():
     """takes no arg, returns dataversion ( string ) for data being handled"""
     ## only returns versions not published, so once published, data cant be overwritten accidently 
-    data_versions = [ version_tuple[ 0 ] for version_tuple in database_connection( "SELECT DISTINCT release_version FROM data_versions WHERE published = FALSE", ( ) ) ]
+    data_versions = { index: version_tuple[ 0 ] for index, version_tuple in enumerate( database_connection( "SELECT DISTINCT release_version FROM data_versions WHERE published = FALSE", ( ) ) ) }
+    
+    ## add newline for display
+    for key, value in list( data_versions.items( ) ):
+        data_versions[ key ] = value + '\n'
 
     while True:
         try:
-            version_input = input(f"Which release_version does your data belong to (select from list)? Please only load data from one release at a time. { data_versions }")
+            version_input = input(f"Which release_version does your data belong to (select numerical value from list)? Please only load data from one release at a time.\n{ ''.join( [ f'{ key }: { value }' for key, value in data_versions.items( ) ] ) }" )
         except ValueError:
             continue
-        if version_input in data_versions:
-            print(f"Loading {version_input} data.")
-            return version_input
-        else:
+        if not version_input:
+            continue
+        elif not version_input.isdigit( ):
             print("Please input a valid entry. ")
             continue 
+        elif int( version_input ) not in data_versions.keys( ):
+            print("Please input a valid entry. ")
+            continue 
+        else:
+            print(f"Loading { data_versions[ int( version_input ) ].strip( ) } data.")
+            return data_versions[ int( version_input ) ].strip( )
 
 def user_input_data_version_to_publish():
     """takes no arg, returns str name of data_version and it's int tablekey"""
