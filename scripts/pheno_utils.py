@@ -255,16 +255,23 @@ def get_filename():
 def get_subject_type():
     """takes nothing, returns subject_type for data being handled"""
 
-    subject_types = [ type_tuple[ 0 ] for type_tuple in database_connection( "SELECT DISTINCT subject_type FROM env_var_by_subject_type", ( ) ) ]
+    subject_types = { index: type_tuple[ 0 ] for index, type_tuple in enumerate( database_connection( "SELECT DISTINCT subject_type FROM env_var_by_subject_type", ( ) ) ) }
+    
+    ## add newline for display
+    for key, value in list( subject_types.items( ) ):
+        subject_types[ key ] = value + '\n'
 
     while True:
         try:
-            casefam_input = input(f"What type of data are you working with (select from list)? {subject_types}")
+            casefam_input = input(f"What type of data are you working with (select from list)? \n\n{ ''.join( [ f'{ key }: { value }' for key, value in subject_types.items( ) ] ) }" )
         except ValueError:
             continue
-        if casefam_input in subject_types:
-            print(f"Loading {casefam_input} data.")
-            return casefam_input
+        if not casefam_input:
+            print("Please input a valid entry. ")
+            continue
+        elif int( casefam_input ) in subject_types.keys( ):
+            print(f"Loading { subject_types[ int( casefam_input ) ].strip( ) } data.")
+            return subject_types[ int( casefam_input ) ].strip( )
         else:
             print("Please input a valid entry. ")
             continue
